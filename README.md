@@ -1,1 +1,1 @@
-official file for the Mazah app 🌎
+# official file for the Mazah app 🌎

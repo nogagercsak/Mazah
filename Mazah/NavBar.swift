@@ -33,6 +33,13 @@ struct NavBar: View {
             
             Spacer()
             
+            NavigationLink(destination: ScannerView(showSignInView: $showSignInView)) {
+                Image(systemName: "barcode.viewfinder")
+                    .font(.title)
+            }
+            .padding(.leading, 20)
+            
+            Spacer()
     //        NavigationLink(destination: TrackerHomeView(showSignInView: $showSignInView)
    //                         .navigationBarBackButtonHidden(true)) {
   //              Image(systemName: "list.bullet")

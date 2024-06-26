@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D21668042C0FF1C300C06F55 /* Poppins-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D21668032C0FF1C200C06F55 /* Poppins-Regular.ttf */; };
 		D24B4C0A2C0BF44D003268DD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D24B4C092C0BF44D003268DD /* GoogleService-Info.plist */; };
 		D298A8522BFD6FAD0029E0D5 /* MazahApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D298A8512BFD6FAD0029E0D5 /* MazahApp.swift */; };
 		D298A8562BFD6FB00029E0D5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D298A8552BFD6FB00029E0D5 /* Assets.xcassets */; };
@@ -29,9 +30,14 @@
 		D2CAE59B2C0BE61A00C2B239 /* NavBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CAE59A2C0BE61A00C2B239 /* NavBar.swift */; };
 		D2CAE59D2C0BE67300C2B239 /* SettingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CAE59C2C0BE67300C2B239 /* SettingViewModel.swift */; };
 		D2CAE59F2C0BE68600C2B239 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CAE59E2C0BE68600C2B239 /* SettingsView.swift */; };
+		D2CFC1072C2C72EA004A6DB7 /* ScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CFC1062C2C72EA004A6DB7 /* ScannerView.swift */; };
+		D2CFC1092C2C73AE004A6DB7 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CFC1082C2C73AE004A6DB7 /* ViewController.swift */; };
+		D2CFC10C2C2C743C004A6DB7 /* ScanditBarcodeCapture in Frameworks */ = {isa = PBXBuildFile; productRef = D2CFC10B2C2C743C004A6DB7 /* ScanditBarcodeCapture */; };
+		D2CFC10E2C2C743C004A6DB7 /* ScanditCaptureCore in Frameworks */ = {isa = PBXBuildFile; productRef = D2CFC10D2C2C743C004A6DB7 /* ScanditCaptureCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D21668032C0FF1C200C06F55 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Poppins-Regular.ttf"; path = "../../../Downloads/Poppins/Poppins-Regular.ttf"; sourceTree = "<group>"; };
 		D24B4C092C0BF44D003268DD /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		D298A84E2BFD6FAD0029E0D5 /* Mazah.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mazah.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D298A8512BFD6FAD0029E0D5 /* MazahApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MazahApp.swift; sourceTree = "<group>"; };
@@ -49,6 +55,8 @@
 		D2CAE59A2C0BE61A00C2B239 /* NavBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavBar.swift; sourceTree = "<group>"; };
 		D2CAE59C2C0BE67300C2B239 /* SettingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingViewModel.swift; sourceTree = "<group>"; };
 		D2CAE59E2C0BE68600C2B239 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		D2CFC1062C2C72EA004A6DB7 /* ScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerView.swift; sourceTree = "<group>"; };
+		D2CFC1082C2C73AE004A6DB7 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,10 +64,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D2CFC10C2C2C743C004A6DB7 /* ScanditBarcodeCapture in Frameworks */,
 				D2CAE58B2C0BB4D600C2B239 /* FirebaseFirestoreCombine-Community in Frameworks */,
 				D2CAE5992C0BB7AE00C2B239 /* FirebaseAuthCombine-Community in Frameworks */,
 				D2CAE5972C0BB7AE00C2B239 /* FirebaseAuth in Frameworks */,
 				D2CAE5872C0BB4BF00C2B239 /* FirebaseAnalytics in Frameworks */,
+				D2CFC10E2C2C743C004A6DB7 /* ScanditCaptureCore in Frameworks */,
 				D2CAE5892C0BB4D600C2B239 /* FirebaseFirestore in Frameworks */,
 				D2CAE58D2C0BB4D600C2B239 /* FirebaseFirestoreSwift in Frameworks */,
 			);
@@ -68,6 +78,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D21668012C0FF15A00C06F55 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				D21668032C0FF1C200C06F55 /* Poppins-Regular.ttf */,
+			);
+			name = Fonts;
+			sourceTree = "<group>";
+		};
 		D24B4C0B2C0C0504003268DD /* Authentication */ = {
 			isa = PBXGroup;
 			children = (
@@ -104,6 +122,7 @@
 				D2CAE57E2C0BB2FB00C2B239 /* ProfileView.swift */,
 				D2CAE57C2C0BB2CC00C2B239 /* RootView.swift */,
 				D2CAE57A2C0BB2A900C2B239 /* FirstView.swift */,
+				D2CFC1052C2C72D2004A6DB7 /* Tracker */,
 			);
 			name = Core;
 			sourceTree = "<group>";
@@ -129,6 +148,7 @@
 			isa = PBXGroup;
 			children = (
 				D298A8512BFD6FAD0029E0D5 /* MazahApp.swift */,
+				D21668012C0FF15A00C06F55 /* Fonts */,
 				D24B4C0D2C0C0579003268DD /* Settings */,
 				D24B4C0C2C0C053A003268DD /* Firestore */,
 				D24B4C0B2C0C0504003268DD /* Authentication */,
@@ -155,6 +175,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		D2CFC1052C2C72D2004A6DB7 /* Tracker */ = {
+			isa = PBXGroup;
+			children = (
+				D2CFC1062C2C72EA004A6DB7 /* ScannerView.swift */,
+				D2CFC1082C2C73AE004A6DB7 /* ViewController.swift */,
+			);
+			name = Tracker;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -178,6 +207,8 @@
 				D2CAE58C2C0BB4D600C2B239 /* FirebaseFirestoreSwift */,
 				D2CAE5962C0BB7AE00C2B239 /* FirebaseAuth */,
 				D2CAE5982C0BB7AE00C2B239 /* FirebaseAuthCombine-Community */,
+				D2CFC10B2C2C743C004A6DB7 /* ScanditBarcodeCapture */,
+				D2CFC10D2C2C743C004A6DB7 /* ScanditCaptureCore */,
 			);
 			productName = Mazah;
 			productReference = D298A84E2BFD6FAD0029E0D5 /* Mazah.app */;
@@ -209,6 +240,7 @@
 			mainGroup = D298A8452BFD6FAD0029E0D5;
 			packageReferences = (
 				D2CAE5822C0BB39700C2B239 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				D2CFC10A2C2C743C004A6DB7 /* XCRemoteSwiftPackageReference "datacapture-spm" */,
 			);
 			productRefGroup = D298A84F2BFD6FAD0029E0D5 /* Products */;
 			projectDirPath = "";
@@ -227,6 +259,7 @@
 				D298A8592BFD6FB00029E0D5 /* Preview Assets.xcassets in Resources */,
 				D298A8562BFD6FB00029E0D5 /* Assets.xcassets in Resources */,
 				D24B4C0A2C0BF44D003268DD /* GoogleService-Info.plist in Resources */,
+				D21668042C0FF1C300C06F55 /* Poppins-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -237,11 +270,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D2CFC1092C2C73AE004A6DB7 /* ViewController.swift in Sources */,
 				D2CAE5812C0BB32900C2B239 /* UserManager.swift in Sources */,
 				D2CAE57D2C0BB2CC00C2B239 /* RootView.swift in Sources */,
 				D2CAE5842C0BB44F00C2B239 /* AuthenticaionManager.swift in Sources */,
 				D2CAE59D2C0BE67300C2B239 /* SettingViewModel.swift in Sources */,
 				D2CAE57F2C0BB2FB00C2B239 /* ProfileView.swift in Sources */,
+				D2CFC1072C2C72EA004A6DB7 /* ScannerView.swift in Sources */,
 				D2CAE59B2C0BE61A00C2B239 /* NavBar.swift in Sources */,
 				D2CAE59F2C0BE68600C2B239 /* SettingsView.swift in Sources */,
 				D2CAE5932C0BB6DF00C2B239 /* SIgnInEmailView.swift in Sources */,
@@ -383,8 +418,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Mazah/Preview Content\"";
+				DEVELOPMENT_TEAM = 43R5GX99UB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "$(PRODUCT_NAME) needs ot access your camera in order to scan barcodes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -411,8 +448,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Mazah/Preview Content\"";
+				DEVELOPMENT_TEAM = 43R5GX99UB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "$(PRODUCT_NAME) needs ot access your camera in order to scan barcodes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -463,6 +502,14 @@
 				minimumVersion = 10.27.0;
 			};
 		};
+		D2CFC10A2C2C743C004A6DB7 /* XCRemoteSwiftPackageReference "datacapture-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Scandit/datacapture-spm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.24.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -495,6 +542,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D2CAE5822C0BB39700C2B239 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = "FirebaseAuthCombine-Community";
+		};
+		D2CFC10B2C2C743C004A6DB7 /* ScanditBarcodeCapture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D2CFC10A2C2C743C004A6DB7 /* XCRemoteSwiftPackageReference "datacapture-spm" */;
+			productName = ScanditBarcodeCapture;
+		};
+		D2CFC10D2C2C743C004A6DB7 /* ScanditCaptureCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D2CFC10A2C2C743C004A6DB7 /* XCRemoteSwiftPackageReference "datacapture-spm" */;
+			productName = ScanditCaptureCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

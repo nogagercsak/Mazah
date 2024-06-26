@@ -18,12 +18,19 @@ struct FirstView: View {
                 NavigationView {
                     VStack {
                         Text("Mazah")
-                            .font(.custom("andale-mono", size: 95))
+                            .font(.custom("Poppins-Regular", size: 95))
                             .multilineTextAlignment(.center)
                             .foregroundColor(Color(red: 0.34, green: 0.41, blue: 0.34))
                             .fontWeight(.bold)
                             .frame(width: 400, height: 76, alignment: .top)
                             .offset(x: 0, y: -40)
+                        Text("Mazah")
+                            .font(.system(size: 95))
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(Color(red: 0.34, green: 0.41, blue: 0.34))
+                            .frame(width: 400, height: 76, alignment: .top)
+                            .offset(x: 0, y: -40)
+                            
         
                         
                         Text("Start your food saving journey today.")
@@ -60,7 +67,6 @@ struct FirstView: View {
                     UserDefaults.standard.set(false, forKey: "isFirstLaunch") // Set isFirstLaunch to false after first launch
                 }
             } else {
-                // Show something else if it's not the first launch
                 RootView()
             }
         }

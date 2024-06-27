@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		D21668042C0FF1C300C06F55 /* Poppins-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D21668032C0FF1C200C06F55 /* Poppins-Regular.ttf */; };
 		D24B4C0A2C0BF44D003268DD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D24B4C092C0BF44D003268DD /* GoogleService-Info.plist */; };
+		D2927A662C2C812D00B21E9F /* FoodInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2927A652C2C812D00B21E9F /* FoodInfoView.swift */; };
 		D298A8522BFD6FAD0029E0D5 /* MazahApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D298A8512BFD6FAD0029E0D5 /* MazahApp.swift */; };
 		D298A8562BFD6FB00029E0D5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D298A8552BFD6FB00029E0D5 /* Assets.xcassets */; };
 		D298A8592BFD6FB00029E0D5 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D298A8582BFD6FB00029E0D5 /* Preview Assets.xcassets */; };
@@ -23,7 +24,7 @@
 		D2CAE58D2C0BB4D600C2B239 /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = D2CAE58C2C0BB4D600C2B239 /* FirebaseFirestoreSwift */; };
 		D2CAE58F2C0BB69400C2B239 /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CAE58E2C0BB69400C2B239 /* AuthenticationView.swift */; };
 		D2CAE5912C0BB6BD00C2B239 /* SignUpEmailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CAE5902C0BB6BD00C2B239 /* SignUpEmailView.swift */; };
-		D2CAE5932C0BB6DF00C2B239 /* SIgnInEmailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CAE5922C0BB6DF00C2B239 /* SIgnInEmailView.swift */; };
+		D2CAE5932C0BB6DF00C2B239 /* SignInEmailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CAE5922C0BB6DF00C2B239 /* SignInEmailView.swift */; };
 		D2CAE5952C0BB6FE00C2B239 /* SignInEmailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CAE5942C0BB6FE00C2B239 /* SignInEmailViewModel.swift */; };
 		D2CAE5972C0BB7AE00C2B239 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D2CAE5962C0BB7AE00C2B239 /* FirebaseAuth */; };
 		D2CAE5992C0BB7AE00C2B239 /* FirebaseAuthCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = D2CAE5982C0BB7AE00C2B239 /* FirebaseAuthCombine-Community */; };
@@ -34,11 +35,14 @@
 		D2CFC1092C2C73AE004A6DB7 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CFC1082C2C73AE004A6DB7 /* ViewController.swift */; };
 		D2CFC10C2C2C743C004A6DB7 /* ScanditBarcodeCapture in Frameworks */ = {isa = PBXBuildFile; productRef = D2CFC10B2C2C743C004A6DB7 /* ScanditBarcodeCapture */; };
 		D2CFC10E2C2C743C004A6DB7 /* ScanditCaptureCore in Frameworks */ = {isa = PBXBuildFile; productRef = D2CFC10D2C2C743C004A6DB7 /* ScanditCaptureCore */; };
+		D2D2D79E2C2CA4A100AB21EF /* FoodManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D2D79D2C2CA4A100AB21EF /* FoodManager.swift */; };
+		D2D2D7A02C2CA4D900AB21EF /* TrackerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D2D79F2C2CA4D800AB21EF /* TrackerViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		D21668032C0FF1C200C06F55 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Poppins-Regular.ttf"; path = "../../../Downloads/Poppins/Poppins-Regular.ttf"; sourceTree = "<group>"; };
 		D24B4C092C0BF44D003268DD /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		D2927A652C2C812D00B21E9F /* FoodInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodInfoView.swift; sourceTree = "<group>"; };
 		D298A84E2BFD6FAD0029E0D5 /* Mazah.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mazah.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D298A8512BFD6FAD0029E0D5 /* MazahApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MazahApp.swift; sourceTree = "<group>"; };
 		D298A8552BFD6FB00029E0D5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -50,13 +54,15 @@
 		D2CAE5832C0BB44F00C2B239 /* AuthenticaionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticaionManager.swift; sourceTree = "<group>"; };
 		D2CAE58E2C0BB69400C2B239 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
 		D2CAE5902C0BB6BD00C2B239 /* SignUpEmailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpEmailView.swift; sourceTree = "<group>"; };
-		D2CAE5922C0BB6DF00C2B239 /* SIgnInEmailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SIgnInEmailView.swift; sourceTree = "<group>"; };
+		D2CAE5922C0BB6DF00C2B239 /* SignInEmailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInEmailView.swift; sourceTree = "<group>"; };
 		D2CAE5942C0BB6FE00C2B239 /* SignInEmailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInEmailViewModel.swift; sourceTree = "<group>"; };
 		D2CAE59A2C0BE61A00C2B239 /* NavBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavBar.swift; sourceTree = "<group>"; };
 		D2CAE59C2C0BE67300C2B239 /* SettingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingViewModel.swift; sourceTree = "<group>"; };
 		D2CAE59E2C0BE68600C2B239 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		D2CFC1062C2C72EA004A6DB7 /* ScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerView.swift; sourceTree = "<group>"; };
 		D2CFC1082C2C73AE004A6DB7 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		D2D2D79D2C2CA4A100AB21EF /* FoodManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodManager.swift; sourceTree = "<group>"; };
+		D2D2D79F2C2CA4D800AB21EF /* TrackerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,7 +96,7 @@
 			isa = PBXGroup;
 			children = (
 				D2CAE5832C0BB44F00C2B239 /* AuthenticaionManager.swift */,
-				D2CAE5922C0BB6DF00C2B239 /* SIgnInEmailView.swift */,
+				D2CAE5922C0BB6DF00C2B239 /* SignInEmailView.swift */,
 				D2CAE5902C0BB6BD00C2B239 /* SignUpEmailView.swift */,
 				D2CAE5942C0BB6FE00C2B239 /* SignInEmailViewModel.swift */,
 				D2CAE58E2C0BB69400C2B239 /* AuthenticationView.swift */,
@@ -102,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				D2CAE5802C0BB32900C2B239 /* UserManager.swift */,
+				D2D2D79D2C2CA4A100AB21EF /* FoodManager.swift */,
 			);
 			path = Firestore;
 			sourceTree = "<group>";
@@ -179,7 +186,9 @@
 			isa = PBXGroup;
 			children = (
 				D2CFC1062C2C72EA004A6DB7 /* ScannerView.swift */,
+				D2D2D79F2C2CA4D800AB21EF /* TrackerViewModel.swift */,
 				D2CFC1082C2C73AE004A6DB7 /* ViewController.swift */,
+				D2927A652C2C812D00B21E9F /* FoodInfoView.swift */,
 			);
 			name = Tracker;
 			sourceTree = "<group>";
@@ -271,15 +280,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				D2CFC1092C2C73AE004A6DB7 /* ViewController.swift in Sources */,
+				D2D2D79E2C2CA4A100AB21EF /* FoodManager.swift in Sources */,
 				D2CAE5812C0BB32900C2B239 /* UserManager.swift in Sources */,
 				D2CAE57D2C0BB2CC00C2B239 /* RootView.swift in Sources */,
 				D2CAE5842C0BB44F00C2B239 /* AuthenticaionManager.swift in Sources */,
 				D2CAE59D2C0BE67300C2B239 /* SettingViewModel.swift in Sources */,
+				D2927A662C2C812D00B21E9F /* FoodInfoView.swift in Sources */,
 				D2CAE57F2C0BB2FB00C2B239 /* ProfileView.swift in Sources */,
 				D2CFC1072C2C72EA004A6DB7 /* ScannerView.swift in Sources */,
 				D2CAE59B2C0BE61A00C2B239 /* NavBar.swift in Sources */,
 				D2CAE59F2C0BE68600C2B239 /* SettingsView.swift in Sources */,
-				D2CAE5932C0BB6DF00C2B239 /* SIgnInEmailView.swift in Sources */,
+				D2D2D7A02C2CA4D900AB21EF /* TrackerViewModel.swift in Sources */,
+				D2CAE5932C0BB6DF00C2B239 /* SignInEmailView.swift in Sources */,
 				D2CAE57B2C0BB2A900C2B239 /* FirstView.swift in Sources */,
 				D2CAE5952C0BB6FE00C2B239 /* SignInEmailViewModel.swift in Sources */,
 				D2CAE5912C0BB6BD00C2B239 /* SignUpEmailView.swift in Sources */,

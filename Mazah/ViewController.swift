@@ -9,10 +9,10 @@
 import SwiftUI
 import ScanditBarcodeCapture
 
-// Define the ViewController
 class ViewController: UIViewController {
     private var context: DataCaptureContext!
     private var barcodeCapture: BarcodeCapture!
+    var foodInfo: (name: String, nutritionGrades: String, imageUrl: String, scanDate: Date)?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,8 +32,7 @@ class ViewController: UIViewController {
         settings.set(symbology: .ean8, enabled: true)
         settings.set(symbology: .upce, enabled: true)
         settings.set(symbology: .ean13UPCA, enabled: true)
-        // Optionally set duplicate filter
-        settings.codeDuplicateFilter = 500 // or -1 to disable duplicates entirely
+        settings.codeDuplicateFilter = 500
 
         barcodeCapture = BarcodeCapture(context: context, settings: settings)
         barcodeCapture.addListener(self)
@@ -44,33 +43,16 @@ class ViewController: UIViewController {
         let cameraSettings = BarcodeCapture.recommendedCameraSettings
         let camera = Camera.default
         camera?.apply(cameraSettings)
-
         context.setFrameSource(camera)
         camera?.switch(toDesiredState: .on)
     }
-
 
     private func setupCaptureView() {
         print("Setting up capture view.")
         let captureView = DataCaptureView(context: context, frame: view.bounds)
         captureView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(captureView)
-
         let overlay = BarcodeCaptureOverlay(barcodeCapture: barcodeCapture, view: captureView)
-    }
-}
-
-extension ViewController: BarcodeCaptureListener {
-    func barcodeCapture(_ barcodeCapture: BarcodeCapture,
-                        didScanIn session: BarcodeCaptureSession,
-                        frameData: FrameData) {
-        let recognizedBarcodes = session.newlyRecognizedBarcodes
-        for barcode in recognizedBarcodes {
-            let barcodeData = barcode.data ?? "No Data"
-            print("Barcode Data: \(barcodeData)")
-            fetchFoodData(for: barcodeData)
-        }
-        barcodeCapture.isEnabled = false
     }
 
     private func fetchFoodData(for barcode: String) {
@@ -97,11 +79,11 @@ extension ViewController: BarcodeCaptureListener {
                     let name = product["product_name"] as? String ?? "No Name"
                     let nutritionGrades = product["nutrition_grades"] as? String ?? "No Nutri-Score"
                     let imageUrl = product["image_url"] as? String ?? "No Image"
-                    let nutriments = product["nutriments"] as? [String: Any] ?? [:]
                     let scanDate = Date()
 
                     DispatchQueue.main.async {
-                        self.showFoodInfo(name: name, nutritionGrades: nutritionGrades, imageUrl: imageUrl, nutriments: nutriments, scanDate: scanDate)
+                        self.foodInfo = (name, nutritionGrades, imageUrl, scanDate)
+                        self.presentFoodInfo()
                     }
                 } else {
                     print("No product found for barcode")
@@ -114,23 +96,23 @@ extension ViewController: BarcodeCaptureListener {
         task.resume()
     }
 
-    private func showFoodInfo(name: String, nutritionGrades: String, imageUrl: String, nutriments: [String: Any], scanDate: Date) {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .medium
-        dateFormatter.timeStyle = .none
+    private func presentFoodInfo() {
+        guard let foodInfo = foodInfo else { return }
+        let foodInfoView = UIHostingController(rootView: FoodInfoView(name: foodInfo.name, imageUrl: foodInfo.imageUrl, scanDate: foodInfo.scanDate))
+        foodInfoView.modalPresentationStyle = .formSheet
+        self.present(foodInfoView, animated: true, completion: nil)
+    }
+}
 
-        let scanDateString = dateFormatter.string(from: scanDate)
-
-        let alert = UIAlertController(title: name, message: "Nutri-Score: \(nutritionGrades)\nScan Date: \(scanDateString)", preferredStyle: .alert)
-        if let url = URL(string: imageUrl), let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
-            let imageView = UIImageView(image: image)
-            imageView.contentMode = .scaleAspectFit
-            imageView.frame = CGRect(x: 10, y: 70, width: 250, height: 150)
-            alert.view.addSubview(imageView)
-            alert.view.heightAnchor.constraint(equalToConstant: 300).isActive = true
+extension ViewController: BarcodeCaptureListener {
+    func barcodeCapture(_ barcodeCapture: BarcodeCapture, didScanIn session: BarcodeCaptureSession, frameData: FrameData) {
+        let recognizedBarcodes = session.newlyRecognizedBarcodes
+        for barcode in recognizedBarcodes {
+            let barcodeData = barcode.data ?? "No Data"
+            print("Barcode Data: \(barcodeData)")
+            fetchFoodData(for: barcodeData)
         }
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-        self.present(alert, animated: true, completion: nil)
+        barcodeCapture.isEnabled = false
     }
 }
 
@@ -145,4 +127,6 @@ struct BarcodeCaptureViewControllerRepresentable: UIViewControllerRepresentable 
         // No need to update anything for now
     }
 }
+
+
 

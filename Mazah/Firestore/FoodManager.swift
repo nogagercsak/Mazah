@@ -10,36 +10,48 @@ import Combine
 import FirebaseFirestore
 import FirebaseFirestoreSwift
 
-
-final class AddFoodViewModel: ObservableObject {
-    @Published var foodName: String = ""
-    @Published var creationDate = Date()
-    @Published var expirationDate = Date()
-    @Published var foodType: String = ""
+class FoodViewModel: ObservableObject {
+    @Published var name: String = ""
+    @Published var scanDate = Date()
+    @Published var expirationDate: Date = Date()
+    @Published var keyWords: [String: [String]] = [:]
     @Published var remindMe = false
-    @Published var notesVar: String = ""
+    @Published var foodType: String = ""
+    @Published var imageUrl: String = ""
+    @Published var showConfirmation: Bool = false
     
+    private var db = Firestore.firestore()
     private var cancellables = Set<AnyCancellable>()
     
-    var addedFood = PassthroughSubject<Food, Never>()
-    
-    func addFood(forUser userId: String, category: String) {
-        let newFood = Food(name: foodName, creationDate: creationDate, expDate: expirationDate, foodType: foodType, reminder: remindMe, category: category)  // Pass category
-        FirestoreManager.shared.addFood(forUser: userId, newFood) { [weak self] result in
-            switch result {
-            case .success(let food):
-                self?.addedFood.send(food)
-            case .failure(let error):
-                print("Error adding food item: \(error.localizedDescription)")
+    func saveFoodInfo(userId: String) {
+        let foodData: [String: Any] = [
+            "name": name,
+            "scanDate": scanDate,
+            "expirationDate": expirationDate,
+            "keyWords": keyWords,
+            "remindMe": remindMe,
+            "foodType": foodType,
+            "imageUrl": imageUrl
+        ]
+        
+        db.collection("users").document(userId).collection("foods").addDocument(data: foodData) { error in
+            if let error = error {
+                print("Error adding document: \(error)")
+            } else {
+                print("Document added successfully")
+                DispatchQueue.main.async {
+                    self.showConfirmation = true
+                }
             }
         }
     }
 }
+
 enum FirestoreError: Error {
     case documentCreationError
 }
 class FirestoreManager {
-    static let shared = FirestoreManager() // Singleton instance
+    static let shared = FirestoreManager() 
     private let db = Firestore.firestore()
     
     func addFood(forUser userId: String, _ food: Food, completion: @escaping (Result<Food, Error>) -> Void) {

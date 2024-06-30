@@ -13,16 +13,18 @@ struct Food: Codable, Identifiable {
     @DocumentID var id: String?
     var name: String
     var creationDate: Date
-    var expDate: Date
+    var expirationDate: Date
+    var keyWords: [String: String]
+    var remindMe: Bool
     var foodType: String
-    var reminder: Bool
     
-    init(id: String? = nil, name: String, creationDate: Date, expDate: Date, foodType: String, reminder: Bool, category: String) {
+    init(id: String? = nil, name: String, creationDate: Date, expirationDate: Date, keyWords:[String: String], foodType: String, remindMe: Bool, category: String) {
         self.id = id
         self.name = name
         self.creationDate = creationDate
-        self.expDate = expDate
+        self.expirationDate = expirationDate
+        self.keyWords = keyWords
         self.foodType = foodType
-        self.reminder = reminder
+        self.remindMe = remindMe
     }
 }

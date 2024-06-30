@@ -10,9 +10,10 @@ import SwiftUI
 struct ScannerView: View {
     
     @Binding var showSignInView: Bool
+    var userId = UUID().uuidString
     
     var body: some View {
-        BarcodeCaptureViewControllerRepresentable()
+        BarcodeCaptureViewControllerRepresentable(userId: userId)
             .edgesIgnoringSafeArea(.all)
         NavBar(showSignInView: $showSignInView)
     }

@@ -11,17 +11,18 @@ struct FoodInfoView: View {
     let name: String
     let imageUrl: String
     let scanDate: Date
-
-    @State private var expirationDate: Date = Date()
-    @State private var showConfirmation: Bool = false
-
+    
+    @StateObject private var viewModel = FoodViewModel()
+    
+    var userId = UUID().uuidString
+    
     var body: some View {
         VStack {
             if let url = URL(string: imageUrl) {
                 AsyncImage(url: url) { image in
                     image.resizable()
-                         .scaledToFit()
-                         .frame(width: 200, height: 200)
+                        .scaledToFit()
+                        .frame(width: 200, height: 200)
                 } placeholder: {
                     ProgressView()
                 }
@@ -33,23 +34,26 @@ struct FoodInfoView: View {
                     .frame(width: 200, height: 200)
                     .padding()
             }
-
+            
             Text(name)
                 .font(.largeTitle)
                 .padding()
                 .foregroundColor(Color.blue)
-
+            
             Text("Scanned on: \(formattedDate(scanDate))")
                 .padding()
                 .foregroundColor(Color.blue)
             
-            DatePicker("Expiration Date", selection: $expirationDate, displayedComponents: .date)
+            DatePicker("Expiration Date", selection: $viewModel.expirationDate, displayedComponents: .date)
                 .colorInvert()
                 .colorMultiply(Color.blue)
                 .padding()
-
+            
             Button(action: {
-                showConfirmation = true
+                viewModel.name = name
+                viewModel.imageUrl = imageUrl
+                viewModel.scanDate = scanDate
+                viewModel.saveFoodInfo(userId: userId)
             }) {
                 Text("Confirm")
                     .padding()
@@ -58,9 +62,9 @@ struct FoodInfoView: View {
                     .cornerRadius(10)
             }
             .padding()
-
-            if showConfirmation {
-                Text("Information confirmed with expiration date: \(formattedDate(expirationDate))")
+            
+            if viewModel.showConfirmation {
+                Text("Information confirmed with expiration date: \(formattedDate(viewModel.expirationDate))")
                     .foregroundColor(.green)
                     .padding()
             }
@@ -71,7 +75,7 @@ struct FoodInfoView: View {
         .shadow(radius: 10)
         .padding()
     }
-
+    
     private func formattedDate(_ date: Date) -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .medium

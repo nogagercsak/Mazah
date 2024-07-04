@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import FirebaseAuth
+
 
 struct FoodInfoView: View {
     let name: String
@@ -14,8 +16,8 @@ struct FoodInfoView: View {
     
     @StateObject private var viewModel = FoodViewModel()
     
-    var userId = UUID().uuidString
-    
+    @State private var category = ""  // Add this state to collect category input
+
     var body: some View {
         VStack {
             if let url = URL(string: imageUrl) {
@@ -49,11 +51,19 @@ struct FoodInfoView: View {
                 .colorMultiply(Color.blue)
                 .padding()
             
+            TextField("Category", text: $category)  // Add a TextField to input category
+                .padding()
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+            
             Button(action: {
+                guard let userId = Auth.auth().currentUser?.uid else {
+                    return
+                }
+                
                 viewModel.name = name
                 viewModel.imageUrl = imageUrl
                 viewModel.scanDate = scanDate
-                viewModel.saveFoodInfo(userId: userId)
+                viewModel.addFood(forUser: userId, category: category)
             }) {
                 Text("Confirm")
                     .padding()

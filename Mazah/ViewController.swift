@@ -13,18 +13,7 @@ class ViewController: UIViewController {
     private var context: DataCaptureContext!
     private var barcodeCapture: BarcodeCapture!
     var foodInfo: (name: String, imageUrl: String, scanDate: Date)?
-    
-    var userId: String
 
-    // Custom initializer
-    init(userId: String) {
-        self.userId = userId
-        super.init(nibName: nil, bundle: nil)
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -108,8 +97,7 @@ class ViewController: UIViewController {
         let foodInfoView = UIHostingController(rootView: FoodInfoView(
             name: foodInfo.name,
             imageUrl: foodInfo.imageUrl,
-            scanDate: foodInfo.scanDate,
-            userId: userId))
+            scanDate: foodInfo.scanDate))
         foodInfoView.modalPresentationStyle = .formSheet
         self.present(foodInfoView, animated: true, completion: nil)
     }
@@ -131,7 +119,7 @@ struct BarcodeCaptureViewControllerRepresentable: UIViewControllerRepresentable 
     var userId: String // Add a property for userId
 
     func makeUIViewController(context: Context) -> ViewController {
-        return ViewController(userId: userId) // Pass the userId to the ViewController initializer
+        return ViewController() 
     }
 
     func updateUIViewController(_ uiViewController: ViewController, context: Context) {

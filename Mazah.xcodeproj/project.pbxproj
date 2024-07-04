@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D20FF8212C3753D100A3C567 /* FoodHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20FF8202C3753D100A3C567 /* FoodHistoryView.swift */; };
 		D21668042C0FF1C300C06F55 /* Poppins-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D21668032C0FF1C200C06F55 /* Poppins-Regular.ttf */; };
 		D24B4C0A2C0BF44D003268DD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D24B4C092C0BF44D003268DD /* GoogleService-Info.plist */; };
 		D2927A662C2C812D00B21E9F /* FoodInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2927A652C2C812D00B21E9F /* FoodInfoView.swift */; };
@@ -40,6 +41,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D20FF8202C3753D100A3C567 /* FoodHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodHistoryView.swift; sourceTree = "<group>"; };
 		D21668032C0FF1C200C06F55 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Poppins-Regular.ttf"; path = "../../../Downloads/Poppins/Poppins-Regular.ttf"; sourceTree = "<group>"; };
 		D24B4C092C0BF44D003268DD /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		D2927A652C2C812D00B21E9F /* FoodInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodInfoView.swift; sourceTree = "<group>"; };
@@ -188,6 +190,7 @@
 				D2CFC1062C2C72EA004A6DB7 /* ScannerView.swift */,
 				D2D2D79F2C2CA4D800AB21EF /* TrackerViewModel.swift */,
 				D2CFC1082C2C73AE004A6DB7 /* ViewController.swift */,
+				D20FF8202C3753D100A3C567 /* FoodHistoryView.swift */,
 				D2927A652C2C812D00B21E9F /* FoodInfoView.swift */,
 			);
 			name = Tracker;
@@ -290,6 +293,7 @@
 				D2CFC1072C2C72EA004A6DB7 /* ScannerView.swift in Sources */,
 				D2CAE59B2C0BE61A00C2B239 /* NavBar.swift in Sources */,
 				D2CAE59F2C0BE68600C2B239 /* SettingsView.swift in Sources */,
+				D20FF8212C3753D100A3C567 /* FoodHistoryView.swift in Sources */,
 				D2D2D7A02C2CA4D900AB21EF /* TrackerViewModel.swift in Sources */,
 				D2CAE5932C0BB6DF00C2B239 /* SignInEmailView.swift in Sources */,
 				D2CAE57B2C0BB2A900C2B239 /* FirstView.swift in Sources */,

@@ -13,7 +13,7 @@ struct AuthenticationView: View {
     
     var body: some View {
         VStack{
-            Text("Welcome to")
+            Text("Welcome to!")
                 .font(Font.custom("SeoulHangang B", size: 40))
                 .multilineTextAlignment(.center)
                 .foregroundColor(Color(red: 0.34, green: 0.41, blue: 0.34))

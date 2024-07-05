@@ -5,15 +5,13 @@
 //  Created by Noga Gercsak on 6/26/24.
 //
 
-
 import SwiftUI
 import ScanditBarcodeCapture
 
 class ViewController: UIViewController {
     private var context: DataCaptureContext!
     private var barcodeCapture: BarcodeCapture!
-    var foodInfo: (name: String, imageUrl: String, scanDate: Date)?
-
+    var foodInfo: (name: String, imageUrl: String, scanDate: Date, keyWords: [String])?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -53,7 +51,7 @@ class ViewController: UIViewController {
     }
 
     private func fetchFoodData(for barcode: String) {
-        let urlString = "https://world.openfoodfacts.net/api/v2/product/\(barcode)?fields=product_name,nutrition_grades,nutriments,image_url"
+        let urlString = "https://world.openfoodfacts.net/api/v2/product/\(barcode)?fields=product_name,nutrition_grades,nutriments,image_url,keywords"
         guard let url = URL(string: urlString) else {
             print("Invalid URL")
             return
@@ -76,9 +74,11 @@ class ViewController: UIViewController {
                     let name = product["product_name"] as? String ?? "No Name"
                     let imageUrl = product["image_url"] as? String ?? "No Image"
                     let scanDate = Date()
+                    let keyWords = product["keywords"] as? [String] ?? []
 
                     DispatchQueue.main.async {
-                        self.foodInfo = (name, imageUrl, scanDate)
+                        self.foodInfo = (name, imageUrl, scanDate, keyWords)
+                        self.printFoodKeywords()
                         self.presentFoodInfo()
                     }
                 } else {
@@ -90,6 +90,11 @@ class ViewController: UIViewController {
         }
 
         task.resume()
+    }
+
+    private func printFoodKeywords() {
+        guard let foodInfo = foodInfo else { return }
+        print("Keywords for the food: \(foodInfo.keyWords)")
     }
 
     private func presentFoodInfo() {
@@ -116,14 +121,12 @@ extension ViewController: BarcodeCaptureListener {
 
 struct BarcodeCaptureViewControllerRepresentable: UIViewControllerRepresentable {
     typealias UIViewControllerType = ViewController
-    var userId: String // Add a property for userId
 
     func makeUIViewController(context: Context) -> ViewController {
-        return ViewController() 
+        return ViewController()
     }
 
     func updateUIViewController(_ uiViewController: ViewController, context: Context) {
         // No need to update anything for now
     }
 }
-

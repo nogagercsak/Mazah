@@ -23,7 +23,7 @@ struct FoodHistoryView: View {
                         .font(.subheadline)
                 }
             }
-            .navigationTitle("Scanned Foods History")
+            .navigationTitle("Your Foods")
             .onAppear {
                 viewModel.fetchScannedFoods(forUser: userId)
             }

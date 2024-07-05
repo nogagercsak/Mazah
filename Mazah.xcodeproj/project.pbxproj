@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		D20FF8212C3753D100A3C567 /* FoodHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20FF8202C3753D100A3C567 /* FoodHistoryView.swift */; };
 		D21668042C0FF1C300C06F55 /* Poppins-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D21668032C0FF1C200C06F55 /* Poppins-Regular.ttf */; };
+		D21B6D4D2C37765D008BBB01 /* AddFoodManualView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D21B6D4C2C37765D008BBB01 /* AddFoodManualView.swift */; };
 		D24B4C0A2C0BF44D003268DD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D24B4C092C0BF44D003268DD /* GoogleService-Info.plist */; };
 		D2927A662C2C812D00B21E9F /* FoodInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2927A652C2C812D00B21E9F /* FoodInfoView.swift */; };
 		D298A8522BFD6FAD0029E0D5 /* MazahApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D298A8512BFD6FAD0029E0D5 /* MazahApp.swift */; };
@@ -43,6 +44,7 @@
 /* Begin PBXFileReference section */
 		D20FF8202C3753D100A3C567 /* FoodHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodHistoryView.swift; sourceTree = "<group>"; };
 		D21668032C0FF1C200C06F55 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Poppins-Regular.ttf"; path = "../../../Downloads/Poppins/Poppins-Regular.ttf"; sourceTree = "<group>"; };
+		D21B6D4C2C37765D008BBB01 /* AddFoodManualView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddFoodManualView.swift; sourceTree = "<group>"; };
 		D24B4C092C0BF44D003268DD /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		D2927A652C2C812D00B21E9F /* FoodInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodInfoView.swift; sourceTree = "<group>"; };
 		D298A84E2BFD6FAD0029E0D5 /* Mazah.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mazah.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -191,6 +193,7 @@
 				D2D2D79F2C2CA4D800AB21EF /* TrackerViewModel.swift */,
 				D2CFC1082C2C73AE004A6DB7 /* ViewController.swift */,
 				D20FF8202C3753D100A3C567 /* FoodHistoryView.swift */,
+				D21B6D4C2C37765D008BBB01 /* AddFoodManualView.swift */,
 				D2927A652C2C812D00B21E9F /* FoodInfoView.swift */,
 			);
 			name = Tracker;
@@ -298,6 +301,7 @@
 				D2CAE5932C0BB6DF00C2B239 /* SignInEmailView.swift in Sources */,
 				D2CAE57B2C0BB2A900C2B239 /* FirstView.swift in Sources */,
 				D2CAE5952C0BB6FE00C2B239 /* SignInEmailViewModel.swift in Sources */,
+				D21B6D4D2C37765D008BBB01 /* AddFoodManualView.swift in Sources */,
 				D2CAE5912C0BB6BD00C2B239 /* SignUpEmailView.swift in Sources */,
 				D2CAE58F2C0BB69400C2B239 /* AuthenticationView.swift in Sources */,
 				D298A8522BFD6FAD0029E0D5 /* MazahApp.swift in Sources */,

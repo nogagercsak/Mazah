@@ -39,6 +39,7 @@
 		D2D2D79E2C2CA4A100AB21EF /* FoodManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D2D79D2C2CA4A100AB21EF /* FoodManager.swift */; };
 		D2D2D7A02C2CA4D900AB21EF /* TrackerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D2D79F2C2CA4D800AB21EF /* TrackerViewModel.swift */; };
 		F8A771732C3D307300C7D081 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F8A771722C3D307300C7D081 /* Launch Screen.storyboard */; };
+		F8A771752C3D43D700C7D081 /* FaqView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8A771742C3D43D700C7D081 /* FaqView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,6 +69,7 @@
 		D2D2D79F2C2CA4D800AB21EF /* TrackerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerViewModel.swift; sourceTree = "<group>"; };
 		F8A771712C3D2EF900C7D081 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Poppins-Regular.ttf"; path = "../../../Downloads/Poppins-Regular.ttf"; sourceTree = "<group>"; };
 		F8A771722C3D307300C7D081 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = "Launch Screen.storyboard"; path = "../Launch Screen.storyboard"; sourceTree = "<group>"; };
+		F8A771742C3D43D700C7D081 /* FaqView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaqView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -134,6 +136,7 @@
 				D2CAE57E2C0BB2FB00C2B239 /* ProfileView.swift */,
 				D2CAE57C2C0BB2CC00C2B239 /* RootView.swift */,
 				D2CAE57A2C0BB2A900C2B239 /* FirstView.swift */,
+				F8A771742C3D43D700C7D081 /* FaqView.swift */,
 				F8A771722C3D307300C7D081 /* Launch Screen.storyboard */,
 				D2CFC1052C2C72D2004A6DB7 /* Tracker */,
 			);
@@ -296,6 +299,7 @@
 				D2927A662C2C812D00B21E9F /* FoodInfoView.swift in Sources */,
 				D2CAE57F2C0BB2FB00C2B239 /* ProfileView.swift in Sources */,
 				D2CFC1072C2C72EA004A6DB7 /* ScannerView.swift in Sources */,
+				F8A771752C3D43D700C7D081 /* FaqView.swift in Sources */,
 				D2CAE59B2C0BE61A00C2B239 /* NavBar.swift in Sources */,
 				D2CAE59F2C0BE68600C2B239 /* SettingsView.swift in Sources */,
 				D20FF8212C3753D100A3C567 /* FoodHistoryView.swift in Sources */,

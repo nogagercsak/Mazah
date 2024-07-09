@@ -38,6 +38,7 @@
 		D2CFC10E2C2C743C004A6DB7 /* ScanditCaptureCore in Frameworks */ = {isa = PBXBuildFile; productRef = D2CFC10D2C2C743C004A6DB7 /* ScanditCaptureCore */; };
 		D2D2D79E2C2CA4A100AB21EF /* FoodManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D2D79D2C2CA4A100AB21EF /* FoodManager.swift */; };
 		D2D2D7A02C2CA4D900AB21EF /* TrackerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D2D79F2C2CA4D800AB21EF /* TrackerViewModel.swift */; };
+		F8A771732C3D307300C7D081 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F8A771722C3D307300C7D081 /* Launch Screen.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -66,6 +67,7 @@
 		D2D2D79D2C2CA4A100AB21EF /* FoodManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodManager.swift; sourceTree = "<group>"; };
 		D2D2D79F2C2CA4D800AB21EF /* TrackerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerViewModel.swift; sourceTree = "<group>"; };
 		F8A771712C3D2EF900C7D081 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Poppins-Regular.ttf"; path = "../../../Downloads/Poppins-Regular.ttf"; sourceTree = "<group>"; };
+		F8A771722C3D307300C7D081 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,6 +142,7 @@
 		D298A8452BFD6FAD0029E0D5 = {
 			isa = PBXGroup;
 			children = (
+				F8A771722C3D307300C7D081 /* Launch Screen.storyboard */,
 				D298A8502BFD6FAD0029E0D5 /* Mazah */,
 				D298A84F2BFD6FAD0029E0D5 /* Products */,
 				D2CAE5852C0BB4BF00C2B239 /* Frameworks */,
@@ -272,6 +275,7 @@
 			files = (
 				D298A8592BFD6FB00029E0D5 /* Preview Assets.xcassets in Resources */,
 				D298A8562BFD6FB00029E0D5 /* Assets.xcassets in Resources */,
+				F8A771732C3D307300C7D081 /* Launch Screen.storyboard in Resources */,
 				D24B4C0A2C0BF44D003268DD /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -436,15 +440,14 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Mazah/Preview Content\"";
-				DEVELOPMENT_TEAM = 43R5GX99UB;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "$(PRODUCT_NAME) needs ot access your camera in order to scan barcodes.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Mazah needs ot access your camera in order to scan barcodes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -466,15 +469,14 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Mazah/Preview Content\"";
-				DEVELOPMENT_TEAM = 43R5GX99UB;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "$(PRODUCT_NAME) needs ot access your camera in order to scan barcodes.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Mazah needs ot access your camera in order to scan barcodes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

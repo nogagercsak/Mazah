@@ -38,6 +38,11 @@
 		D2CFC10E2C2C743C004A6DB7 /* ScanditCaptureCore in Frameworks */ = {isa = PBXBuildFile; productRef = D2CFC10D2C2C743C004A6DB7 /* ScanditCaptureCore */; };
 		D2D2D79E2C2CA4A100AB21EF /* FoodManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D2D79D2C2CA4A100AB21EF /* FoodManager.swift */; };
 		D2D2D7A02C2CA4D900AB21EF /* TrackerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D2D79F2C2CA4D800AB21EF /* TrackerViewModel.swift */; };
+		F2BEF1662C4328A800307E79 /* Network.Manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BEF1652C4328A800307E79 /* Network.Manager.swift */; };
+		F2BEF1692C43298A00307E79 /* Recipe.swift .swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BEF1682C43298A00307E79 /* Recipe.swift .swift */; };
+		F2BEF16B2C4329B300307E79 /* ViewControllerRecipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BEF16A2C4329B300307E79 /* ViewControllerRecipe.swift */; };
+		F2BEF16D2C4329F900307E79 /* RecipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BEF16C2C4329F900307E79 /* RecipeView.swift */; };
+		F2BEF16F2C432A5C00307E79 /* SpoonacularService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BEF16E2C432A5C00307E79 /* SpoonacularService.swift */; };
 		F8A771732C3D307300C7D081 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F8A771722C3D307300C7D081 /* Launch Screen.storyboard */; };
 		F8A771752C3D43D700C7D081 /* FaqView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8A771742C3D43D700C7D081 /* FaqView.swift */; };
 /* End PBXBuildFile section */
@@ -67,6 +72,12 @@
 		D2CFC1082C2C73AE004A6DB7 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		D2D2D79D2C2CA4A100AB21EF /* FoodManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodManager.swift; sourceTree = "<group>"; };
 		D2D2D79F2C2CA4D800AB21EF /* TrackerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerViewModel.swift; sourceTree = "<group>"; };
+		F2BEF1642C43287100307E79 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F2BEF1652C4328A800307E79 /* Network.Manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Network.Manager.swift; sourceTree = "<group>"; };
+		F2BEF1682C43298A00307E79 /* Recipe.swift .swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Recipe.swift .swift"; sourceTree = "<group>"; };
+		F2BEF16A2C4329B300307E79 /* ViewControllerRecipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerRecipe.swift; sourceTree = "<group>"; };
+		F2BEF16C2C4329F900307E79 /* RecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeView.swift; sourceTree = "<group>"; };
+		F2BEF16E2C432A5C00307E79 /* SpoonacularService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpoonacularService.swift; sourceTree = "<group>"; };
 		F8A771712C3D2EF900C7D081 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Poppins-Regular.ttf"; path = "../../../Downloads/Poppins-Regular.ttf"; sourceTree = "<group>"; };
 		F8A771722C3D307300C7D081 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = "Launch Screen.storyboard"; path = "../Launch Screen.storyboard"; sourceTree = "<group>"; };
 		F8A771742C3D43D700C7D081 /* FaqView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaqView.swift; sourceTree = "<group>"; };
@@ -138,6 +149,7 @@
 				D2CAE57A2C0BB2A900C2B239 /* FirstView.swift */,
 				F8A771742C3D43D700C7D081 /* FaqView.swift */,
 				F8A771722C3D307300C7D081 /* Launch Screen.storyboard */,
+				F2BEF1672C43294500307E79 /* Recipe */,
 				D2CFC1052C2C72D2004A6DB7 /* Tracker */,
 			);
 			name = Core;
@@ -147,6 +159,7 @@
 			isa = PBXGroup;
 			children = (
 				D298A8502BFD6FAD0029E0D5 /* Mazah */,
+				F2BEF1642C43287100307E79 /* Info.plist */,
 				D298A84F2BFD6FAD0029E0D5 /* Products */,
 				D2CAE5852C0BB4BF00C2B239 /* Frameworks */,
 			);
@@ -202,6 +215,18 @@
 				D2927A652C2C812D00B21E9F /* FoodInfoView.swift */,
 			);
 			name = Tracker;
+			sourceTree = "<group>";
+		};
+		F2BEF1672C43294500307E79 /* Recipe */ = {
+			isa = PBXGroup;
+			children = (
+				F2BEF1652C4328A800307E79 /* Network.Manager.swift */,
+				F2BEF1682C43298A00307E79 /* Recipe.swift .swift */,
+				F2BEF16A2C4329B300307E79 /* ViewControllerRecipe.swift */,
+				F2BEF16C2C4329F900307E79 /* RecipeView.swift */,
+				F2BEF16E2C432A5C00307E79 /* SpoonacularService.swift */,
+			);
+			name = Recipe;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -294,6 +319,7 @@
 				D2D2D79E2C2CA4A100AB21EF /* FoodManager.swift in Sources */,
 				D2CAE5812C0BB32900C2B239 /* UserManager.swift in Sources */,
 				D2CAE57D2C0BB2CC00C2B239 /* RootView.swift in Sources */,
+				F2BEF16D2C4329F900307E79 /* RecipeView.swift in Sources */,
 				D2CAE5842C0BB44F00C2B239 /* AuthenticaionManager.swift in Sources */,
 				D2CAE59D2C0BE67300C2B239 /* SettingViewModel.swift in Sources */,
 				D2927A662C2C812D00B21E9F /* FoodInfoView.swift in Sources */,
@@ -302,15 +328,19 @@
 				F8A771752C3D43D700C7D081 /* FaqView.swift in Sources */,
 				D2CAE59B2C0BE61A00C2B239 /* NavBar.swift in Sources */,
 				D2CAE59F2C0BE68600C2B239 /* SettingsView.swift in Sources */,
+				F2BEF16B2C4329B300307E79 /* ViewControllerRecipe.swift in Sources */,
 				D20FF8212C3753D100A3C567 /* FoodHistoryView.swift in Sources */,
 				D2D2D7A02C2CA4D900AB21EF /* TrackerViewModel.swift in Sources */,
 				D2CAE5932C0BB6DF00C2B239 /* SignInEmailView.swift in Sources */,
 				D2CAE57B2C0BB2A900C2B239 /* FirstView.swift in Sources */,
+				F2BEF1692C43298A00307E79 /* Recipe.swift .swift in Sources */,
 				D2CAE5952C0BB6FE00C2B239 /* SignInEmailViewModel.swift in Sources */,
 				D21B6D4D2C37765D008BBB01 /* AddFoodManualView.swift in Sources */,
 				D2CAE5912C0BB6BD00C2B239 /* SignUpEmailView.swift in Sources */,
 				D2CAE58F2C0BB69400C2B239 /* AuthenticationView.swift in Sources */,
 				D298A8522BFD6FAD0029E0D5 /* MazahApp.swift in Sources */,
+				F2BEF1662C4328A800307E79 /* Network.Manager.swift in Sources */,
+				F2BEF16F2C432A5C00307E79 /* SpoonacularService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -444,9 +474,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Mazah/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = BP8L6Y6DK2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Mazah/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Mazah needs ot access your camera in order to scan barcodes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -473,9 +504,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Mazah/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = BP8L6Y6DK2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Mazah/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Mazah needs ot access your camera in order to scan barcodes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

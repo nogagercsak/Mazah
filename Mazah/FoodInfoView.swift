@@ -1,14 +1,5 @@
-//
-//  FoodInfoView.swift
-//  Scandit-Practice
-//
-//  Created by Noga Gercsak on 6/26/24.
-//
-
 import SwiftUI
 import FirebaseAuth
-
-
 struct FoodInfoView: View {
     let name: String
     let imageUrl: String
@@ -16,8 +7,7 @@ struct FoodInfoView: View {
     
     @StateObject private var viewModel = FoodViewModel()
     
-    @State private var category = ""  // Add this state to collect category input
-
+    @State private var category = ""
     var body: some View {
         VStack {
             if let url = URL(string: imageUrl) {
@@ -47,11 +37,9 @@ struct FoodInfoView: View {
                 .foregroundColor(Color.blue)
             
             DatePicker("Expiration Date", selection: $viewModel.expirationDate, displayedComponents: .date)
-                .colorInvert()
-                .colorMultiply(Color.blue)
                 .padding()
             
-            TextField("Category", text: $category)  // Add a TextField to input category
+            TextField("Category", text: $category)
                 .padding()
                 .textFieldStyle(RoundedBorderTextFieldStyle())
             
@@ -91,5 +79,14 @@ struct FoodInfoView: View {
         dateFormatter.dateStyle = .medium
         dateFormatter.timeStyle = .none
         return dateFormatter.string(from: date)
+    }
+}
+struct FoodInfoView_Previews: PreviewProvider {
+    static var previews: some View {
+        FoodInfoView(
+            name: "Sample Food",
+            imageUrl: "https://example.com/image.jpg",
+            scanDate: Date()
+        )
     }
 }

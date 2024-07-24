@@ -1,13 +1,7 @@
-//
-//  FaqView.swift
-//  Mazah
-//
-//  Created by Gabrielle on 09.07.2024.
-//
-
 import SwiftUI
-
 struct FAQView: View {
+    @Environment(\.presentationMode) var presentationMode
+    
     let faqs = [
         FAQ(question: "How long can I store fresh fruits and vegetables?", answer: "Fresh fruits and vegetables vary widely in their storage times -- from a few days to several weeks. Very few can be safely stored at room temperature for long, and most must be kept in the refrigerator. Bruises and mold are signs of spoilage."),
         FAQ(question: "How can I extend the shelf life of fruits and vegetables?", answer: "Place fruits and vegetables in separate, perforated plastic bags. Store in the crisper drawer of the fridge. Keep bananas, apples, and tomatoes separate from other produce, as they emit ethylene gas, which can cause other fruits and vegetables to ripen faster."),
@@ -25,7 +19,7 @@ struct FAQView: View {
                     - Source: USDA
                     """),
         FAQ(question: "How can I extend the shelf life of meat and seafood?",
-                    answer: """
+            answer: """
                     - Freeze meat and seafood if not using within a couple of days.
                     - Store meat in its original packaging or rewrap in plastic wrap and foil.
                     - Place seafood on a bed of ice in the fridge to keep it extra cold.
@@ -53,68 +47,85 @@ struct FAQView: View {
                     - Source: USDA
                     """),
         FAQ(question: "This food does not smell or look bad even though its expiration date has expired. Is it still safe to consume?",
-                    answer: """
+            answer: """
                     - Some harmful bacteria can grow without affecting the smell, taste, or texture of the food.
                     - Follow the general rule of “when in doubt, throw it out!” for expired food.
                     - Source: International Dairy Foundation
                     """),
         FAQ(question: "Can I eat a product after the 'best before' or expiration date?",
-                    answer: """
+            answer: """
                     - Foods can generally be consumed safely for a short period after their 'best before' date.
                     - Avoid consuming foods after their expiration date, as they may no longer be fit for consumption.
                     - Source: International Dairy Foundation
                     """
-                ),
+           ),
         FAQ(question: "Why should I care about food storage and preparation?",
-                    answer: """
+            answer: """
                     - Properly storing and consuming food before it spoils helps reduce food waste and its environmental impact.
                     - “Cutting food waste is a delicious way of saving money, helping to feed the world and protect the planet.” – Tristram Stuart
                     """
-                ),
+           ),
         FAQ(question: "How can I tell if food has gone bad?",
-                    answer: """
+            answer: """
                     - Look for changes in color, texture, or smell.
                     - Check for mold or unusual spots.
                     - Throw away moldy food!
                     """
-                ),
+           ),
         FAQ(question: "What temperature should I keep my fridge at?",
-                    answer: """
+            answer: """
                     - Refrigerators should be set to maintain a temperature of 40 °F (4.4 °C) or below.
                     - Your freezer should be set at 0°F (-18°C).
                     """ ),
     ]
-
+    
     var body: some View {
         NavigationView {
-            List(faqs, id: \.question) { faq in
-                DisclosureGroup(
-                    content: {
-                        Text(faq.answer)
-                            .padding()
-                            .foregroundColor(.secondary)
-                    },
-                    label: {
-                        Text(faq.question)
-                            .font(.headline)
-                            .foregroundColor(.primary)
+            ZStack {
+                Color(red: 1.0, green: 0.96, blue: 0.89)
+                    .edgesIgnoringSafeArea(.all)
+                
+                List(faqs, id: \.question) { faq in
+                    DisclosureGroup(
+                        content: {
+                            Text(faq.answer)
+                                .padding()
+                                .foregroundColor(.secondary)
+                        },
+                        label: {
+                            Text(faq.question)
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                        }
+                    )
+                    .listRowBackground(Color.clear)
+                }
+                .navigationTitle("FAQs on Food Storage")
+                .navigationBarItems(leading: Button(action: {
+                    self.presentationMode.wrappedValue.dismiss()
+                }) {
+                    HStack {
+                        Image(systemName: "chevron.left")
+                            .foregroundColor(Color(red: 0.45, green: 0.68, blue: 0));
+                        Text("Go back")
+                            .underline()
+                            .foregroundColor(Color(red: 0.45, green: 0.68, blue: 0));
                     }
-                )
+                })
             }
-            .navigationTitle("FAQs on Food Storage")
         }
     }
-}
-
-struct FAQ: Identifiable {
-    let id = UUID()
-    let question: String
-    let answer: String
-}
-
-struct FAQView_Previews: PreviewProvider {
-    static var previews: some View {
-        FAQView()
+    
+    struct FAQ: Identifiable {
+        let id = UUID()
+        let question: String
+        let answer: String
+    }
+    
+    struct FAQView_Previews: PreviewProvider {
+        static var previews: some View {
+            FAQView()
+        }
     }
 }
 

@@ -21,7 +21,11 @@ struct NavBar: View {
                 Image(systemName: "person.crop.circle")
                     .font(.title)
             }
+            .navigationBarBackButtonHidden(true)
             .padding(.leading, 20)
+            .transaction { transaction in
+                transaction.animation = nil
+            }
             
             Spacer()
             
@@ -41,7 +45,7 @@ struct NavBar: View {
             .padding(.trailing, 5)
             
             if let userId = userId {
-                NavigationLink(destination: FoodHistoryView(userId: userId)) {
+                NavigationLink(destination: FoodHistoryView(userId: userId, showSignInView: $showSignInView)) {
                     Image(systemName: "clock.arrow.circlepath")
                         .font(.title)
                 }

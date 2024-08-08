@@ -48,6 +48,7 @@ struct SettingsView: View {
                 emailSection
             }
             .navigationTitle("Settings")
+            .navigationBarBackButtonHidden(true)
             
             Spacer()
             

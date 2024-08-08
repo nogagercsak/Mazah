@@ -1,12 +1,6 @@
-//
-//  AddFoodManualView.swift
-//  Mazah
-//
-//  Created by Noga Gercsak on 7/4/24.
-//
-
 import SwiftUI
 import FirebaseAuth
+
 struct AddFoodManualView: View {
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var viewModel = FoodViewModel()
@@ -32,7 +26,7 @@ struct AddFoodManualView: View {
                         Section(header: Text("Expiration")) {
                             DatePicker("Expiration Date", selection: $viewModel.expirationDate, displayedComponents: .date)
                             
-                            Picker("Category", selection: $viewModel.foodType) {
+                            Picker("Category", selection: $foodType) { // Updated to use $foodType
                                 ForEach(foodTypes, id: \.self) {
                                     Text($0)
                                 }
@@ -72,20 +66,21 @@ struct AddFoodManualView: View {
                 }) {
                     HStack {
                         Image(systemName: "chevron.left")
-                            .foregroundColor(Color(red: 0.45, green: 0.68, blue: 0));
+                            .foregroundColor(Color(red: 0.45, green: 0.68, blue: 0))
                         Text("Go back")
                             .underline()
-                            .foregroundColor(Color(red: 0.45, green: 0.68, blue: 0));
+                            .foregroundColor(Color(red: 0.45, green: 0.68, blue: 0))
                     }
                 }
                     .padding(30)
+                )
             }
         }
-        
-        struct AddFoodManualView_Previews: PreviewProvider {
-            static var previews: some View {
-                AddFoodManualView()
-            }
-        }
+    }
+}
+
+struct AddFoodManualView_Previews: PreviewProvider {
+    static var previews: some View {
+        AddFoodManualView()
     }
 }

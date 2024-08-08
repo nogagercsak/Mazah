@@ -46,6 +46,7 @@ struct ProfileView: View {
             
             NavBar(showSignInView: $showSignInView)
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
 

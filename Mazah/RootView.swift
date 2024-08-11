@@ -13,9 +13,15 @@ struct RootView: View {
     
     var body: some View {
         ZStack{
+            Image("Gradient")
+            .resizable()
+            .scaledToFill()
+            .edgesIgnoringSafeArea(.all)
+            
             NavigationStack{
                 ProfileView(showSignInView: $showSignInView)
             }
+            
         }
         .onAppear{
             let authUser = try?  AuthenticationManager.shared.getAuthenticatedUser()

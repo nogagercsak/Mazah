@@ -36,11 +36,11 @@ struct AuthenticationView: View {
                         .background(Color(red: 0.43, green: 0.51, blue: 0.42))
                         .cornerRadius(30)
                     Text("Sign Up with Email")
-                        .font(Font.custom("Radio Canada", size: 22))
+                        .font(Font.custom("Poppins-Regular", size: 22))
                         .multilineTextAlignment(.center)
                         .foregroundColor(Color(red: 0.98, green: 0.93, blue: 0.66))
                         .frame(width: 233, height: 54, alignment: .center)
-                } //ZStack line 19.
+                } 
             }
             NavigationLink {
                 SignInEmailView(showSignInView: $showSignInView)
@@ -57,7 +57,7 @@ struct AuthenticationView: View {
                                 .stroke(Color(red: 0.43, green: 0.51, blue: 0.42), lineWidth: 2)
                         )
                     Text("Log In")
-                        .font(Font.custom("Radio Canada", size: 25))
+                        .font(Font.custom("Poppins-Regular", size: 25))
                         .multilineTextAlignment(.center)
                         .foregroundColor(Color(red: 0.43, green: 0.51, blue: 0.42))
                         .frame(width: 100, height: 35, alignment: .center)

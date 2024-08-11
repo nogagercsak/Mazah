@@ -52,6 +52,8 @@ struct SearchBar: View {
                 onSearchButtonClicked()
             }) {
                 Text("Search")
+                    .font(Font.custom("Poppins-Regular", size: 15))
+                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40))
             }
         }
         .padding()

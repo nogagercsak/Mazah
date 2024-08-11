@@ -68,7 +68,7 @@ struct AddFoodManualView: View {
                                     }
                                     .pickerStyle(SegmentedPickerStyle())
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding()
+                                    .padding(15)
                                     
                                     Toggle("Remind me", isOn: $isReminderSet)
                                         .foregroundColor(Color(red: 0.34, green: 0.41, blue: 0.34))
@@ -77,6 +77,7 @@ struct AddFoodManualView: View {
                                         DatePicker("Remind me on", selection: $reminderDate, displayedComponents: .date)
                                     }
                                 }
+                                
                                 .padding()
                                 .background(Color(UIColor.systemGray5))
                                 .cornerRadius(15)

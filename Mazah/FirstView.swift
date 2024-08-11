@@ -50,13 +50,11 @@ struct FirstView: View {
                         }
                         
                     }
-                    .frame(width: 393, height: 852)
                     .background(Image("Gradient")
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .edgesIgnoringSafeArea(.all)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity))
-                }
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .edgesIgnoringSafeArea(.all)
+                )}
                 .onAppear {
                     UserDefaults.standard.set(false, forKey: "isFirstLaunch") // Set isFirstLaunch to false after first launch
                 }

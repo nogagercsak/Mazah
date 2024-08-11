@@ -33,8 +33,8 @@ struct ScannerView: View {
                 }
             }
         }
-        .navigationTitle("Scanner") // Optional: set a title
-        .navigationBarBackButtonHidden(true) // Hide the default back button
+        .navigationTitle("Scanner")
+        .navigationBarBackButtonHidden(true)
         .navigationBarItems(leading: Button(action: {
             self.presentationMode.wrappedValue.dismiss()
         }) {

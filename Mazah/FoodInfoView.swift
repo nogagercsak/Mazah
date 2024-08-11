@@ -1,5 +1,7 @@
 import SwiftUI
 import FirebaseAuth
+
+
 struct FoodInfoView: View {
     let name: String
     let imageUrl: String

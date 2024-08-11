@@ -45,7 +45,6 @@
 		F2BEF16F2C432A5C00307E79 /* SpoonacularService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BEF16E2C432A5C00307E79 /* SpoonacularService.swift */; };
 		F8A771732C3D307300C7D081 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F8A771722C3D307300C7D081 /* Launch Screen.storyboard */; };
 		F8A771752C3D43D700C7D081 /* FaqView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8A771742C3D43D700C7D081 /* FaqView.swift */; };
-		F8FE38DF2C4EA9280015870D /* FoodViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8FE38DE2C4EA9280015870D /* FoodViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -82,7 +81,6 @@
 		F8A771712C3D2EF900C7D081 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Poppins-Regular.ttf"; path = "../../../Downloads/Poppins-Regular.ttf"; sourceTree = "<group>"; };
 		F8A771722C3D307300C7D081 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = "Launch Screen.storyboard"; path = "../Launch Screen.storyboard"; sourceTree = "<group>"; };
 		F8A771742C3D43D700C7D081 /* FaqView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaqView.swift; sourceTree = "<group>"; };
-		F8FE38DE2C4EA9280015870D /* FoodViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -215,7 +213,6 @@
 				D20FF8202C3753D100A3C567 /* FoodHistoryView.swift */,
 				D21B6D4C2C37765D008BBB01 /* AddFoodManualView.swift */,
 				D2927A652C2C812D00B21E9F /* FoodInfoView.swift */,
-				F8FE38DE2C4EA9280015870D /* FoodViewModel.swift */,
 			);
 			name = Tracker;
 			sourceTree = "<group>";
@@ -332,7 +329,6 @@
 				D2CAE59B2C0BE61A00C2B239 /* NavBar.swift in Sources */,
 				D2CAE59F2C0BE68600C2B239 /* SettingsView.swift in Sources */,
 				F2BEF16B2C4329B300307E79 /* ViewControllerRecipe.swift in Sources */,
-				F8FE38DF2C4EA9280015870D /* FoodViewModel.swift in Sources */,
 				D20FF8212C3753D100A3C567 /* FoodHistoryView.swift in Sources */,
 				D2D2D7A02C2CA4D900AB21EF /* TrackerViewModel.swift in Sources */,
 				D2CAE5932C0BB6DF00C2B239 /* SignInEmailView.swift in Sources */,

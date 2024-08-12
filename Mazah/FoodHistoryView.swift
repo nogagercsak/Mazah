@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct FoodHistoryView: View {
+    @Environment(\.presentationMode) var presentationMode
     
     @StateObject private var viewModel = FoodViewModel()
     let userId: String
@@ -9,6 +10,10 @@ struct FoodHistoryView: View {
     
     var body: some View {
         NavigationView {
+            ZStack{
+                Color(hex: "#FFF6E2")
+                    .edgesIgnoringSafeArea(.all)
+                
             VStack {
                 List(viewModel.scannedFoods) { food in
                     VStack(alignment: .leading) {
@@ -38,13 +43,37 @@ struct FoodHistoryView: View {
                 }
                 NavBar(showSignInView: $showSignInView)
             }
-            .navigationTitle("Your Food")
+            .navigationBarHidden(false)
             .navigationBarBackButtonHidden(true)
-        }
-        .onAppear {
-            viewModel.fetchScannedFoods(forUser: userId)
-        }
-    }
+            .navigationBarItems(leading: Button(action: {
+                self.presentationMode.wrappedValue.dismiss()
+            }) {
+                
+                HStack {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(Color(red: 0.45, green: 0.68, blue: 0))
+                    Text("Go back")
+                        .underline()
+                        .foregroundColor(Color(red: 0.45, green: 0.68, blue: 0))
+                }
+                                })
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack {
+                        Text("Your Food")
+                            .font(Font.custom("Poppins-Regular", size: 40))
+                            .foregroundColor(Color(red: 0.34, green: 0.41, blue: 0.34))
+                            .padding(.top, 100)
+                            .padding(.horizontal, -10)
+                    }
+                }
+            }
+                            }
+                        }
+                        .onAppear {
+                            viewModel.fetchScannedFoods(forUser: userId)
+                        }
+                    }
     
     private func formattedDate(_ date: Date) -> String {
         let dateFormatter = DateFormatter()
@@ -55,27 +84,28 @@ struct FoodHistoryView: View {
 }
 
 
-// struct FoodHistoryView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        let mockViewModel = CustomFoodViewModel()
-//       mockViewModel.scannedFoods = [
-//            ScannedFoodItem(name: "Apple", scanDate: Date(), expirationDate: Calendar.current.date(byAdding: .day, value: 7, to: Date())!),
-//            ScannedFoodItem(name: "Milk", scanDate: Date(), expirationDate: Calendar.current.date(byAdding: .day, value: 10, to: Date())!)
-//        ]
+
+struct FoodHistoryView_Previews: PreviewProvider {
+    static var previews: some View {
+        let mockViewModel = CustomFoodViewModel()
+        mockViewModel.scannedFoods = [
+            ScannedFoodItem(name: "Apple", scanDate: Date(), expirationDate: Calendar.current.date(byAdding: .day, value: 7, to: Date())!),
+            ScannedFoodItem(name: "Milk", scanDate: Date(), expirationDate: Calendar.current.date(byAdding: .day, value: 10, to: Date())!)
+        ]
         
-//        return FoodHistoryView(userId: "sampleUserId", viewModel: mockViewModel)
-//    }
-//}
+        return FoodHistoryView(userId: "sampleUserId", showSignInView: .constant(false))
+    }
+}
 
-// class CustomFoodViewModel: ObservableObject {
-//    @Published var scannedFoods: [ScannedFoodItem] = []
-//    func fetchScannedFoods(forUser userId: String) {
-//    }
-//}
+class CustomFoodViewModel: ObservableObject {
+    @Published var scannedFoods: [ScannedFoodItem] = []
+    func fetchScannedFoods(forUser userId: String) {
+    }
+}
 
-//struct ScannedFoodItem: Identifiable {
-//    let id = UUID()
-//    let name: String
-//    let scanDate: Date
-//    let expirationDate: Date
-//}
+struct ScannedFoodItem: Identifiable {
+    let id = UUID()
+    let name: String
+    let scanDate: Date
+    let expirationDate: Date
+}

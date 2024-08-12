@@ -13,6 +13,7 @@ struct SignUpEmailView: View {
     @StateObject private var viewModel = SignInEmailViewModel()
     @Binding var showSignInView: Bool
     @State private var agreedToTerms: Bool = false
+    @State private var showingTerms = false
     
     var body: some View {
         VStack{
@@ -38,13 +39,20 @@ struct SignUpEmailView: View {
             
             HStack {
                 CheckboxView(isChecked: $agreedToTerms, checkedColor: Color(hex: "#576956"))
-                Text("I agree to the ")
-                    .font(Font.custom("Poppins-Regular", size: 18))
-                    .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40)) +
-                            Text("Terms and Conditions")
-                                .underline()
-                                .font(Font.custom("Poppins-Regular", size: 18))
-                                .foregroundColor(.blue)
+                            
+                 Button(action: {showingTerms = true
+                            }) {
+                    Text("I agree to the ")
+                        .font(Font.custom("Poppins-Regular", size: 18))
+                        .foregroundColor(Color(red: 0.40, green: 0.40, blue: 0.40)) +
+                    Text("Terms and Conditions")
+                         .underline()
+                         .font(Font.custom("Poppins-Regular", size: 18))
+                         .foregroundColor(.blue)
+                            }
+                            .sheet(isPresented: $showingTerms) {
+                                TermsAndConditionsView()
+                            }
                         }
                         .padding(.horizontal)
                         .padding(.top, 15)

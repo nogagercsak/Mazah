@@ -43,6 +43,7 @@
 		F2BEF16B2C4329B300307E79 /* ViewControllerRecipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BEF16A2C4329B300307E79 /* ViewControllerRecipe.swift */; };
 		F2BEF16D2C4329F900307E79 /* RecipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BEF16C2C4329F900307E79 /* RecipeView.swift */; };
 		F2BEF16F2C432A5C00307E79 /* SpoonacularService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BEF16E2C432A5C00307E79 /* SpoonacularService.swift */; };
+		F8456AB12C6A915F00E302C3 /* TermsAndConditionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8456AB02C6A915F00E302C3 /* TermsAndConditionsView.swift */; };
 		F8A771732C3D307300C7D081 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F8A771722C3D307300C7D081 /* Launch Screen.storyboard */; };
 		F8A771752C3D43D700C7D081 /* FaqView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8A771742C3D43D700C7D081 /* FaqView.swift */; };
 /* End PBXBuildFile section */
@@ -78,6 +79,7 @@
 		F2BEF16A2C4329B300307E79 /* ViewControllerRecipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerRecipe.swift; sourceTree = "<group>"; };
 		F2BEF16C2C4329F900307E79 /* RecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeView.swift; sourceTree = "<group>"; };
 		F2BEF16E2C432A5C00307E79 /* SpoonacularService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpoonacularService.swift; sourceTree = "<group>"; };
+		F8456AB02C6A915F00E302C3 /* TermsAndConditionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TermsAndConditionsView.swift; sourceTree = "<group>"; };
 		F8A771712C3D2EF900C7D081 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Poppins-Regular.ttf"; path = "../../../Downloads/Poppins-Regular.ttf"; sourceTree = "<group>"; };
 		F8A771722C3D307300C7D081 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = "Launch Screen.storyboard"; path = "../Launch Screen.storyboard"; sourceTree = "<group>"; };
 		F8A771742C3D43D700C7D081 /* FaqView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaqView.swift; sourceTree = "<group>"; };
@@ -118,6 +120,7 @@
 				D2CAE5902C0BB6BD00C2B239 /* SignUpEmailView.swift */,
 				D2CAE5942C0BB6FE00C2B239 /* SignInEmailViewModel.swift */,
 				D2CAE58E2C0BB69400C2B239 /* AuthenticationView.swift */,
+				F8456AB02C6A915F00E302C3 /* TermsAndConditionsView.swift */,
 			);
 			name = Authentication;
 			sourceTree = "<group>";
@@ -326,6 +329,7 @@
 				D2CAE57F2C0BB2FB00C2B239 /* ProfileView.swift in Sources */,
 				D2CFC1072C2C72EA004A6DB7 /* ScannerView.swift in Sources */,
 				F8A771752C3D43D700C7D081 /* FaqView.swift in Sources */,
+				F8456AB12C6A915F00E302C3 /* TermsAndConditionsView.swift in Sources */,
 				D2CAE59B2C0BE61A00C2B239 /* NavBar.swift in Sources */,
 				D2CAE59F2C0BE68600C2B239 /* SettingsView.swift in Sources */,
 				F2BEF16B2C4329B300307E79 /* ViewControllerRecipe.swift in Sources */,

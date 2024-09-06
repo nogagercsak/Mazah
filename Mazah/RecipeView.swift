@@ -17,12 +17,18 @@ struct RecipeView: View {
 
       VStack {
           SearchBar(text: $searchText, onSearchButtonClicked: fetchRecipes)
+              .padding()
+          
           List(recipes) { recipe in
               Button(action: {
                   selectedRecipe = recipe
                   showRecipeDetail = true
               }) {
                   Text(recipe.title)
+                      .font(Font.custom("Poppins-Regular", size: 24))
+                      .padding()
+                      .background(Color(red: 0.43, green: 0.51, blue: 0.42))
+                      .cornerRadius(8)
               }
           }
       }
@@ -62,22 +68,27 @@ struct SearchBar: View {
   var onSearchButtonClicked: () -> Void
   var body: some View {
     HStack {
-      TextField("Search ingredients...", text: $text, onCommit: {
+      TextField(" Search ingredients...", text: $text, onCommit: {
         onSearchButtonClicked()
       })
+      .font(Font.custom("Poppins-Regular", size: 18))
       .textFieldStyle(RoundedBorderTextFieldStyle())
+      .padding(5)
+      .cornerRadius(20)
       Button(action: {
         onSearchButtonClicked()
       }) {
         Text("Search")
+              .font(Font.custom("Poppins-Regular", size: 18))
+              .padding(10)
+              .foregroundColor(.white)
+              .background(Color(red: 0.43, green: 0.51, blue: 0.42))
+              .cornerRadius(10)
       }
     }
-    .padding()
+    .padding(.leading, 10)
   }
 }
-
-
-
 
 
 #Preview {

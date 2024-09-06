@@ -6,15 +6,16 @@
 //
 
 import Foundation
-struct RecipeDetail: Codable {
+struct RecipeDetail: Codable, Identifiable{
     let id: Int
     let title: String
     let image: String?
     let summary: String?
     let extendedIngredients: [Ingredient]
     let instructions: String?
-}
 
-struct Ingredient: Codable {
-    let original: String // The full ingredient description
+    struct Ingredient: Codable, Identifiable {
+        let id: Int? 
+        let original: String
+    }
 }

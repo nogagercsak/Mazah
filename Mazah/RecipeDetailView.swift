@@ -1,17 +1,10 @@
-//
-//  RecipeDetailView.swift
-//  mazah_api_2
-//
-//  Created by Riya Zingade on 9/3/24.
-//
-
 import SwiftUI
 
 struct RecipeDetailView: View {
-    var recipeId: Int // Pass recipe ID instead of the full recipe
+    var recipeId: Int
     @State private var recipeDetail: RecipeDetail?
-    @State private var isLoading = true
-    
+    @State private var isLoading = false
+
     var body: some View {
         Group {
             if isLoading {

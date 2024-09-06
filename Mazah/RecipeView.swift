@@ -10,8 +10,8 @@ struct RecipeView: View {
     
   @State private var recipes: [Recipe] = []
   @State private var searchText: String = ""
-  @State private var selectedRecipe: Recipe? // State to track the selected recipe
-  @State private var showRecipeDetail = false // State to control showing the detail view
+  @State private var selectedRecipe: Recipe?
+  @State private var showRecipeDetail = false
   var body: some View {
       
 
@@ -32,7 +32,7 @@ struct RecipeView: View {
       
     .sheet(isPresented: $showRecipeDetail) {
                 if let recipe = selectedRecipe {
-                    RecipeDetailView(recipeId: recipe.id) // Pass the selected recipe to the detail view
+                    RecipeDetailView(recipeId: recipe.id)
                 }
             }
   }

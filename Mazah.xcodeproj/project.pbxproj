@@ -42,7 +42,6 @@
 		D2D2D79E2C2CA4A100AB21EF /* FoodManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D2D79D2C2CA4A100AB21EF /* FoodManager.swift */; };
 		D2D2D7A02C2CA4D900AB21EF /* TrackerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D2D79F2C2CA4D800AB21EF /* TrackerViewModel.swift */; };
 		F2BEF1662C4328A800307E79 /* Network.Manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BEF1652C4328A800307E79 /* Network.Manager.swift */; };
-		F2BEF1692C43298A00307E79 /* Recipe.swift .swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BEF1682C43298A00307E79 /* Recipe.swift .swift */; };
 		F2BEF16B2C4329B300307E79 /* ViewControllerRecipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BEF16A2C4329B300307E79 /* ViewControllerRecipe.swift */; };
 		F2BEF16D2C4329F900307E79 /* RecipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BEF16C2C4329F900307E79 /* RecipeView.swift */; };
 		F2BEF16F2C432A5C00307E79 /* SpoonacularService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BEF16E2C432A5C00307E79 /* SpoonacularService.swift */; };
@@ -81,7 +80,6 @@
 		D2D2D79F2C2CA4D800AB21EF /* TrackerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerViewModel.swift; sourceTree = "<group>"; };
 		F2BEF1642C43287100307E79 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F2BEF1652C4328A800307E79 /* Network.Manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Network.Manager.swift; sourceTree = "<group>"; };
-		F2BEF1682C43298A00307E79 /* Recipe.swift .swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Recipe.swift .swift"; sourceTree = "<group>"; };
 		F2BEF16A2C4329B300307E79 /* ViewControllerRecipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerRecipe.swift; sourceTree = "<group>"; };
 		F2BEF16C2C4329F900307E79 /* RecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeView.swift; sourceTree = "<group>"; };
 		F2BEF16E2C432A5C00307E79 /* SpoonacularService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpoonacularService.swift; sourceTree = "<group>"; };
@@ -230,7 +228,6 @@
 			isa = PBXGroup;
 			children = (
 				F2BEF1652C4328A800307E79 /* Network.Manager.swift */,
-				F2BEF1682C43298A00307E79 /* Recipe.swift .swift */,
 				F2BEF16A2C4329B300307E79 /* ViewControllerRecipe.swift */,
 				F2BEF16C2C4329F900307E79 /* RecipeView.swift */,
 				F2BEF16E2C432A5C00307E79 /* SpoonacularService.swift */,
@@ -349,7 +346,6 @@
 				D2D2D7A02C2CA4D900AB21EF /* TrackerViewModel.swift in Sources */,
 				D2CAE5932C0BB6DF00C2B239 /* SignInEmailView.swift in Sources */,
 				D2CAE57B2C0BB2A900C2B239 /* FirstView.swift in Sources */,
-				F2BEF1692C43298A00307E79 /* Recipe.swift .swift in Sources */,
 				D2CAE5952C0BB6FE00C2B239 /* SignInEmailViewModel.swift in Sources */,
 				D21B6D4D2C37765D008BBB01 /* AddFoodManualView.swift in Sources */,
 				D2CAE5912C0BB6BD00C2B239 /* SignUpEmailView.swift in Sources */,

@@ -1,9 +1,16 @@
+//
+//  RecipeDetailView.swift
+//  mazah_api_2
+//
+//  Created by Riya Zingade on 9/3/24.
+//
+
 import SwiftUI
 
 struct RecipeDetailView: View {
-    var recipeId: Int
+    var recipeId: Int // Pass recipe ID instead of the full recipe
     @State private var recipeDetail: RecipeDetail?
-    @State private var isLoading = false
+    @State private var isLoading = true
 
     var body: some View {
         Group {
@@ -14,11 +21,11 @@ struct RecipeDetailView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         // Display Recipe Title
                         Text(recipeDetail.title)
-                            .font(Font.custom("Poppins-Regular", size: 24))
+                            .font(Font.custom("Poppins-Regular", size: 18))
                             .fontWeight(.bold)
                             .multilineTextAlignment(.center)
                             .padding(.bottom, 20)
-                        
+
                         // Display Recipe Image (if available)
                         if let imageUrl = recipeDetail.image, let url = URL(string: imageUrl) {
                             AsyncImage(url: url) { phase in
@@ -62,14 +69,9 @@ struct RecipeDetailView: View {
             }
         }
         .onAppear {
-            if !isPreview {
-                fetchRecipeDetails()
-            } else {
-                self.recipeDetail = mockRecipeDetail()
-                self.isLoading = false
-                }
-            }
+            fetchRecipeDetails()
         }
+    }
 
     func fetchRecipeDetails() {
         NetworkManager.shared.fetchRecipeDetails(recipeId: recipeId) { result in
@@ -84,26 +86,6 @@ struct RecipeDetailView: View {
                 }
             }
         }
-    }
-
-
-    func mockRecipeDetail() -> RecipeDetail {
-        return RecipeDetail(
-            id: 1,
-            title: "Mock Recipe Title",
-            image: "https://via.placeholder.com/200",
-            summary: "This is a brief summary of the mock recipe.",
-            extendedIngredients: [
-                RecipeDetail.Ingredient(id: 1, original: "1 cup mock ingredient")
-            ],
-            instructions: "Mix all ingredients and cook for 30 minutes."
-        )
-    }
-}
-
-extension RecipeDetailView {
-    var isPreview: Bool {
-        ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEW"] == "1"
     }
 }
 

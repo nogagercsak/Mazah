@@ -72,7 +72,6 @@ struct FAQView: View {
     var body: some View {
         NavigationView {
                 ZStack {
-                    Color(hex: "#FFF6E2").edgesIgnoringSafeArea(.all)
                         
                 List(faqs) { faq in
                     DisclosureGroup(

@@ -13,7 +13,6 @@ struct FoodInfoView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color(hex: "#FFF6E2").edgesIgnoringSafeArea(.all)
                 
                 VStack(spacing: 15) {
                     if let url = URL(string: imageUrl) {

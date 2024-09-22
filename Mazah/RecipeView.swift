@@ -27,8 +27,9 @@ struct RecipeView: View {
                   Text(recipe.title)
                       .font(Font.custom("Poppins-Regular", size: 24))
                       .padding()
-                      .background(Color(red: 0.43, green: 0.51, blue: 0.42))
+                      .background(Color(.white))
                       .cornerRadius(8)
+                      .foregroundColor(Color(red: 0.43, green: 0.51, blue: 0.42))
               }
           }
       }

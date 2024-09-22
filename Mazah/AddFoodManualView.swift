@@ -34,8 +34,6 @@ struct AddFoodManualView: View {
     var body: some View {
         NavigationView {
             ZStack{
-                Color(hex: "#FFF6E2")
-                                    .edgesIgnoringSafeArea(.all)
                 VStack {
                     ScrollView {
                         VStack(spacing: 20) {

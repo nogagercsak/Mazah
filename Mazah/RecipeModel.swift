@@ -1,4 +1,6 @@
 import Foundation
+
+
 struct RecipeResponse: Codable {
     let results: [Recipe]
 }

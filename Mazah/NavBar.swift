@@ -10,54 +10,76 @@ import FirebaseAuth
 
 struct NavBar: View {
     @Binding var showSignInView: Bool
+    @State private var selectedTab: Tab = .profile
     var userId: String? = Auth.auth().currentUser?.uid
 
-    var body: some View {
-        HStack(spacing: 0) {
-            // Profile Button
-            NavigationLink(destination: ProfileView(showSignInView: $showSignInView)) {
-                Image(systemName: "person.crop.circle")
-                    .font(.system(size: 24))
-                    .foregroundColor(.gray)
-                    .padding()
-            }
-            .buttonStyle(PlainButtonStyle())
+    enum Tab {
+        case profile, scanner, recipes, foodHistory, settings
+    }
 
-            // Scanner Button
-            NavigationLink(destination: ScannerView(showSignInView: $showSignInView)) {
-                Image(systemName: "barcode.viewfinder")
-                    .font(.system(size: 24))
-                    .foregroundColor(.gray)
-                    .padding()
+    var body: some View {
+        HStack {
+            // Profile Button
+            NavBarButton(icon: "person.crop.circle", label: "Profile", isSelected: selectedTab == .profile) {
+                selectedTab = .profile
+                // Action to navigate to ProfileView
             }
-            .buttonStyle(PlainButtonStyle())
+            
+            // Scanner Button
+            NavBarButton(icon: "barcode.viewfinder", label: "Scanner", isSelected: selectedTab == .scanner) {
+                selectedTab = .scanner
+                // Action to navigate to ScannerView
+            }
+            
+            // Recipes Button
+            NavBarButton(icon: "sparkle.magnifyingglass", label: "Recipes", isSelected: selectedTab == .recipes) {
+                selectedTab = .recipes
+                // Action to navigate to RecipeView
+            }
 
             // Food History Button
             if let userId = userId {
-                NavigationLink(destination: FoodHistoryView(userId: userId, showSignInView: $showSignInView)) {
-                    Image(systemName: "clock.arrow.circlepath")
-                        .font(.system(size: 24))
-                        .foregroundColor(.gray)
-                        .padding()
+                NavBarButton(icon: "clock.arrow.circlepath", label: "History", isSelected: selectedTab == .foodHistory) {
+                    selectedTab = .foodHistory
+                    // Action to navigate to FoodHistoryView
                 }
-                .buttonStyle(PlainButtonStyle())
-            } else {
-                Text("")
-                    .padding()
             }
 
             // Settings Button
-            NavigationLink(destination: SettingsView(showSignInView: $showSignInView)) {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 24))
-                    .foregroundColor(.gray)
-                    .padding()
+            NavBarButton(icon: "gearshape", label: "Settings", isSelected: selectedTab == .settings) {
+                selectedTab = .settings
+                // Action to navigate to SettingsView
             }
-            .buttonStyle(PlainButtonStyle())
         }
-        .frame(height: 60)
-        .background(Color.white)
-        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
+        .padding(.horizontal, 20)
+        .frame(height: 80)
+        .background(Color(.systemGray6))
+        .cornerRadius(20)
+        .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
+        .padding(.horizontal)
+    }
+}
+
+struct NavBarButton: View {
+    var icon: String
+    var label: String
+    var isSelected: Bool
+    var action: () -> Void
+
+    var body: some View {
+        VStack {
+            Image(systemName: icon)
+                .font(.system(size: isSelected ? 28 : 24))
+                .foregroundColor(isSelected ? Color.blue : Color.gray)
+            Text(label)
+                .font(.caption)
+                .foregroundColor(isSelected ? Color.blue : Color.gray)
+        }
+        .padding()
+        .onTapGesture {
+            action()
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 

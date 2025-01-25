@@ -20,33 +20,33 @@ struct NavBar: View {
     var body: some View {
         HStack {
             // Profile Button
-            NavBarButton(icon: "person.crop.circle", label: "Profile", isSelected: selectedTab == .profile) {
+            NavBarButton(icon: "person.crop.circle", isSelected: selectedTab == .profile) {
                 selectedTab = .profile
                 // Action to navigate to ProfileView
             }
             
             // Scanner Button
-            NavBarButton(icon: "barcode.viewfinder", label: "Scanner", isSelected: selectedTab == .scanner) {
+            NavBarButton(icon: "barcode.viewfinder", isSelected: selectedTab == .scanner) {
                 selectedTab = .scanner
                 // Action to navigate to ScannerView
             }
             
             // Recipes Button
-            NavBarButton(icon: "sparkle.magnifyingglass", label: "Recipes", isSelected: selectedTab == .recipes) {
+            NavBarButton(icon: "sparkle.magnifyingglass", isSelected: selectedTab == .recipes) {
                 selectedTab = .recipes
                 // Action to navigate to RecipeView
             }
 
             // Food History Button
             if let userId = userId {
-                NavBarButton(icon: "clock.arrow.circlepath", label: "History", isSelected: selectedTab == .foodHistory) {
+                NavBarButton(icon: "clock.arrow.circlepath", isSelected: selectedTab == .foodHistory) {
                     selectedTab = .foodHistory
                     // Action to navigate to FoodHistoryView
                 }
             }
 
             // Settings Button
-            NavBarButton(icon: "gearshape", label: "Settings", isSelected: selectedTab == .settings) {
+            NavBarButton(icon: "gearshape", isSelected: selectedTab == .settings) {
                 selectedTab = .settings
                 // Action to navigate to SettingsView
             }

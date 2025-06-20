@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import React, { useCallback, useEffect } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { Colors } from '@/constants/Colors';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -24,13 +25,14 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (error) console.log('Font loading error:', error);
+    if (error) throw error;
   }, [error]);
 
-  const onLayoutRootView = useCallback(async () => {
+  useEffect(() => {
     if (loaded) {
-      // This tells the splash screen to hide immediately
-      await SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {
+        /* reloading the app might trigger some race conditions, ignore them */
+      });
     }
   }, [loaded]);
 
@@ -39,13 +41,13 @@ export default function RootLayout() {
   }
 
   return (
-    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <AuthProvider>
           <RootLayoutNav />
         </AuthProvider>
       </ThemeProvider>
-    </View>
+    </GestureHandlerRootView>
   );
 }
 

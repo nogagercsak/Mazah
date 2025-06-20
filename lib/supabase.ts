@@ -10,16 +10,15 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Types for food inventory
-export interface FoodItem {
+export type FoodItem = {
   id: string;
   name: string;
   quantity: string;
   expiration_date: string;
   storage_location: 'fridge' | 'pantry' | 'freezer';
   user_id: string;
-  created_at: string;
-  updated_at: string;
-}
+  daysLeft?: number; // Added for UI display
+};
 
 export interface InventoryData {
   fridge: FoodItem[];

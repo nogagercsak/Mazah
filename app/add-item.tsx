@@ -3,7 +3,7 @@ import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import Slider from '@react-native-community/slider';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,19 +12,20 @@ const proto = Colors.proto;
 
 type StorageLocation = 'fridge' | 'pantry' | 'freezer';
 
-const getFormattedDate = (days: number): string => {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    return date.toISOString().split('T')[0];
-};
+function getFormattedDate(daysFromNow: number) {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  return date.toISOString().split('T')[0];
+}
 
 export default function AddItemScreen() {
   const router = useRouter();
+  const { storageLocation } = useLocalSearchParams<{ storageLocation?: StorageLocation }>();
   const { user } = useAuth();
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('');
-  const [daysUntilExpiration, setDaysUntilExpiration] = useState(0); // Default to today
-  const [storageLocation, setStorageLocation] = useState<StorageLocation>('pantry');
+  const [daysUntilExpiration, setDaysUntilExpiration] = useState(0);
+  const [selectedStorage, setSelectedStorage] = useState<StorageLocation>(storageLocation || 'pantry');
   const [loading, setLoading] = useState(false);
 
   const expirationDate = getFormattedDate(daysUntilExpiration);
@@ -47,7 +48,7 @@ export default function AddItemScreen() {
         name,
         quantity,
         expiration_date: expirationDate,
-        storage_location: storageLocation,
+        storage_location: selectedStorage,
         user_id: user.id,
       });
 
@@ -90,12 +91,12 @@ export default function AddItemScreen() {
             key={loc.name}
             style={[
               styles.storageOption,
-              storageLocation === loc.name && styles.storageOptionSelected,
+              selectedStorage === loc.name && styles.storageOptionSelected,
             ]}
-            onPress={() => setStorageLocation(loc.name)}
+            onPress={() => setSelectedStorage(loc.name)}
           >
-            <IconSymbol name={loc.icon} size={24} color={storageLocation === loc.name ? proto.buttonText : proto.accentDark} />
-            <Text style={[styles.storageOptionText, storageLocation === loc.name && styles.storageOptionTextSelected]}>
+            <IconSymbol name={loc.icon} size={24} color={selectedStorage === loc.name ? proto.buttonText : proto.accentDark} />
+            <Text style={[styles.storageOptionText, selectedStorage === loc.name && styles.storageOptionTextSelected]}>
               {loc.name.charAt(0).toUpperCase() + loc.name.slice(1)}
             </Text>
           </TouchableOpacity>

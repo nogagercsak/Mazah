@@ -26,6 +26,8 @@ const MAPPING = {
   'hand.raised': 'pan-tool',
   'fork.knife': 'restaurant',
   'person.2': 'people',
+  checkmark: 'check',
+  trash: 'delete',
 } as const;
 
 export type IconSymbolName = keyof typeof MAPPING;

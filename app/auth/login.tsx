@@ -90,7 +90,7 @@ export default function LoginScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <IconSymbol name={"house.fill" as any} size={64} color={proto.accent} />
+          <IconSymbol name={"leaf.fill" as any} size={64} color={proto.accent} />
           <Text style={styles.title}>Welcome to Mazah</Text>
           <Text style={styles.subtitle}>Your food waste reduction companion</Text>
         </View>

@@ -28,6 +28,7 @@ const MAPPING = {
   'person.2': 'people',
   checkmark: 'check',
   trash: 'delete',
+  'leaf.fill': 'eco',
 } as const;
 
 export type IconSymbolName = keyof typeof MAPPING;

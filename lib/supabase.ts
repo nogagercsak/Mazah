@@ -45,26 +45,48 @@ export interface MealPlan {
   meal?: Meal; // For joined queries
 }
 
+export interface Ingredient {
+  id: string;
+  name: string;
+  category: string;
+  co2_per_kg: number;
+  water_per_kg: number;
+  standard_unit: string;
+  conversion_to_kg: number;
+}
+
 export interface MealIngredient {
   id: string;
   created_at: string;
   updated_at: string;
   meal_id: string;
-  name: string;
-  quantity: string;
-  category: string;
+  ingredient_id: string;
+  ingredient?: Ingredient;
+  quantity: number;
+  unit: string;
 }
 
 export interface DayPlan {
   date: string;
   meals: {
-    breakfast: Meal[];
-    lunch: Meal[];
-    dinner: Meal[];
-    snack: Meal[];
+    breakfast: (Meal & { mealPlanId: string })[];
+    lunch: (Meal & { mealPlanId: string })[];
+    dinner: (Meal & { mealPlanId: string })[];
+    snack: (Meal & { mealPlanId: string })[];
   };
   efficiency: {
     reusedIngredients: number;
     totalIngredients: number;
+    wasteReduction: {
+      reusedPercentage: number;
+      potentialSavings: number;
+      suggestedPairings: string[];
+      environmentalImpact: {
+        co2_saved: number;
+        water_saved: number;
+        total_co2: number;
+        total_water: number;
+      };
+    };
   };
 } 

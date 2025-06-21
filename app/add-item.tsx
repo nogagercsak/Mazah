@@ -44,9 +44,13 @@ export default function AddItemScreen() {
     setLoading(true);
 
     try {
+      // Extract numeric value from quantity
+      const numericQuantity = parseFloat(quantity) || 0;
+
       const { error: insertError } = await supabase.from('food_items').insert({
         name,
         quantity,
+        remaining_quantity: numericQuantity, // Set initial remaining_quantity same as quantity
         expiration_date: expirationDate,
         storage_location: selectedStorage,
         user_id: user.id,
@@ -56,8 +60,6 @@ export default function AddItemScreen() {
         throw insertError;
       }
 
-      // We can't guarantee the inventory screen will refetch, so we'll just go back.
-      // For a more robust solution, a global state manager would be ideal.
       Alert.alert('Success!', 'Your item has been added.');
       router.back();
 

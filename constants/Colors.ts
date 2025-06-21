@@ -33,5 +33,7 @@ export const Colors = {
     buttonText: '#FFFFFF',
     shadow: '#000000',
     error: '#DC3545',
+    border: '#E5E5E5',
+    inputBackground: '#F8F8F8',
   },
 };

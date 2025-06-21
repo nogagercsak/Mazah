@@ -446,29 +446,9 @@ export default function InventoryScreen() {
     return diffDays;
   };
 
-  const handleSignOut = async () => {
-    console.log('Sign out button pressed');
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Sign Out', 
-          style: 'destructive',
-          onPress: async () => {
-            console.log('Starting sign out process...');
-            try {
-              await signOut();
-              console.log('Sign out completed successfully');
-            } catch (error) {
-              console.error('Sign out error:', error);
-              Alert.alert('Sign Out Error', 'Failed to sign out. Please try again.');
-            }
-          }
-        },
-      ]
-    );
+  const handleProfilePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push('/profile');
   };
 
   const handleDeleteItem = async (itemId: string) => {
@@ -665,7 +645,7 @@ export default function InventoryScreen() {
           >
             <IconSymbol size={28} name={"plus" as any} color={proto.buttonText} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+          <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
             <IconSymbol size={24} name={"person" as any} color={proto.accentDark} />
           </TouchableOpacity>
         </View>
@@ -868,7 +848,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  signOutButton: {
+  profileButton: {
     padding: 8,
   },
   emptySection: {

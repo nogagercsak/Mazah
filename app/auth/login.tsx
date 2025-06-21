@@ -92,7 +92,7 @@ export default function LoginScreen() {
         <View style={styles.header}>
           <IconSymbol name={"leaf.fill" as any} size={64} color={proto.accent} />
           <Text style={styles.title}>Welcome to Mazah</Text>
-          <Text style={styles.subtitle}>Your food waste reduction companion</Text>
+          <Text style={styles.subtitle}>Fight Climate Change, One Meal at a Time</Text>
         </View>
 
         <View style={styles.form}>

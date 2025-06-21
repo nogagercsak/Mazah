@@ -736,8 +736,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: proto.shadow,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
     elevation: 2,
   },
   scrollView: {
@@ -932,8 +932,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     shadowColor: proto.shadow,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
     elevation: 2,
   },
   addFirstItemButtonText: {

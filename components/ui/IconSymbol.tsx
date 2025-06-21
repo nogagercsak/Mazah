@@ -29,6 +29,7 @@ const MAPPING = {
   checkmark: 'check',
   trash: 'delete',
   'leaf.fill': 'eco',
+  'wand.and.stars': 'auto-fix-high',
 } as const;
 
 export type IconSymbolName = keyof typeof MAPPING;

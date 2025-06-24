@@ -101,30 +101,43 @@ export default function SignUpScreen() {
         throw new Error(errorMessage);
       }
 
+      console.log('Signup successful, checking email confirmation status...');
+      console.log('User data:', data.user);
+      console.log('Email confirmed at:', data.user?.email_confirmed_at);
+
+      // Sign in the user immediately after signup
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        console.error('Auto sign-in error:', signInError);
+        throw new Error('Failed to sign in after account creation.');
+      }
+
+      console.log('Auto sign-in successful:', signInData);
+
       // Check if email confirmation is required
       if (data.user && !data.user.email_confirmed_at) {
+        console.log('Email confirmation required, showing alert...');
         Alert.alert(
           'Account Created!', 
-          'Please check your email to verify your account before signing in.',
+          'Please check your email to verify your account before continuing.',
           [
             {
               text: 'OK',
-              onPress: () => router.replace('/auth/login'),
+              onPress: () => {
+                console.log('Alert OK pressed, navigating to onboarding...');
+                router.replace('/auth/onboarding');
+              },
             },
           ]
         );
       } else {
         // Email confirmation might not be required
-        Alert.alert(
-          'Account Created!', 
-          'Your account has been created successfully. You can now sign in.',
-          [
-            {
-              text: 'Sign In',
-              onPress: () => router.replace('/auth/login'),
-            },
-          ]
-        );
+        console.log('No email confirmation required, navigating directly to onboarding...');
+        router.replace('/auth/onboarding');
       }
 
     } catch (error) {

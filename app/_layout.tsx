@@ -2,14 +2,15 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts, SpaceMono_400Regular } from '@expo-google-fonts/space-mono';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { Colors } from '@/constants/Colors';
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '../constants/Colors';
+import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { useColorScheme } from '../hooks/useColorScheme';
+import { supabase } from '../lib/supabase';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -54,20 +55,82 @@ export default function RootLayout() {
 function useProtectedRoute(user: any) {
   const segments = useSegments();
   const router = useRouter();
+  const [hasCheckedOnboarding, setHasCheckedOnboarding] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(true);
 
+  // Check if user needs onboarding
   useEffect(() => {
-    const inAuthGroup = segments[0] === 'auth';
-    
-    if (!user && !inAuthGroup) {
-      // If the user is not signed in and the initial segment is not in the auth group,
-      // redirect to the login page
-      router.replace('/auth/login');
-    } else if (user && inAuthGroup) {
-      // If the user is signed in and the initial segment is in the auth group,
-      // redirect to the home page
-      router.replace('/');
+    async function checkOnboardingStatus() {
+      if (!user) {
+        setHasCheckedOnboarding(true);
+        setNeedsOnboarding(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('completed_at')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        // If no profile exists or completed_at is null, user needs onboarding
+        const needsOnboarding = !data || !data.completed_at;
+        console.log('Onboarding check:', { 
+          hasProfile: !!data, 
+          completedAt: data?.completed_at,
+          needsOnboarding,
+          userId: user.id
+        });
+        
+        setNeedsOnboarding(needsOnboarding);
+        setHasCheckedOnboarding(true);
+      } catch (error) {
+        console.error('Error checking onboarding status:', error);
+        // If there's an error, assume onboarding is needed
+        setNeedsOnboarding(true);
+        setHasCheckedOnboarding(true);
+      }
     }
-  }, [user, segments]);
+
+    checkOnboardingStatus();
+  }, [user]);
+
+  // Handle navigation
+  useEffect(() => {
+    if (!hasCheckedOnboarding) return;
+
+    const inAuthGroup = segments[0] === 'auth';
+    const isOnboarding = segments[1] === 'onboarding';
+    const isSignup = segments[1] === 'signup';
+    const isLogin = segments[1] === 'login';
+    const inMainApp = segments[0] === '(tabs)';
+    const isProfile = segments[0] === 'profile';
+    
+    console.log('Navigation check:', {
+      user: !!user,
+      inAuthGroup,
+      isOnboarding,
+      needsOnboarding,
+      currentPath: segments.join('/'),
+      isProfile
+    });
+
+    if (!user && !inAuthGroup) {
+      // If not signed in and not in auth group, go to login
+      router.replace('/auth/login');
+    } else if (user) {
+      if (needsOnboarding && !isOnboarding && !isSignup && !inMainApp && !isProfile) {
+        // If needs onboarding and not in onboarding, signup, main app, or profile, go to onboarding
+        router.replace('/auth/onboarding');
+      } else if (!needsOnboarding && inAuthGroup && !inMainApp && !isSignup) {
+        // If doesn't need onboarding and in auth group (but not signup) and not main app, go to main app
+        router.replace('/');
+      }
+    }
+  }, [user, segments, hasCheckedOnboarding, needsOnboarding]);
 }
 
 function RootLayoutNav() {
@@ -101,7 +164,7 @@ function RootLayoutNav() {
       }}
     >
       {user ? (
-        // Authenticated user - show main app
+        // Authenticated user - show main app and onboarding
         <>
           <Stack.Screen 
             name="(tabs)" 
@@ -111,6 +174,8 @@ function RootLayoutNav() {
             }} 
           />
           <Stack.Screen name="add-item" options={{ headerShown: false }} />
+          <Stack.Screen name="profile" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/onboarding" options={{ headerShown: false }} />
         </>
       ) : (
         // Not authenticated - show auth screens

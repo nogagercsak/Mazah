@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Constants from 'expo-constants';
 
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-const apiKey = Constants.expoConfig?.extra?.SPOONACULAR_API_KEY;
+const apiKey = process.env.EXPO_PUBLIC_SPOONACULAR_API_KEY;
 
 const proto = Colors.proto;
 

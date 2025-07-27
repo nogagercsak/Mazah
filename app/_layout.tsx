@@ -19,6 +19,15 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 
 const proto = Colors.proto;
 
+// Debug component
+function AuthDebugInfo({ user, loading }: { user: any, loading: boolean }) {
+  const segments = useSegments();
+  
+  
+  
+  return null;
+}
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded, error] = useFonts({
@@ -68,39 +77,90 @@ function useProtectedRoute(user: any) {
       }
 
       try {
+        console.log('Checking onboarding status for user:', user.id);
+        
         const { data, error } = await supabase
           .from('user_profiles')
-          .select('completed_at')
+          .select('completed_at, created_at')
           .eq('user_id', user.id)
           .maybeSingle();
 
-        if (error) throw error;
+        if (error && error.code !== 'PGRST116') {
+          // PGRST116 is "not found" which is expected for new users
+          console.error('Error checking onboarding status:', error);
+          // Assume needs onboarding if we can't check
+          setNeedsOnboarding(true);
+          setHasCheckedOnboarding(true);
+          return;
+        }
 
         // If no profile exists or completed_at is null, user needs onboarding
         const needsOnboarding = !data || !data.completed_at;
-        console.log('Onboarding check:', { 
+        console.log('Onboarding check result:', { 
           hasProfile: !!data, 
           completedAt: data?.completed_at,
+          createdAt: data?.created_at,
           needsOnboarding,
-          userId: user.id
+          userId: user.id,
+          checkTime: new Date().toISOString()
         });
         
         setNeedsOnboarding(needsOnboarding);
         setHasCheckedOnboarding(true);
       } catch (error) {
-        console.error('Error checking onboarding status:', error);
-        // If there's an error, assume onboarding is needed
+        console.error('Unexpected error checking onboarding status:', error);
+        // Assume needs onboarding on unexpected errors
         setNeedsOnboarding(true);
         setHasCheckedOnboarding(true);
       }
     }
 
-    checkOnboardingStatus();
-  }, [user]);
+    // Reset state when user changes
+    if (user) {
+      setHasCheckedOnboarding(false);
+      checkOnboardingStatus();
+    } else {
+      setHasCheckedOnboarding(true);
+      setNeedsOnboarding(false);
+    }
+  }, [user?.id]); // FIXED: Remove lastCheckTime from dependency
+
+  // Add a periodic re-check when on onboarding screen
+  useEffect(() => {
+    const isOnboarding = segments[1] === 'onboarding';
+    
+    if (user && isOnboarding && hasCheckedOnboarding && needsOnboarding) {
+      console.log('Setting up periodic onboarding status check...');
+      
+      const interval = setInterval(async () => {
+        console.log('Periodic check: Re-checking onboarding status...');
+        
+        const { data } = await supabase
+          .from('user_profiles')
+          .select('completed_at')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (data && data.completed_at) {
+          console.log('Periodic check: Onboarding completed! Updating state...');
+          setNeedsOnboarding(false);
+          clearInterval(interval);
+        }
+      }, 2000); // Check every 2 seconds
+      
+      return () => {
+        console.log('Cleaning up periodic onboarding check...');
+        clearInterval(interval);
+      };
+    }
+  }, [user, segments, hasCheckedOnboarding, needsOnboarding]);
 
   // Handle navigation
   useEffect(() => {
-    if (!hasCheckedOnboarding) return;
+    if (!hasCheckedOnboarding) {
+      console.log('Still checking onboarding status, skipping navigation...');
+      return;
+    }
 
     const inAuthGroup = segments[0] === 'auth';
     const isOnboarding = segments[1] === 'onboarding';
@@ -111,6 +171,7 @@ function useProtectedRoute(user: any) {
     
     console.log('Navigation check:', {
       user: !!user,
+      hasCheckedOnboarding,
       inAuthGroup,
       isOnboarding,
       needsOnboarding,
@@ -118,19 +179,29 @@ function useProtectedRoute(user: any) {
       isProfile
     });
 
-    if (!user && !inAuthGroup) {
+    if (!user) {
       // If not signed in and not in auth group, go to login
-      router.replace('/auth/login');
-    } else if (user) {
-      if (needsOnboarding && !isOnboarding && !isSignup && !inMainApp && !isProfile) {
-        // If needs onboarding and not in onboarding, signup, main app, or profile, go to onboarding
-        router.replace('/auth/onboarding');
-      } else if (!needsOnboarding && inAuthGroup && !inMainApp && !isSignup) {
-        // If doesn't need onboarding and in auth group (but not signup) and not main app, go to main app
-        router.replace('/');
+      if (!inAuthGroup) {
+        console.log('No user, redirecting to login...');
+        router.replace('/auth/login');
+      }
+    } else if (user && hasCheckedOnboarding) {
+      if (needsOnboarding) {
+        // If needs onboarding and not already there, go to onboarding
+        if (!isOnboarding) {
+          console.log('User needs onboarding, redirecting...');
+          router.replace('/auth/onboarding');
+        }
+      } else {
+        // Onboarding is complete
+        if (inAuthGroup && !isSignup && !isLogin) {
+          // If in auth group (but not signup/login), go to main app
+          console.log('Onboarding complete, redirecting to main app...');
+          router.replace('/');
+        }
       }
     }
-  }, [user, segments, hasCheckedOnboarding, needsOnboarding]);
+  }, [user, segments, hasCheckedOnboarding, needsOnboarding, router]);
 }
 
 function RootLayoutNav() {
@@ -147,6 +218,7 @@ function RootLayoutNav() {
     console.log('RootLayoutNav: Showing loading screen');
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: proto.background }}>
+        <AuthDebugInfo user={user} loading={loading} />
         <ActivityIndicator size="large" color={proto.accent} />
         <Text style={{ marginTop: 16, color: proto.text }}>Loading...</Text>
       </View>
@@ -157,33 +229,36 @@ function RootLayoutNav() {
   console.log('RootLayoutNav: Rendering stack with screens:', user ? '(tabs) and add-item' : 'auth/login and auth/signup');
 
   return (
-    <Stack
-      screenOptions={{
-        contentStyle: { backgroundColor: proto.background },
-        headerShown: false,
-      }}
-    >
-      {user ? (
-        // Authenticated user - show main app and onboarding
-        <>
-          <Stack.Screen 
-            name="(tabs)" 
-            options={{ 
-              headerShown: false,
-              header: () => null,
-            }} 
-          />
-          <Stack.Screen name="add-item" options={{ headerShown: false }} />
-          <Stack.Screen name="profile" options={{ headerShown: false }} />
-          <Stack.Screen name="auth/onboarding" options={{ headerShown: false }} />
-        </>
-      ) : (
-        // Not authenticated - show auth screens
-        <>
-          <Stack.Screen name="auth/login" options={{ headerShown: false }} />
-          <Stack.Screen name="auth/signup" options={{ headerShown: false }} />
-        </>
-      )}
-    </Stack>
-  );
+    <>
+      <AuthDebugInfo user={user} loading={loading} />
+      <Stack
+        screenOptions={{
+          contentStyle: { backgroundColor: proto.background },
+          headerShown: false,
+        }}
+      >
+        {user ? (
+          // Authenticated user - show main app and onboarding
+          <>
+            <Stack.Screen 
+              name="(tabs)" 
+              options={{ 
+                headerShown: false,
+                header: () => null,
+              }} 
+            />
+            <Stack.Screen name="add-item" options={{ headerShown: false }} />
+            <Stack.Screen name="profile" options={{ headerShown: false }} />
+            <Stack.Screen name="auth/onboarding" options={{ headerShown: false }} />
+          </>
+        ) : (
+          // Not authenticated - show auth screens
+          <>
+            <Stack.Screen name="auth/login" options={{ headerShown: false }} />
+            <Stack.Screen name="auth/signup" options={{ headerShown: false }} />
+          </>
+        )}
+      </Stack>
+    </>
+  ); 
 }

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
@@ -54,6 +56,7 @@ const mockCategories = [
 
 export default function ShareScreen() {
   const { signOut } = useAuth();
+  const router = useRouter();
   const [categories, setCategories] = useState(mockCategories);
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -77,19 +80,9 @@ export default function ShareScreen() {
     Alert.alert('Contact', `This would open chat with ${listing.postedBy} about ${listing.title}`);
   };
 
-  const handleSignOut = async () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Sign Out', 
-          style: 'destructive',
-          onPress: signOut 
-        },
-      ]
-    );
+  const handleProfilePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push('/profile');
   };
 
   const renderListingCard = (listing: any) => (
@@ -136,7 +129,7 @@ export default function ShareScreen() {
               <IconSymbol size={20} name={"plus" as any} color={proto.buttonText} />
               <Text style={styles.postButtonText}>Post</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+            <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
               <IconSymbol size={20} name={"person" as any} color={proto.accentDark} />
             </TouchableOpacity>
           </View>
@@ -369,7 +362,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  signOutButton: {
+  profileButton: {
     padding: 8,
   },
 });

@@ -16,137 +16,97 @@ export default function SignUpScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleSignUp = async () => {
-    if (!email || !password || !confirmPassword) {
-      Alert.alert('Missing Information', 'Please fill out all fields.');
-      return;
-    }
+  if (!email || !password || !confirmPassword) {
+    Alert.alert('Missing Information', 'Please fill out all fields.');
+    return;
+  }
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address (e.g., user@example.com)');
-      return;
-    }
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    Alert.alert('Invalid Email', 'Please enter a valid email address (e.g., user@example.com)');
+    return;
+  }
 
-    // Additional email checks
-    if (email.length < 5) {
-      Alert.alert('Invalid Email', 'Email address is too short.');
-      return;
-    }
+  if (password !== confirmPassword) {
+    Alert.alert('Password Mismatch', 'Passwords do not match.');
+    return;
+  }
 
-    if (!email.includes('@')) {
-      Alert.alert('Invalid Email', 'Email address must contain @ symbol.');
-      return;
-    }
+  if (password.length < 6) {
+    Alert.alert('Weak Password', 'Password must be at least 6 characters long.');
+    return;
+  }
 
-    if (!email.includes('.')) {
-      Alert.alert('Invalid Email', 'Email address must contain a domain (e.g., .com, .org).');
-      return;
-    }
+  setLoading(true);
 
-    const [localPart, domain] = email.split('@');
-    if (!localPart || localPart.length === 0) {
-      Alert.alert('Invalid Email', 'Email address must have text before the @ symbol.');
-      return;
-    }
+  try {
+    console.log('🔐 SIGNUP: Attempting to sign up with email:', email);
+    
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
 
-    if (!domain || domain.length === 0) {
-      Alert.alert('Invalid Email', 'Email address must have a domain after the @ symbol.');
-      return;
-    }
+    console.log('🔐 SIGNUP: Response data:', data);
+    console.log('🔐 SIGNUP: Response error:', error);
 
-    if (password !== confirmPassword) {
-      Alert.alert('Password Mismatch', 'Passwords do not match.');
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert('Weak Password', 'Password must be at least 6 characters long.');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      console.log('Attempting to sign up with email:', email);
+    if (error) {
+      console.error('🔐 SIGNUP: Error details:', error);
       
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      console.log('Sign up response data:', data);
-      console.log('Sign up response error:', error);
-
-      if (error) {
-        console.error('Sign up error details:', error);
-        
-        // Handle specific error cases
-        let errorMessage = 'An error occurred during sign up.';
-        
-        if (error.message.includes('Invalid email')) {
-          errorMessage = 'This email address is not accepted. Please try a different email address.';
-        } else if (error.message.includes('User already registered')) {
-          errorMessage = 'An account with this email already exists. Please sign in instead.';
-        } else if (error.message.includes('Password should be at least')) {
-          errorMessage = 'Password must be at least 6 characters long.';
-        } else if (error.message.includes('Unable to validate email address')) {
-          errorMessage = 'Unable to validate this email address. Please try a different email.';
-        } else if (error.message.includes('Email not allowed')) {
-          errorMessage = 'This email domain is not allowed. Please use a different email address.';
-        } else {
-          errorMessage = error.message;
-        }
-        
-        throw new Error(errorMessage);
-      }
-
-      console.log('Signup successful, checking email confirmation status...');
-      console.log('User data:', data.user);
-      console.log('Email confirmed at:', data.user?.email_confirmed_at);
-
-      // Sign in the user immediately after signup
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        console.error('Auto sign-in error:', signInError);
-        throw new Error('Failed to sign in after account creation.');
-      }
-
-      console.log('Auto sign-in successful:', signInData);
-
-      // Check if email confirmation is required
-      if (data.user && !data.user.email_confirmed_at) {
-        console.log('Email confirmation required, showing alert...');
-        Alert.alert(
-          'Account Created!', 
-          'Please check your email to verify your account before continuing.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                console.log('Alert OK pressed, navigating to onboarding...');
-                router.replace('/auth/onboarding');
-              },
-            },
-          ]
-        );
+      let errorMessage = 'An error occurred during sign up.';
+      
+      if (error.message.includes('Invalid email')) {
+        errorMessage = 'This email address is not accepted. Please try a different email address.';
+      } else if (error.message.includes('User already registered')) {
+        errorMessage = 'An account with this email already exists. Please sign in instead.';
+      } else if (error.message.includes('Password should be at least')) {
+        errorMessage = 'Password must be at least 6 characters long.';
+      } else if (error.message.includes('Unable to validate email address')) {
+        errorMessage = 'Unable to validate this email address. Please try a different email.';
+      } else if (error.message.includes('Email not allowed')) {
+        errorMessage = 'This email domain is not allowed. Please use a different email address.';
       } else {
-        // Email confirmation might not be required
-        console.log('No email confirmation required, navigating directly to onboarding...');
-        router.replace('/auth/onboarding');
+        errorMessage = error.message;
       }
-
-    } catch (error) {
-      console.error('Sign up error:', error);
-      Alert.alert('Sign Up Failed', error instanceof Error ? error.message : 'An error occurred during sign up.');
-    } finally {
-      setLoading(false);
+      
+      throw new Error(errorMessage);
     }
-  };
+
+    console.log('🔐 SIGNUP: Signup successful!');
+    console.log('🔐 SIGNUP: User data:', data.user);
+    console.log('🔐 SIGNUP: Email confirmed at:', data.user?.email_confirmed_at);
+
+    if (data.user && !data.user.email_confirmed_at) {
+      console.log('🔐 SIGNUP: Email confirmation required');
+      Alert.alert(
+        'Check Your Email', 
+        'We\'ve sent you a confirmation email. Please check your email and click the confirmation link to complete your account setup.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              console.log('🔐 SIGNUP: Email confirmation alert dismissed, going to login');
+              router.replace('/auth/login');
+            },
+          },
+        ]
+      );
+    } else {
+      // Email confirmation not required OR already confirmed
+      console.log('🔐 SIGNUP: No email confirmation required, account created successfully');
+      
+      // Don't navigate immediately - let the useProtectedRoute handle it
+      console.log('🔐 SIGNUP: Account created, auth context will handle navigation to onboarding');
+    }
+
+  } catch (error) {
+    console.error('🔐 SIGNUP: Sign up error:', error);
+    Alert.alert('Sign Up Failed', error instanceof Error ? error.message : 'An error occurred during sign up.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleBackToLogin = () => {
     router.back();
@@ -298,4 +258,4 @@ const styles = StyleSheet.create({
     color: proto.accent,
     fontWeight: '500',
   },
-}); 
+});

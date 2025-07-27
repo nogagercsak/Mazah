@@ -13,6 +13,8 @@ DROP TABLE IF EXISTS public.meals CASCADE;
 DROP TABLE IF EXISTS public.food_items CASCADE;
 DROP TABLE IF EXISTS public.ingredients CASCADE;
 DROP TABLE IF EXISTS public.user_profiles CASCADE;
+DROP TABLE IF EXISTS public.recipe_ingredients CASCADE;
+DROP TABLE IF EXISTS public.recipes CASCADE;
 
 -- -----------------------------
 -- 2. Create utility functions
@@ -120,6 +122,40 @@ CREATE TABLE IF NOT EXISTS public.meal_ingredients (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
+-- Create recipes table
+CREATE TABLE IF NOT EXISTS public.recipes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  description TEXT,
+  instructions TEXT[] NOT NULL,
+  cooking_time INTEGER NOT NULL,
+  difficulty TEXT CHECK (difficulty IN ('easy', 'medium', 'hard')) NOT NULL,
+  cuisine_type TEXT,
+  dietary_restrictions TEXT[] DEFAULT '{}',
+  servings INTEGER NOT NULL DEFAULT 4,
+  image_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE
+);
+
+-- Create recipe_ingredients table with proper foreign key relationship
+CREATE TABLE IF NOT EXISTS public.recipe_ingredients (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  recipe_id UUID NOT NULL,
+  name TEXT NOT NULL,
+  quantity DECIMAL(10,2) NOT NULL,
+  unit TEXT NOT NULL,
+  required BOOLEAN DEFAULT true,
+  substitutes TEXT[] DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+  CONSTRAINT fk_recipe
+    FOREIGN KEY(recipe_id) 
+    REFERENCES public.recipes(id)
+    ON DELETE CASCADE
+);
+
 -- -----------------------------
 -- 4. Create indexes
 -- -----------------------------
@@ -133,6 +169,12 @@ CREATE INDEX IF NOT EXISTS idx_food_items_user_id ON public.food_items(user_id);
 CREATE INDEX IF NOT EXISTS idx_food_items_storage_location ON public.food_items(storage_location);
 CREATE INDEX IF NOT EXISTS idx_food_items_expiration_date ON public.food_items(expiration_date);
 
+-- Indexes for recipes and recipe_ingredients
+CREATE INDEX IF NOT EXISTS idx_recipes_user_id ON public.recipes(user_id);
+CREATE INDEX IF NOT EXISTS idx_recipes_cooking_time ON public.recipes(cooking_time);
+CREATE INDEX IF NOT EXISTS idx_recipes_cuisine_type ON public.recipes(cuisine_type);
+CREATE INDEX IF NOT EXISTS idx_recipe_ingredients_recipe_id ON public.recipe_ingredients(recipe_id);
+
 -- -----------------------------
 -- 5. Enable Row Level Security
 -- -----------------------------
@@ -143,6 +185,8 @@ ALTER TABLE public.ingredients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.meals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.meal_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.meal_ingredients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recipe_ingredients ENABLE ROW LEVEL SECURITY;
 
 -- -----------------------------
 -- 6. Create RLS Policies
@@ -196,13 +240,13 @@ CREATE POLICY "Users can delete meal ingredients" ON public.meal_ingredients
 
 -- User profiles policies
 CREATE POLICY "Users can view own profile" ON public.user_profiles
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own profile" ON public.user_profiles
-  FOR UPDATE USING (auth.uid() = user_id);
-
+    FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert own profile" ON public.user_profiles
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own profile" ON public.user_profiles
+    FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own profile" ON public.user_profiles
+    FOR DELETE USING (auth.uid() = user_id);
 
 -- Food items policies
 CREATE POLICY "Users can view own food items" ON public.food_items
@@ -229,6 +273,30 @@ CREATE POLICY "Users can update own ingredients" ON public.ingredients
 
 CREATE POLICY "Users can delete own ingredients" ON public.ingredients
   FOR DELETE USING (auth.uid() = user_id);
+
+-- Recipes policies
+CREATE POLICY "Users can view all recipes" ON public.recipes
+    FOR SELECT USING (true);
+
+CREATE POLICY "Users can insert own recipes" ON public.recipes
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own recipes" ON public.recipes
+    FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own recipes" ON public.recipes
+    FOR DELETE USING (auth.uid() = user_id);
+
+-- Recipe ingredients policies
+CREATE POLICY "Users can view all recipe ingredients" ON public.recipe_ingredients
+    FOR SELECT USING (true);
+
+CREATE POLICY "Users can modify recipe ingredients" ON public.recipe_ingredients
+    FOR ALL USING (EXISTS (
+        SELECT 1 FROM public.recipes
+        WHERE recipes.id = recipe_ingredients.recipe_id
+        AND recipes.user_id = auth.uid()
+    ));
 
 -- -----------------------------
 -- 7. Create Triggers

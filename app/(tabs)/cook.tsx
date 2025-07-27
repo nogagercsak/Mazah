@@ -1,43 +1,15 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Constants from 'expo-constants';
 
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-const proto = Colors.proto;
+const apiKey = Constants.expoConfig?.extra?.SPOONACULAR_API_KEY;
 
-// Mock data for demonstration
-const mockRecipes = [
-  {
-    id: 1,
-    name: 'Creamy Pasta with Chicken',
-    ingredients: ['Pasta', 'Chicken Breast', 'Cheese', 'Milk'],
-    time: '25 min',
-    difficulty: 'Easy',
-    image: 'https://via.placeholder.com/150x100/4CAF50/FFFFFF?text=Pasta',
-    expiringIngredients: ['Milk', 'Chicken Breast'],
-  },
-  {
-    id: 2,
-    name: 'Rice Bowl with Vegetables',
-    ingredients: ['Rice', 'Mixed Vegetables'],
-    time: '20 min',
-    difficulty: 'Easy',
-    image: 'https://via.placeholder.com/150x100/FF9800/FFFFFF?text=Rice',
-    expiringIngredients: [],
-  },
-  {
-    id: 3,
-    name: 'Yogurt Parfait',
-    ingredients: ['Yogurt', 'Honey', 'Granola'],
-    time: '5 min',
-    difficulty: 'Easy',
-    image: 'https://via.placeholder.com/150x100/9C27B0/FFFFFF?text=Parfait',
-    expiringIngredients: ['Yogurt'],
-  },
-];
+const proto = Colors.proto;
 
 const mockFilters = [
   { id: 'all', name: 'All Recipes', active: true },
@@ -46,33 +18,104 @@ const mockFilters = [
   { id: 'easy', name: 'Easy', active: false },
 ];
 
+type Recipe = {
+  id: number;
+  name: string;
+  time: string;
+  difficulty: string;
+  image: string;
+  ingredients: string[];
+  expiringIngredients: string[];
+};
+
 export default function CookScreen() {
   const colorScheme = useColorScheme();
+
   const [filters, setFilters] = useState(mockFilters);
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    fetchRecipes();
+  }, []);
+
+  // Missing toggleFilter function
   const toggleFilter = (filterId: string) => {
+    setFilters(prevFilters =>
+      prevFilters.map(filter => ({
+        ...filter,
+        active: filter.id === filterId
+      }))
+    );
     setSelectedFilter(filterId);
-    setFilters(filters.map(f => ({ ...f, active: f.id === filterId })));
   };
+
+  async function fetchRecipes() {
+    setLoading(true);
+    setError(null);
+
+    if (!apiKey) {
+      console.warn("API key is missing from Constants");
+      setError("Missing API key");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://api.spoonacular.com/recipes/complexSearch?query=pasta&addRecipeInformation=true&number=10&apiKey=${apiKey}`
+      );
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Fetched recipes:", data.results);
+
+      const mappedRecipes = data.results.map((r: any) => ({
+        id: r.id,
+        name: r.title,
+        time: `${r.readyInMinutes} min`,
+        difficulty: r.readyInMinutes <= 15 ? 'Easy' : 'Medium',
+        image: r.image,
+        ingredients: r.extendedIngredients?.map((ing: any) => ing.name) || [],
+        expiringIngredients: [],
+      }));
+
+      setRecipes(mappedRecipes);
+    } catch (err: any) {
+      console.error("Fetch error:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const getFilteredRecipes = () => {
     switch (selectedFilter) {
       case 'expiring':
-        return mockRecipes.filter(recipe => recipe.expiringIngredients.length > 0);
+        return recipes.filter(recipe => recipe.expiringIngredients.length > 0);
       case 'quick':
-        return mockRecipes.filter(recipe => parseInt(recipe.time) < 15);
+        return recipes.filter(recipe => {
+          const timeNumber = parseInt(recipe.time.replace(/\D/g, ''), 10);
+          return timeNumber < 15;
+        });
       case 'easy':
-        return mockRecipes.filter(recipe => recipe.difficulty === 'Easy');
+        return recipes.filter(recipe => recipe.difficulty === 'Easy');
       default:
-        return mockRecipes;
+        return recipes;
     }
   };
+
+  const filteredRecipes = getFilteredRecipes();
 
   const renderRecipeCard = (recipe: any) => (
     <View key={recipe.id} style={styles.recipeCard}>
       <View style={styles.recipeImage}>
-        <Text style={styles.recipeImageText}>{recipe.name.split(' ')[0]}</Text>
+        {/* Show image */}
+        <Image source={{ uri: recipe.image }} style={{ width: '100%', height: 90 }} resizeMode="cover" />
         {recipe.expiringIngredients.length > 0 && (
           <View style={styles.expiringBadge}>
             <Text style={styles.expiringBadgeText}>{recipe.expiringIngredients.length} expiring</Text>
@@ -133,12 +176,21 @@ export default function CookScreen() {
       </View>
       <ScrollView style={styles.recipesContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.recipesGrid}>
-          {getFilteredRecipes().map(renderRecipeCard)}
-        </View>
-        <View style={styles.emptyState}>
-          <IconSymbol size={48} name="lightbulb" color={proto.textSecondary} />
-          <Text style={styles.emptyStateTitle}>No recipes found?</Text>
-          <Text style={styles.emptyStateText}>Try adding more ingredients to your inventory or adjust your filters.</Text>
+          {loading ? (
+            <Text style={{ textAlign: 'center', marginTop: 20 }}>Loading recipes...</Text>
+          ) : error ? (
+            <Text style={{ textAlign: 'center', marginTop: 20, color: 'red' }}>{error}</Text>
+          ) : filteredRecipes.length > 0 ? (
+            filteredRecipes.map(renderRecipeCard)
+          ) : (
+            <View style={styles.emptyState}>
+              <IconSymbol size={48} name="lightbulb" color={proto.textSecondary} />
+              <Text style={styles.emptyStateTitle}>No recipes found?</Text>
+              <Text style={styles.emptyStateText}>
+                Try adding more ingredients to your inventory or adjust your filters.
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -150,8 +202,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: proto.background,
   },
-  
-
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -162,19 +212,17 @@ const styles = StyleSheet.create({
     backgroundColor: proto.background,
     marginBottom: 0,
   },
-
   headerTitle: {
-    fontSize: 26,    
+    fontSize: 26,
     fontWeight: '700',
     color: proto.accentDark,
     opacity: 0.85,
     letterSpacing: 0.5,
     marginBottom: 0,
     marginTop: 0,
-    maxWidth: '75%',   
-    marginRight: 12,  
+    maxWidth: '75%',
+    marginRight: 12,
   },
-
   searchButton: {
     width: 44,
     height: 44,
@@ -187,7 +235,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 2,
-    flexShrink: 0,    
+    flexShrink: 0,
   },
   filtersContainer: {
     paddingHorizontal: 20,
@@ -255,11 +303,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
     position: 'relative',
-  },
-  recipeImageText: {
-    color: proto.buttonText,
-    fontSize: 20,
-    fontWeight: 'bold',
   },
   expiringBadge: {
     position: 'absolute',
@@ -344,6 +387,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: proto.textSecondary,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 22,
   },
 });

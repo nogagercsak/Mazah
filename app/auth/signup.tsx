@@ -3,8 +3,10 @@ import { Colors } from '@/constants/Colors';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, Modal, View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import PrivacyPolicyScreen from './privacy';
+import TermsScreen from './terms';
 
 const proto = Colors.proto;
 
@@ -14,12 +16,21 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [agreeToPrivacy, setAgreeToPrivacy] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   const handleSignUp = async () => {
   if (!email || !password || !confirmPassword) {
     Alert.alert('Missing Information', 'Please fill out all fields.');
     return;
   }
+    // Check if user agreed to terms and privacy policy
+  if (!agreeToTerms || !agreeToPrivacy) {
+      Alert.alert('Agreement Required', 'Please agree to both the Terms of Service and Privacy Policy to continue.');
+      return;
+    }
 
   // Email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -112,8 +123,44 @@ export default function SignUpScreen() {
     router.back();
   };
 
+  const CheckBox = ({ checked, onPress, label }: { checked: boolean; onPress: () => void; label: string }) => (
+    <TouchableOpacity style={styles.checkboxContainer} onPress={onPress}>
+      <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
+        {checked && <IconSymbol name="checkmark" size={16} color={proto.buttonText} />}
+      </View>
+      <Text style={styles.checkboxLabel}>{label}</Text>
+    </TouchableOpacity>
+  );
+
+  const DocumentModal = ({ visible, onClose, title, children }: { 
+    visible: boolean; 
+    onClose: () => void; 
+    title: string; 
+    children: React.ReactNode;
+  }) => (
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+      <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>{title}</Text>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <IconSymbol name="chevron.right" size={24} color={proto.text} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.modalContent}>
+          {children}
+        </View>
+      </SafeAreaView>
+    </Modal>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
+      <ScrollView 
+      style={styles.scrollView}
+      contentContainerStyle={styles.scrollContent}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.content}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBackToLogin} style={styles.backButton}>
@@ -162,10 +209,57 @@ export default function SignUpScreen() {
             />
           </View>
 
+          <View style={styles.agreementSection}>
+            <TouchableOpacity 
+              style={styles.agreementRow} 
+              onPress={() => setAgreeToTerms(!agreeToTerms)}
+            >
+              <View style={[styles.checkbox, agreeToTerms && styles.checkboxChecked]}>
+                {agreeToTerms && <IconSymbol name="checkmark" size={16} color="#FFFFFF" />}
+              </View>
+              <Text style={styles.checkboxLabel}>
+                I agree to the{' '}
+                <Text 
+                  style={styles.linkText}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    setShowTermsModal(true);
+                  }}
+                >
+                  Terms of Service
+                </Text>
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.agreementRow} 
+              onPress={() => setAgreeToPrivacy(!agreeToPrivacy)}
+            >
+              <View style={[styles.checkbox, agreeToPrivacy && styles.checkboxChecked]}>
+                {agreeToPrivacy && <IconSymbol name="checkmark" size={16} color="#FFFFFF" />}
+              </View>
+              <Text style={styles.checkboxLabel}>
+                I agree to the{' '}
+                <Text 
+                  style={styles.linkText}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    setShowPrivacyModal(true);
+                  }}
+                >
+                  Privacy Policy
+                </Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity 
-            style={styles.signUpButton} 
+            style={[
+              styles.signUpButton, 
+              (!agreeToTerms || !agreeToPrivacy) && styles.signUpButtonDisabled
+            ]}
             onPress={handleSignUp} 
-            disabled={loading}
+            disabled={loading || !agreeToTerms || !agreeToPrivacy}
           >
             {loading ? (
               <ActivityIndicator color={proto.buttonText} />
@@ -179,6 +273,25 @@ export default function SignUpScreen() {
           </TouchableOpacity>
         </View>
       </View>
+    </ScrollView>
+
+      {/* Privacy Policy Modal */}
+      <DocumentModal
+        visible={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+        title="Privacy Policy"
+      >
+        <PrivacyPolicyScreen />
+      </DocumentModal>
+
+      {/* Terms of Service Modal */}
+      <DocumentModal
+        visible={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+        title="Terms of Service"
+      >
+        <TermsScreen />
+      </DocumentModal>
     </SafeAreaView>
   );
 }
@@ -237,12 +350,61 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 40,
+  },
+  agreementSection: {
+    marginVertical: 24,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+  },
+  agreementRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  checkbox: {
+  width: 24,
+  height: 24,
+  borderRadius: 6,
+  borderWidth: 2,
+  borderColor: '#94C3A4', 
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginRight: 12,
+  marginTop: 1,
+  backgroundColor: 'transparent',
+},
+checkboxChecked: {
+  backgroundColor: '#94C3A4', 
+  borderColor: '#94C3A4',
+},
+checkboxLabel: {
+  fontSize: 14,
+  color: '#333333', 
+  flex: 1,
+  lineHeight: 20,
+},
+linkText: {
+  fontSize: 14,
+  color: '#94C3A4', 
+  fontWeight: '600',
+  textDecorationLine: 'underline',
+},
   signUpButton: {
     backgroundColor: proto.accent,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 8,
+  },
+  signUpButtonDisabled: {
+    backgroundColor: '#cccccc',
   },
   signUpButtonText: {
     fontSize: 18,
@@ -257,5 +419,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: proto.accent,
     fontWeight: '500',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: proto.background,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: proto.text,
+  },
+  closeButton: {
+    padding: 8,
+  },
+  modalContent: {
+    flex: 1,
   },
 });

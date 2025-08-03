@@ -281,7 +281,7 @@ export default function SignUpScreen() {
         onClose={() => setShowPrivacyModal(false)}
         title="Privacy Policy"
       >
-        <PrivacyPolicyScreen />
+        <PrivacyPolicyScreen/>
       </DocumentModal>
 
       {/* Terms of Service Modal */}
@@ -290,7 +290,7 @@ export default function SignUpScreen() {
         onClose={() => setShowTermsModal(false)}
         title="Terms of Service"
       >
-        <TermsScreen />
+        <TermsScreen/>
       </DocumentModal>
     </SafeAreaView>
   );

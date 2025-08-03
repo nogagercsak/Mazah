@@ -332,3 +332,65 @@ CREATE TRIGGER handle_meal_ingredients_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_updated_at();
 
+-- Function to safely delete user account and all related data
+CREATE OR REPLACE FUNCTION delete_user_account(target_user_id uuid)
+RETURNS json AS $$
+DECLARE
+    result_count json;
+BEGIN
+    -- Start transaction
+    BEGIN
+        -- Delete in correct order to respect foreign key constraints
+        
+        -- 1. Delete meal ingredients (references meals and ingredients)
+        DELETE FROM public.meal_ingredients 
+        WHERE meal_id IN (
+            SELECT id FROM public.meals WHERE user_id = target_user_id
+        );
+        
+        -- 2. Delete recipe ingredients (references recipes)
+        DELETE FROM public.recipe_ingredients 
+        WHERE recipe_id IN (
+            SELECT id FROM public.recipes WHERE user_id = target_user_id
+        );
+        
+        -- 3. Delete meal plans (references meals)
+        DELETE FROM public.meal_plans WHERE user_id = target_user_id;
+        
+        -- 4. Delete meals
+        DELETE FROM public.meals WHERE user_id = target_user_id;
+        
+        -- 5. Delete recipes
+        DELETE FROM public.recipes WHERE user_id = target_user_id;
+        
+        -- 6. Delete ingredients
+        DELETE FROM public.ingredients WHERE user_id = target_user_id;
+        
+        -- 7. Delete food items
+        DELETE FROM public.food_items WHERE user_id = target_user_id;
+        
+        -- 8. Delete user profile
+        DELETE FROM public.user_profiles WHERE user_id = target_user_id;
+        
+        -- 9. Finally delete the auth user (this will cascade)
+        DELETE FROM auth.users WHERE id = target_user_id;
+        
+        -- Return success
+        RETURN json_build_object(
+            'success', true,
+            'message', 'Account deleted successfully'
+        );
+        
+    EXCEPTION
+        WHEN OTHERS THEN
+            -- Return error details
+            RETURN json_build_object(
+                'success', false,
+                'error', SQLERRM
+            );
+    END;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant execute permission to authenticated users
+GRANT EXECUTE ON FUNCTION delete_user_account(uuid) TO authenticated;

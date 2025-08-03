@@ -1,171 +1,502 @@
-import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  ActivityIndicator, 
+  Alert, 
+  ScrollView, 
+  StyleSheet, 
+  Text, 
+  TouchableOpacity, 
+  View, 
+  TextInput,
+  Animated,
+  Linking,
+  Modal,
+  Pressable
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
 
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
-import { useAuth } from '@/contexts/AuthContext';
 
+// Use the proto color scheme to match your existing app
 const proto = Colors.proto;
 
-const mockListings = [
-  {
-    id: 1,
-    title: 'Fresh Tomatoes',
-    description: 'Organic tomatoes from my garden. Too many to use!',
-    quantity: '2kg',
-    location: 'Downtown',
-    distance: '0.5km',
-    postedBy: 'Sarah M.',
-    postedTime: '2 hours ago',
-    category: 'Vegetables',
-  },
-  {
-    id: 2,
-    title: 'Bread Loaves',
-    description: 'Fresh bread from local bakery. Bought too much.',
-    quantity: '3 loaves',
-    location: 'Westside',
-    distance: '1.2km',
-    postedBy: 'Mike R.',
-    postedTime: '4 hours ago',
-    category: 'Bakery',
-  },
-  {
-    id: 3,
-    title: 'Apples',
-    description: 'Red apples, still crisp and fresh.',
-    quantity: '1kg',
-    location: 'North Park',
-    distance: '0.8km',
-    postedBy: 'Emma L.',
-    postedTime: '1 day ago',
-    category: 'Fruits',
-  },
-];
+type FoodBank = {
+  id: string;
+  name: string;
+  address: string;
+  phone?: string;
+  website?: string;
+  hours?: string;
+  distance: number;
+  acceptedItems?: string[];
+  specialNotes?: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+};
 
-const mockCategories = [
-  { id: 'all', name: 'All', active: true },
-  { id: 'vegetables', name: 'Vegetables', active: false },
-  { id: 'fruits', name: 'Fruits', active: false },
-  { id: 'bakery', name: 'Bakery', active: false },
-  { id: 'dairy', name: 'Dairy', active: false },
-];
+type FoodBankDetailsModalProps = {
+  foodBank: FoodBank;
+  visible: boolean;
+  onClose: () => void;
+};
 
-export default function ShareScreen() {
-  const { signOut } = useAuth();
-  const router = useRouter();
-  const [categories, setCategories] = useState(mockCategories);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-
-  const toggleCategory = (categoryId: string) => {
-    setSelectedCategory(categoryId);
-    setCategories(categories.map(c => ({ ...c, active: c.id === categoryId })));
+const FoodBankDetailsModal: React.FC<FoodBankDetailsModalProps> = ({
+  foodBank,
+  visible,
+  onClose
+}) => {
+  const handleGetDirections = () => {
+    const url = `https://maps.google.com/?q=${encodeURIComponent(foodBank.address)}`;
+    Linking.openURL(url);
   };
 
-  const getFilteredListings = () => {
-    if (selectedCategory === 'all') return mockListings;
-    return mockListings.filter(listing => 
-      listing.category.toLowerCase() === selectedCategory
-    );
+  const handleCall = () => {
+    if (foodBank.phone) {
+      const phoneUrl = `tel:${foodBank.phone.replace(/[^\d]/g, '')}`;
+      Linking.openURL(phoneUrl);
+    }
   };
 
-  const postNewItem = () => {
-    Alert.alert('Post Item', 'This would open a form to post a new food item for sharing');
+  const handleWebsite = () => {
+    if (foodBank.website) {
+      Linking.openURL(foodBank.website);
+    }
   };
-
-  const contactUser = (listing: any) => {
-    Alert.alert('Contact', `This would open chat with ${listing.postedBy} about ${listing.title}`);
-  };
-
-  const handleProfilePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push('/profile');
-  };
-
-  const renderListingCard = (listing: any) => (
-    <View key={listing.id} style={styles.listingCard}>
-      <View style={styles.listingImage}>
-        <Text style={styles.listingImageText}>{listing.title.split(' ')[0]}</Text>
-        <View style={styles.categoryBadge}>
-          <Text style={styles.categoryBadgeText}>{listing.category}</Text>
-        </View>
-      </View>
-      <View style={styles.listingInfo}>
-        <View style={styles.listingHeader}>
-          <Text style={styles.listingTitle}>{listing.title}</Text>
-          <View style={styles.quantityBadge}>
-            <Text style={styles.quantityText}>{listing.quantity}</Text>
-          </View>
-        </View>
-        <Text style={styles.listingDescription}>{listing.description}</Text>
-        <View style={styles.listingMeta}>
-          <View style={styles.metaItem}>
-            <IconSymbol size={16} name={"location" as any} color={proto.textSecondary} />
-            <Text style={styles.metaText}>{listing.location} • {listing.distance}</Text>
-          </View>
-          <View style={styles.metaItem}>
-            <IconSymbol size={16} name={"person" as any} color={proto.textSecondary} />
-            <Text style={styles.metaText}>{listing.postedBy} • {listing.postedTime}</Text>
-          </View>
-        </View>
-        <TouchableOpacity style={styles.contactButton} onPress={() => contactUser(listing)}>
-          <IconSymbol size={16} name={"message" as any} color={proto.buttonText} />
-          <Text style={styles.contactButtonText}>Contact</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <View style={{ flex: 1 }}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Local Sharing</Text>
-          <View style={styles.headerButtons}>
-            <TouchableOpacity style={styles.postButton} onPress={postNewItem}>
-              <IconSymbol size={20} name={"plus" as any} color={proto.buttonText} />
-              <Text style={styles.postButtonText}>Post</Text>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={onClose}
+    >
+      <Pressable style={styles.modalOverlay} onPress={onClose}>
+        <Pressable style={styles.modalContent} onPress={e => e.stopPropagation()}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle} numberOfLines={2}>
+              {foodBank.name}
+            </Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Ionicons name="close-circle" size={24} color={proto.textSecondary} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
-              <IconSymbol size={20} name={"person" as any} color={proto.accentDark} />
-            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+            <View style={styles.detailRow}>
+              <Ionicons name="location" size={20} color={proto.accentDark} />
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Address</Text>
+                <Text style={styles.detailValue}>{foodBank.address}</Text>
+                <Text style={styles.distanceText}>{foodBank.distance.toFixed(1)} miles away</Text>
+              </View>
+            </View>
+
+            {foodBank.phone && (
+              <View style={styles.detailRow}>
+                <Ionicons name="call" size={20} color={proto.accentDark} />
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Phone</Text>
+                  <Text style={styles.detailValue}>{foodBank.phone}</Text>
+                </View>
+              </View>
+            )}
+
+            {foodBank.hours && (
+              <View style={styles.detailRow}>
+                <Ionicons name="time" size={20} color={proto.accentDark} />
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Hours</Text>
+                  <Text style={styles.detailValue}>{foodBank.hours}</Text>
+                </View>
+              </View>
+            )}
+
+            {foodBank.acceptedItems && foodBank.acceptedItems.length > 0 && (
+              <View style={styles.detailRow}>
+                <Ionicons name="list" size={20} color={proto.accentDark} />
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Accepted Items</Text>
+                  <Text style={styles.detailValue}>
+                    {foodBank.acceptedItems.join(', ')}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {foodBank.specialNotes && (
+              <View style={styles.detailRow}>
+                <Ionicons name="information-circle" size={20} color={proto.accentDark} />
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>Special Notes</Text>
+                  <Text style={styles.detailValue}>{foodBank.specialNotes}</Text>
+                </View>
+              </View>
+            )}
+
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.directionsButton]}
+                onPress={handleGetDirections}
+              >
+                <Ionicons name="location" size={20} color={proto.buttonText} />
+                <Text style={styles.actionButtonText}>Directions</Text>
+              </TouchableOpacity>
+
+              {foodBank.phone && (
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.callButton]}
+                  onPress={handleCall}
+                >
+                  <Ionicons name="call" size={20} color={proto.buttonText} />
+                  <Text style={styles.actionButtonText}>Call</Text>
+                </TouchableOpacity>
+              )}
+
+              {foodBank.website && (
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.websiteButton]}
+                  onPress={handleWebsite}
+                >
+                  <Ionicons name="globe" size={20} color={proto.buttonText} />
+                  <Text style={styles.actionButtonText}>Website</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </ScrollView>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+};
+
+const EmptySearchState = ({ onSearch }: { onSearch: () => void }) => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      })
+    ]).start();
+  }, [fadeAnim, slideAnim]);
+
+  return (
+    <Animated.View 
+      style={[
+        styles.centerContainer,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }]
+        }
+      ]}
+    >
+      <Ionicons name="heart" size={48} color={proto.textSecondary} />
+      <Text style={styles.emptyTitle}>Find Local Food Banks</Text>
+      <Text style={styles.emptyText}>
+        Enter your ZIP code to discover nearby food banks where you can donate surplus food and help your community.
+      </Text>
+      <TouchableOpacity 
+        style={styles.getStartedButton}
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          onSearch();
+        }}
+      >
+        <Text style={styles.getStartedButtonText}>Enter ZIP Code Above</Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+export default function FoodBankLocatorScreen() {
+  const router = useRouter();
+  const [zipCode, setZipCode] = useState('');
+  const [foodBanks, setFoodBanks] = useState<FoodBank[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [selectedFoodBank, setSelectedFoodBank] = useState<FoodBank | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const searchInputRef = useRef<TextInput>(null);
+
+  // Mock data for demonstration - replace with actual API call
+  const mockFoodBanks: FoodBank[] = [
+    {
+      id: '1',
+      name: 'Community Food Bank of NYC',
+      address: '123 Main St, New York, NY 10001',
+      phone: '(212) 555-0123',
+      website: 'https://example.com',
+      hours: 'Mon-Fri: 9AM-5PM, Sat: 10AM-2PM',
+      distance: 2.3,
+      acceptedItems: ['Canned goods', 'Fresh produce', 'Non-perishables'],
+      specialNotes: 'Please call ahead for large donations',
+      coordinates: { lat: 40.7128, lng: -74.0060 }
+    },
+    {
+      id: '2',
+      name: 'Hope Food Pantry',
+      address: '456 Oak Ave, New York, NY 10002',
+      phone: '(212) 555-0456',
+      hours: 'Tue-Thu: 10AM-4PM',
+      distance: 4.7,
+      acceptedItems: ['Canned goods', 'Dry goods'],
+      coordinates: { lat: 40.7228, lng: -73.9960 }
+    },
+    {
+      id: '3',
+      name: 'Neighborhood Helping Hands',
+      address: '789 Pine St, New York, NY 10003',
+      phone: '(212) 555-0789',
+      website: 'https://example.org',
+      hours: 'Mon-Wed-Fri: 9AM-3PM',
+      distance: 6.2,
+      acceptedItems: ['Fresh produce', 'Dairy products', 'Baked goods'],
+      specialNotes: 'Accepts fresh donations until 2 hours before closing',
+      coordinates: { lat: 40.7328, lng: -73.9860 }
+    }
+  ];
+
+  const validateZipCode = (zip: string): boolean => {
+    const zipRegex = /^\d{5}$/;
+    return zipRegex.test(zip);
+  };
+
+  const handleSearch = async () => {
+    if (!validateZipCode(zipCode)) {
+      Alert.alert('Invalid ZIP Code', 'Please enter a valid 5-digit ZIP code.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      setHasSearched(true);
+      
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // In a real app, you'd call your API here:
+      // const response = await fetch(`/api/food-banks?zipCode=${zipCode}`);
+      // const data = await response.json();
+      
+      // For now, use mock data
+      setFoodBanks(mockFoodBanks);
+      
+    } catch (err) {
+      console.error('Error searching food banks:', err);
+      setError('Failed to find food banks. Please try again.');
+      setFoodBanks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFoodBankPress = (foodBank: FoodBank) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelectedFoodBank(foodBank);
+    setIsModalVisible(true);
+  };
+
+  const renderFoodBankCard = (foodBank: FoodBank) => (
+    <TouchableOpacity
+      key={foodBank.id}
+      style={styles.foodBankCard}
+      onPress={() => handleFoodBankPress(foodBank)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.cardHeader}>
+        <View style={styles.cardTitleContainer}>
+          <Text style={styles.foodBankName} numberOfLines={2}>
+            {foodBank.name}
+          </Text>
+          <View style={styles.distanceBadge}>
+            <Text style={styles.distanceText}>{foodBank.distance.toFixed(1)} mi</Text>
           </View>
         </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoriesContainer}
-          contentContainerStyle={{ flexDirection: 'row', alignItems: 'center' }}
-        >
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category.id}
-              style={[styles.categoryChip, category.active && styles.categoryChipActive]}
-              onPress={() => toggleCategory(category.id)}
-            >
-              <Text style={[styles.categoryText, category.active && styles.categoryTextActive]}>{category.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-        <ScrollView
-          style={styles.listingsContainer}
-          contentContainerStyle={{ flexGrow: 1 }}
-          showsVerticalScrollIndicator={false}>
-          <View style={styles.listingsGrid}>
-            {getFilteredListings().map(renderListingCard)}
-          </View>
-          {getFilteredListings().length === 0 && (
-            <View style={styles.emptyState}>
-              <IconSymbol size={48} name={"hand.raised" as any} color={proto.textSecondary} />
-              <Text style={styles.emptyStateTitle}>No items found nearby</Text>
-              <Text style={styles.emptyStateText}>Be the first to share food in your area!</Text>
-            </View>
-          )}
-        </ScrollView>
       </View>
+
+      <View style={styles.cardBody}>
+        <View style={styles.addressRow}>
+          <Ionicons name="location" size={16} color={proto.textSecondary} />
+          <Text style={styles.addressText} numberOfLines={2}>
+            {foodBank.address}
+          </Text>
+        </View>
+
+        {foodBank.hours && (
+          <View style={styles.hoursRow}>
+            <Ionicons name="time" size={16} color={proto.textSecondary} />
+            <Text style={styles.hoursText}>{foodBank.hours}</Text>
+          </View>
+        )}
+
+        {foodBank.acceptedItems && (
+          <View style={styles.itemsRow}>
+            <Ionicons name="list" size={16} color={proto.textSecondary} />
+            <Text style={styles.itemsText} numberOfLines={2}>
+              Accepts: {foodBank.acceptedItems.slice(0, 2).join(', ')}
+              {foodBank.acceptedItems.length > 2 && '...'}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.cardActions}>
+        <View style={styles.actionIcons}>
+          {foodBank.phone && (
+            <Ionicons name="call" size={18} color={proto.accent} />
+          )}
+          {foodBank.website && (
+            <Ionicons name="globe" size={18} color={proto.accent} />
+          )}
+        </View>
+        <Ionicons name="chevron-forward" size={16} color={proto.textSecondary} />
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderSearchResults = () => {
+    if (loading) {
+      return (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={proto.accent} />
+          <Text style={styles.loadingText}>Finding food banks near you...</Text>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={styles.centerContainer}>
+          <Ionicons name="warning" size={48} color="#E57373" />
+          <Text style={styles.errorTitle}>Search Failed</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={handleSearch}>
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    if (hasSearched && foodBanks.length === 0) {
+      return (
+        <View style={styles.centerContainer}>
+          <Ionicons name="search" size={48} color={proto.textSecondary} />
+          <Text style={styles.noResultsTitle}>No Food Banks Found</Text>
+          <Text style={styles.noResultsText}>
+            We couldn't find any food banks near ZIP code {zipCode}. Try searching a nearby area or check back later.
+          </Text>
+          <TouchableOpacity 
+            style={styles.searchAgainButton} 
+            onPress={() => searchInputRef.current?.focus()}
+          >
+            <Text style={styles.searchAgainButtonText}>Search Different Area</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    if (foodBanks.length > 0) {
+      return (
+        <ScrollView style={styles.resultsContainer} showsVerticalScrollIndicator={false}>
+          <Text style={styles.resultsHeader}>
+            Found {foodBanks.length} food bank{foodBanks.length !== 1 ? 's' : ''} near {zipCode}
+          </Text>
+          {foodBanks.map(renderFoodBankCard)}
+          <View style={styles.resultsFooter}>
+            <Text style={styles.footerText}>
+              Always call ahead to confirm hours and donation requirements.
+            </Text>
+          </View>
+        </ScrollView>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Food Bank Locator</Text>
+      </View>
+
+      <View style={styles.searchSection}>
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color={proto.textSecondary} />
+          <TextInput
+            ref={searchInputRef}
+            style={styles.searchInput}
+            placeholder="Enter your ZIP code"
+            placeholderTextColor={proto.textSecondary}
+            value={zipCode}
+            onChangeText={setZipCode}
+            keyboardType="numeric"
+            maxLength={5}
+            onSubmitEditing={handleSearch}
+            returnKeyType="search"
+          />
+          {zipCode.length > 0 && (
+            <TouchableOpacity 
+              onPress={() => setZipCode('')}
+              style={styles.clearButton}
+            >
+              <Ionicons name="close-circle" size={18} color={proto.textSecondary} />
+            </TouchableOpacity>
+          )}
+        </View>
+        
+        <TouchableOpacity 
+          style={[
+            styles.searchButton,
+            (!validateZipCode(zipCode) || loading) && styles.searchButtonDisabled
+          ]}
+          onPress={handleSearch}
+          disabled={!validateZipCode(zipCode) || loading}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color={proto.buttonText} />
+          ) : (
+            <Text style={styles.searchButtonText}>Search</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.content}>
+        {!hasSearched ? (
+          <EmptySearchState onSearch={() => searchInputRef.current?.focus()} />
+        ) : (
+          renderSearchResults()
+        )}
+      </View>
+
+      {selectedFoodBank && (
+        <FoodBankDetailsModal
+          foodBank={selectedFoodBank}
+          visible={isModalVisible}
+          onClose={() => {
+            setIsModalVisible(false);
+            setSelectedFoodBank(null);
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -175,196 +506,376 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: proto.background,
   },
-
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 24,        
-        paddingTop: 8,               
-        paddingBottom: 0,          
-        backgroundColor: proto.background,
-        marginBottom: 0,             
-    },
-  
-    headerTitle: {
-        fontSize: 32,              
-        fontWeight: '700',         
-        color: proto.accentDark,      
-        opacity: 0.85,              
-        letterSpacing: 0.5,         
-        marginBottom: 0,            
-        marginTop: 0,               
-    },
-  
-    postButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-                      
-        height: 44,                  
-        borderRadius: 22,           
-        justifyContent: 'center',    
-        backgroundColor: proto.card,   
-        shadowColor: proto.shadow,  
-        shadowOffset: { width: 0, height: 2 }, 
-        shadowOpacity: 0.2,             
-        shadowRadius: 3,              
-        elevation: 2,               
-        paddingVertical: 8,           
-        paddingHorizontal: 12,    
-           
-    },
-    
-    postButtonText: {
-        color: proto.accentDark,      
-        marginLeft: 8,
-        fontWeight: 'bold',
-    },
-  categoriesContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    maxHeight: 60,
-  },
-  categoryChip: {
-    backgroundColor: proto.card,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: proto.textSecondary,
-  },
-  categoryChipActive: {
-    backgroundColor: proto.accent,
-    borderColor: proto.accent,
-  },
-  categoryText: {
-    color: proto.text,
-  },
-  categoryTextActive: {
-    color: proto.buttonText,
-  },
-  listingsContainer: {
-    flex: 1,
-  },
-  listingsGrid: {
-    padding: 16,
-  },
-  listingCard: {
-    backgroundColor: proto.card,
-    borderRadius: 12,
-    marginBottom: 16,
-    overflow: 'hidden',
-  },
-  listingImage: {
-    height: 120,
-    backgroundColor: proto.textSecondary,
+  header: {
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 12,
+    backgroundColor: proto.background,
   },
-  listingImageText: {
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: proto.textSecondary,
+    fontWeight: '700',
+    color: proto.accentDark,
+    opacity: 0.85,
+    letterSpacing: 0.5,
   },
-  categoryBadge: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+  headerSpacer: {
+    width: 40,
+  },
+  searchSection: {
+    paddingHorizontal: 24,
+    paddingBottom: 16,
+    gap: 12,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: proto.card,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 1,
+    gap: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 18,
+    color: proto.text,
+    fontWeight: '500',
+  },
+  clearButton: {
+    padding: 4,
+  },
+  searchButton: {
+    backgroundColor: proto.accent,
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  searchButtonDisabled: {
+    backgroundColor: proto.textSecondary,
+    opacity: 0.5,
+  },
+  searchButtonText: {
+    color: proto.buttonText,
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  content: {
+    flex: 1,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  emptyTitle: {
+    marginTop: 16,
+    fontSize: 24,
+    fontWeight: '700',
+    color: proto.text,
+    textAlign: 'center',
+  },
+  emptyText: {
+    marginTop: 12,
+    marginBottom: 24,
+    fontSize: 16,
+    color: proto.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
+    paddingHorizontal: 20,
+  },
+  getStartedButton: {
+    backgroundColor: proto.accentDark,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 12,
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  getStartedButtonText: {
+    color: proto.buttonText,
+    fontWeight: '600',
+    fontSize: 18,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: proto.textSecondary,
+    textAlign: 'center',
+  },
+  errorTitle: {
+    marginTop: 16,
+    fontSize: 20,
+    fontWeight: '600',
+    color: proto.text,
+    textAlign: 'center',
+  },
+  errorText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: proto.textSecondary,
+    textAlign: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+  retryButton: {
+    backgroundColor: proto.accent,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
     borderRadius: 12,
   },
-  categoryBadgeText: {
-    color: '#fff',
+  retryButtonText: {
+    color: proto.buttonText,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  noResultsTitle: {
+    marginTop: 16,
+    fontSize: 20,
+    fontWeight: '600',
+    color: proto.text,
+    textAlign: 'center',
+  },
+  noResultsText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: proto.textSecondary,
+    textAlign: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 20,
+    lineHeight: 20,
+  },
+  searchAgainButton: {
+    backgroundColor: proto.accentDark,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  searchAgainButtonText: {
+    color: proto.buttonText,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  resultsContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  resultsHeader: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: proto.text,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  foodBankCard: {
+    backgroundColor: proto.card,
+    borderRadius: 20,
+    marginBottom: 16,
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
+    overflow: 'hidden',
+  },
+  cardHeader: {
+    backgroundColor: proto.accentDark,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  cardTitleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  foodBankName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: proto.buttonText,
+    flex: 1,
+    marginRight: 12,
+    lineHeight: 22,
+  },
+  distanceBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  distanceText: {
     fontSize: 12,
+    fontWeight: '600',
+    color: proto.buttonText,
   },
-  listingInfo: {
-    padding: 12,
+  cardBody: {
+    padding: 16,
+    gap: 8,
   },
-  listingHeader: {
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  addressText: {
+    fontSize: 14,
+    color: proto.text,
+    flex: 1,
+    lineHeight: 18,
+  },
+  hoursRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  hoursText: {
+    fontSize: 14,
+    color: proto.textSecondary,
+    fontWeight: '500',
+  },
+  itemsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  itemsText: {
+    fontSize: 14,
+    color: proto.textSecondary,
+    flex: 1,
+    lineHeight: 18,
+  },
+  cardActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
-  listingTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: proto.text,
-    flex: 1,
-  },
-  quantityBadge: {
-    backgroundColor: proto.background,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: proto.textSecondary,
-  },
-  quantityText: {
-    color: proto.text,
-    fontSize: 12,
-  },
-  listingDescription: {
-    color: proto.textSecondary,
-    marginBottom: 8,
-  },
-  listingMeta: {
-    borderTopWidth: 1,
-    borderColor: proto.textSecondary,
-    paddingTop: 8,
-    marginTop: 8,
-  },
-  metaItem: {
+  actionIcons: {
     flexDirection: 'row',
+    gap: 12,
+  },
+  resultsFooter: {
+    paddingVertical: 24,
+    paddingHorizontal: 16,
     alignItems: 'center',
-    marginBottom: 4,
   },
-  metaText: {
-    color: proto.textSecondary,
-    marginLeft: 8,
-  },
-  contactButton: {
-    backgroundColor: proto.accent,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  contactButtonText: {
-    color: proto.buttonText,
-    marginLeft: 8,
-    fontWeight: 'bold',
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: proto.text,
-    marginTop: 16,
-  },
-  emptyStateText: {
+  footerText: {
+    fontSize: 14,
     color: proto.textSecondary,
     textAlign: 'center',
-    marginTop: 8,
+    fontStyle: 'italic',
   },
-  headerButtons: {
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: proto.background,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '80%',
+  },
+  modalHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 20,
   },
-  profileButton: {
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: proto.text,
+    flex: 1,
+    marginRight: 16,
+    lineHeight: 26,
+  },
+  closeButton: {
     padding: 8,
   },
+  modalBody: {
+    flex: 1,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+    gap: 12,
+  },
+  detailContent: {
+    flex: 1,
+  },
+  detailLabel: {
+    fontSize: 14,
+    color: proto.textSecondary,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  detailValue: {
+    fontSize: 16,
+    color: proto.text,
+    lineHeight: 22,
+  },
+  distanceTextModal: {
+    fontSize: 14,
+    color: proto.accent,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+    flexWrap: 'wrap',
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    gap: 8,
+    flex: 1,
+    minWidth: 0,
+  },
+  directionsButton: {
+    backgroundColor: proto.accent,
+  },
+  callButton: {
+    backgroundColor: '#4CAF50',
+  },
+  websiteButton: {
+    backgroundColor: '#2196F3',
+  },
+  actionButtonText: {
+    color: proto.buttonText,
+    fontWeight: '600',
+    fontSize: 14,
+  },
 });
-
- 

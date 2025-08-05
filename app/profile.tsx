@@ -18,7 +18,21 @@ const STORAGE_KEYS = {
   NOTIFICATIONS: '@notifications_enabled',
   EXPIRY_ALERTS: '@expiry_alerts_days',
   DARK_MODE: '@dark_mode_enabled',
+  PROFILE_EMOJI: '@profile_emoji',
+  PROFILE_HINT_SHOWN: '@profile_hint_shown',
 };
+
+// Food emoji options
+const FOOD_EMOJIS = [
+  '🍎', '🍌', '🍇', '🍓', '🫐', '🍊', '🍑', '🥭',
+  '🍍', '🥥', '🥝', '🍅', '🥑', '🥕', '🌽', '🥒',
+  '🥬', '🥦', '🍄', '🥜', '🌰', '🍞', '🥖', '🥨',
+  '🧀', '🥚', '🍳', '🥓', '🥩', '🍗', '🍖', '🌭',
+  '🍔', '🍟', '🍕', '🌮', '🌯', '🥙', '🥪', '🫔',
+  '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🍤',
+  '🍙', '🍘', '🍥', '🥮', '🧁', '🍰', '🎂', '🍮',
+  '🍭', '🍬', '🍫', '🍿', '🍩', '🍪', '🥛', '☕'
+];
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -29,6 +43,7 @@ export default function ProfileScreen() {
   const [notificationsModalVisible, setNotificationsModalVisible] = useState(false);
   const [preferencesModalVisible, setPreferencesModalVisible] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  const [emojiModalVisible, setEmojiModalVisible] = useState(false);
   
   // Password change state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -41,6 +56,12 @@ export default function ProfileScreen() {
   
   // Preferences state
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+  
+  // Profile emoji state
+  const [profileEmoji, setProfileEmoji] = useState('🍎');
+  
+  // Profile hint state
+  const [showProfileHint, setShowProfileHint] = useState(true);
   
   // Feedback state
   const [feedbackText, setFeedbackText] = useState('');
@@ -56,12 +77,43 @@ export default function ProfileScreen() {
       const notifications = await AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
       const expiryDays = await AsyncStorage.getItem(STORAGE_KEYS.EXPIRY_ALERTS);
       const darkMode = await AsyncStorage.getItem(STORAGE_KEYS.DARK_MODE);
+      const emoji = await AsyncStorage.getItem(STORAGE_KEYS.PROFILE_EMOJI);
+      const hintShown = await AsyncStorage.getItem(STORAGE_KEYS.PROFILE_HINT_SHOWN);
       
       if (notifications !== null) setNotificationsEnabled(JSON.parse(notifications));
       if (expiryDays !== null) setExpiryAlertDays(expiryDays);
       if (darkMode !== null) setDarkModeEnabled(JSON.parse(darkMode));
+      if (emoji !== null) setProfileEmoji(emoji);
+      if (hintShown !== null) setShowProfileHint(!JSON.parse(hintShown));
     } catch (error) {
       console.error('Error loading preferences:', error);
+    }
+  };
+
+  const handleEmojiSelect = async (emoji: string) => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.PROFILE_EMOJI, emoji);
+      await AsyncStorage.setItem(STORAGE_KEYS.PROFILE_HINT_SHOWN, JSON.stringify(true));
+      setProfileEmoji(emoji);
+      setShowProfileHint(false);
+      setEmojiModalVisible(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save profile picture');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
+  };
+
+  const handleOpenEmojiModal = async () => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.PROFILE_HINT_SHOWN, JSON.stringify(true));
+      setShowProfileHint(false);
+      setEmojiModalVisible(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch (error) {
+      console.error('Error saving hint shown state:', error);
+      setEmojiModalVisible(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
   };
 
@@ -215,12 +267,25 @@ export default function ProfileScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
         <View style={styles.profileCard}>
-          <View style={styles.avatarContainer}>
-            <IconSymbol size={40} name={"person" as any} color={proto.buttonText} />
-          </View>
+          <TouchableOpacity 
+            style={styles.avatarContainer}
+            onPress={handleOpenEmojiModal}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.emojiAvatar}>{profileEmoji}</Text>
+          </TouchableOpacity>
           <View style={styles.profileInfo}>
             <Text style={styles.email}>{user?.email}</Text>
             <Text style={styles.accountLabel}>Personal Account</Text>
+            {showProfileHint && (
+              <TouchableOpacity 
+                style={styles.changePhotoButton}
+                onPress={handleOpenEmojiModal}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.changePhotoText}>✨ Tap to change profile picture</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -325,6 +390,52 @@ export default function ProfileScreen() {
 
         <Text style={styles.version}>Version 1.0.0</Text>
       </ScrollView>
+
+      {/* Emoji Selection Modal */}
+      <Modal
+        visible={emojiModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setEmojiModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.emojiModalContent}>
+            <TouchableOpacity
+              style={styles.cornerCloseButton}
+              onPress={() => setEmojiModalVisible(false)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.closeButtonText}>×</Text>
+            </TouchableOpacity>
+            
+            <Text style={styles.emojiModalTitleCentered}>Choose Your Profile Picture</Text>
+            
+            <ScrollView 
+              style={styles.emojiGrid}
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.emojiContainer}>
+                {FOOD_EMOJIS.map((emoji, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.emojiButton,
+                      profileEmoji === emoji && styles.selectedEmojiButton
+                    ]}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      handleEmojiSelect(emoji);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.emojiText}>{emoji}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       {/* Password Modal */}
       <Modal
@@ -611,13 +722,46 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   avatarContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: proto.accentDark,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: proto.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
+    position: 'relative',
+    borderWidth: 3,
+    borderColor: proto.accentDark,
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  emojiAvatar: {
+    fontSize: 36,
+  },
+  editBadge: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: proto.accentDark,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: proto.background,
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  editBadgeText: {
+    fontSize: 14,
+    color: proto.buttonText,
   },
   profileInfo: {
     flex: 1,
@@ -631,6 +775,21 @@ const styles = StyleSheet.create({
   accountLabel: {
     fontSize: 14,
     color: proto.textSecondary,
+    marginBottom: 8,
+  },
+  changePhotoButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: proto.accentDark + '25',
+    borderWidth: 1,
+    borderColor: proto.accentDark + '40',
+  },
+  changePhotoText: {
+    fontSize: 12,
+    color: proto.accentDark,
+    fontWeight: '600',
   },
   section: {
     marginBottom: 24,
@@ -727,12 +886,111 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
+  emojiModalContent: {
+    backgroundColor: proto.background,
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '80%',
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   modalTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: proto.text,
-    marginBottom: 20,
     textAlign: 'center',
+  },
+  emojiModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: proto.text,
+    flex: 1,
+  },
+  emojiModalTitleCentered: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: proto.text,
+    textAlign: 'center',
+    marginBottom: 20,
+    marginTop: 8,
+  },
+  cornerCloseButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: proto.textSecondary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  closeButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: proto.textSecondary,
+    lineHeight: 18,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: proto.textSecondary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  emojiGrid: {
+    maxHeight: 400,
+  },
+  emojiScrollContent: {
+    paddingHorizontal: 4,
+  },
+  emojiContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-evenly',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  emojiButton: {
+    width: 50,
+    height: 50,
+    backgroundColor: proto.card,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 4,
+    marginVertical: 6,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  selectedEmojiButton: {
+    borderColor: proto.accentDark,
+    backgroundColor: proto.accentDark + '20',
+    transform: [{ scale: 1.05 }],
+  },
+  emojiText: {
+    fontSize: 24,
+    textAlign: 'center',
+    lineHeight: 28,
   },
   input: {
     backgroundColor: proto.card,
@@ -828,25 +1086,6 @@ const styles = StyleSheet.create({
   },
   feedbackInput: {
     height: 100,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  closeButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: proto.textSecondary + '10',
-    borderWidth: 1,
-    borderColor: proto.textSecondary + '20',
-  },
-  closeButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: proto.textSecondary,
-    textAlign: 'center',
   },
   fullWidthButton: {
     flex: 0,

@@ -1,19 +1,177 @@
 import { useRouter } from 'expo-router';
-import React from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, StyleSheet, Text, TouchableOpacity, View, Switch, Modal, TextInput, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 // Use the proto color scheme
 const proto = Colors.proto;
 
+// Storage keys for preferences
+const STORAGE_KEYS = {
+  NOTIFICATIONS: '@notifications_enabled',
+  EXPIRY_ALERTS: '@expiry_alerts_days',
+  DARK_MODE: '@dark_mode_enabled',
+};
+
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, signOut } = useAuth();
+  
+  // State for modals
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [notificationsModalVisible, setNotificationsModalVisible] = useState(false);
+  const [preferencesModalVisible, setPreferencesModalVisible] = useState(false);
+  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
+  
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  
+  // Notification settings state
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [expiryAlertDays, setExpiryAlertDays] = useState('3');
+  
+  // Preferences state
+  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+  
+  // Feedback state
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackType, setFeedbackType] = useState<'bug' | 'feature' | 'general'>('general');
+
+  // Load saved preferences on mount
+  React.useEffect(() => {
+    loadPreferences();
+  }, []);
+
+  const loadPreferences = async () => {
+    try {
+      const notifications = await AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
+      const expiryDays = await AsyncStorage.getItem(STORAGE_KEYS.EXPIRY_ALERTS);
+      const darkMode = await AsyncStorage.getItem(STORAGE_KEYS.DARK_MODE);
+      
+      if (notifications !== null) setNotificationsEnabled(JSON.parse(notifications));
+      if (expiryDays !== null) setExpiryAlertDays(expiryDays);
+      if (darkMode !== null) setDarkModeEnabled(JSON.parse(darkMode));
+    } catch (error) {
+      console.error('Error loading preferences:', error);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Error', 'New passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      // First, verify the current password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || '',
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        Alert.alert('Error', 'Current password is incorrect');
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        return;
+      }
+
+      // If current password is correct, update to new password
+      const { error: updateError } = await supabase.auth.updateUser({ 
+        password: newPassword 
+      });
+      
+      if (updateError) throw updateError;
+      
+      Alert.alert('Success', 'Password updated successfully');
+      setPasswordModalVisible(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to update password');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
+  };
+
+  const saveNotificationSettings = async () => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notificationsEnabled));
+      await AsyncStorage.setItem(STORAGE_KEYS.EXPIRY_ALERTS, expiryAlertDays);
+      
+      Alert.alert('Success', 'Notification settings saved');
+      setNotificationsModalVisible(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save notification settings');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
+  };
+
+  const savePreferences = async () => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.DARK_MODE, JSON.stringify(darkModeEnabled));
+      
+      Alert.alert('Success', 'Preferences saved');
+      setPreferencesModalVisible(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      
+      // In a real app, you would trigger a theme change here
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save preferences');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
+  };
+
+  const sendFeedback = async () => {
+    if (!feedbackText.trim()) {
+      Alert.alert('Error', 'Please enter your feedback');
+      return;
+    }
+
+    try {
+      // In a real app, you would send this to your backend
+      // For now, we'll just store it in Supabase
+      const { error } = await supabase
+        .from('feedback')
+        .insert({
+          user_id: user?.id,
+          type: feedbackType,
+          message: feedbackText,
+          created_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+
+      Alert.alert('Thank You!', 'Your feedback has been sent successfully');
+      setFeedbackModalVisible(false);
+      setFeedbackText('');
+      setFeedbackType('general');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to send feedback. Please try again.');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
+  };
 
   const handleSignOut = async () => {
     Alert.alert(
@@ -27,7 +185,6 @@ export default function ProfileScreen() {
           onPress: async () => {
             try {
               await signOut();
-              // Navigate to login screen after successful sign out
               router.replace('/auth/login');
             } catch (error) {
               console.error('Sign out error:', error);
@@ -55,7 +212,7 @@ export default function ProfileScreen() {
         <View style={styles.headerRight} />
       </View>
 
-      <View style={styles.content}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
@@ -76,7 +233,7 @@ export default function ProfileScreen() {
               style={styles.settingItem}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                Alert.alert('Coming Soon', 'This feature will be available in a future update.');
+                setPasswordModalVisible(true);
               }}
             >
               <View style={styles.settingIconContainer}>
@@ -92,7 +249,7 @@ export default function ProfileScreen() {
               style={styles.settingItem}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                Alert.alert('Coming Soon', 'This feature will be available in a future update.');
+                setNotificationsModalVisible(true);
               }}
             >
               <View style={styles.settingIconContainer}>
@@ -108,7 +265,7 @@ export default function ProfileScreen() {
               style={styles.settingItem}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                Alert.alert('Coming Soon', 'This feature will be available in a future update.');
+                setPreferencesModalVisible(true);
               }}
             >
               <View style={styles.settingIconContainer}>
@@ -129,7 +286,7 @@ export default function ProfileScreen() {
               style={styles.settingItem}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                Alert.alert('Coming Soon', 'This feature will be available in a future update.');
+                router.push('/help-center');
               }}
             >
               <View style={styles.settingIconContainer}>
@@ -145,7 +302,7 @@ export default function ProfileScreen() {
               style={styles.settingItem}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                Alert.alert('Coming Soon', 'This feature will be available in a future update.');
+                setFeedbackModalVisible(true);
               }}
             >
               <View style={styles.settingIconContainer}>
@@ -167,7 +324,246 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         <Text style={styles.version}>Version 1.0.0</Text>
-      </View>
+      </ScrollView>
+
+      {/* Password Modal */}
+      <Modal
+        visible={passwordModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setPasswordModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Change Password</Text>
+            
+            <TextInput
+              style={styles.input}
+              placeholder="Current Password"
+              secureTextEntry
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              placeholderTextColor={proto.textSecondary}
+            />
+            
+            <TextInput
+              style={styles.input}
+              placeholder="New Password"
+              secureTextEntry
+              value={newPassword}
+              onChangeText={setNewPassword}
+              placeholderTextColor={proto.textSecondary}
+            />
+            
+            <TextInput
+              style={styles.input}
+              placeholder="Confirm New Password"
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholderTextColor={proto.textSecondary}
+            />
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setPasswordModalVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={handleChangePassword}
+              >
+                <Text style={styles.saveButtonText}>Update</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Notifications Modal */}
+      <Modal
+        visible={notificationsModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setNotificationsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Notification Settings</Text>
+            
+            <View style={styles.settingRow}>
+              <Text style={styles.settingLabel}>Enable Notifications</Text>
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={setNotificationsEnabled}
+                trackColor={{ false: proto.textSecondary, true: proto.accent }}
+                thumbColor={proto.buttonText}
+              />
+            </View>
+            
+            <View style={styles.settingGroup}>
+              <Text style={styles.settingLabel}>Expiry Alert Days</Text>
+              <Text style={styles.settingDescription}>
+                Get notified when items expire within this many days
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="3"
+                keyboardType="numeric"
+                value={expiryAlertDays}
+                onChangeText={setExpiryAlertDays}
+                placeholderTextColor={proto.textSecondary}
+              />
+            </View>
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setNotificationsModalVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={saveNotificationSettings}
+              >
+                <Text style={styles.saveButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Preferences Modal */}
+      <Modal
+        visible={preferencesModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setPreferencesModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Preferences</Text>
+            
+            <View style={styles.settingRow}>
+              <Text style={styles.settingLabel}>Dark Mode</Text>
+              <Switch
+                value={darkModeEnabled}
+                onValueChange={setDarkModeEnabled}
+                trackColor={{ false: proto.textSecondary, true: proto.accent }}
+                thumbColor={proto.buttonText}
+              />
+            </View>
+            
+            <Text style={styles.comingSoonText}>
+              More preferences coming soon!
+            </Text>
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setPreferencesModalVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={savePreferences}
+              >
+                <Text style={styles.saveButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Feedback Modal */}
+      <Modal
+        visible={feedbackModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setFeedbackModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Send Feedback</Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setFeedbackModalVisible(false)}
+              >
+                <Text style={styles.closeButtonText}>×</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.feedbackTypes}>
+              <TouchableOpacity
+                style={[
+                  styles.feedbackType,
+                  feedbackType === 'bug' && styles.feedbackTypeActive
+                ]}
+                onPress={() => setFeedbackType('bug')}
+              >
+                <Text style={[
+                  styles.feedbackTypeText,
+                  feedbackType === 'bug' && styles.feedbackTypeTextActive
+                ]}>Bug Report</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.feedbackType,
+                  feedbackType === 'feature' && styles.feedbackTypeActive
+                ]}
+                onPress={() => setFeedbackType('feature')}
+              >
+                <Text style={[
+                  styles.feedbackTypeText,
+                  feedbackType === 'feature' && styles.feedbackTypeTextActive
+                ]}>Feature Request</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.feedbackType,
+                  feedbackType === 'general' && styles.feedbackTypeActive
+                ]}
+                onPress={() => setFeedbackType('general')}
+              >
+                <Text style={[
+                  styles.feedbackTypeText,
+                  feedbackType === 'general' && styles.feedbackTypeTextActive
+                ]}>General</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <TextInput
+              style={[styles.input, styles.feedbackInput]}
+              placeholder="Tell us what you think..."
+              multiline
+              numberOfLines={4}
+              value={feedbackText}
+              onChangeText={setFeedbackText}
+              placeholderTextColor={proto.textSecondary}
+              textAlignVertical="top"
+            />
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton, styles.fullWidthButton]}
+                onPress={sendFeedback}
+              >
+                <Text style={styles.saveButtonText}>Send</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -195,7 +591,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   headerRight: {
-    width: 40, // To balance the back button
+    width: 40,
   },
   content: {
     flex: 1,
@@ -310,4 +706,150 @@ const styles = StyleSheet.create({
     color: proto.textSecondary,
     marginBottom: 24,
   },
-}); 
+  
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    backgroundColor: proto.background,
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: proto.text,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  input: {
+    backgroundColor: proto.card,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: proto.text,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: proto.textSecondary + '20',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  modalButton: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: proto.card,
+    borderWidth: 1,
+    borderColor: proto.textSecondary + '20',
+  },
+  cancelButtonText: {
+    color: proto.text,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  saveButton: {
+    backgroundColor: proto.accent,
+  },
+  saveButtonText: {
+    color: proto.buttonText,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  settingLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: proto.text,
+  },
+  settingGroup: {
+    marginBottom: 20,
+  },
+  settingDescription: {
+    fontSize: 14,
+    color: proto.textSecondary,
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  comingSoonText: {
+    fontSize: 14,
+    color: proto.textSecondary,
+    textAlign: 'center',
+    marginVertical: 20,
+    fontStyle: 'italic',
+  },
+  feedbackTypes: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  feedbackType: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: proto.card,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: proto.textSecondary + '20',
+  },
+  feedbackTypeActive: {
+    backgroundColor: proto.accentDark,
+    borderColor: proto.accentDark,
+  },
+  feedbackTypeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: proto.text,
+  },
+  feedbackTypeTextActive: {
+    color: proto.buttonText,
+  },
+  feedbackInput: {
+    height: 100,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  closeButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: proto.textSecondary + '10',
+    borderWidth: 1,
+    borderColor: proto.textSecondary + '20',
+  },
+  closeButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: proto.textSecondary,
+    textAlign: 'center',
+  },
+  fullWidthButton: {
+    flex: 0,
+    width: '100%',
+  },
+});

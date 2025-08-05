@@ -12,32 +12,17 @@ import {
   Animated,
   Linking,
   Modal,
-  Pressable
+  Pressable,
+  RefreshControl
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
 
 import { Colors } from '@/constants/Colors';
+import { searchFoodBanks, clearFoodBankCache, type FoodBank } from '@/services/foodBankService';
 
-// Use the proto color scheme to match your existing app
 const proto = Colors.proto;
-
-type FoodBank = {
-  id: string;
-  name: string;
-  address: string;
-  phone?: string;
-  website?: string;
-  hours?: string;
-  distance: number;
-  acceptedItems?: string[];
-  specialNotes?: string;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
-};
 
 type FoodBankDetailsModalProps = {
   foodBank: FoodBank;
@@ -226,6 +211,7 @@ export default function FoodBankLocatorScreen() {
   const [zipCode, setZipCode] = useState('');
   const [foodBanks, setFoodBanks] = useState<FoodBank[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [selectedFoodBank, setSelectedFoodBank] = useState<FoodBank | null>(null);
@@ -233,78 +219,62 @@ export default function FoodBankLocatorScreen() {
 
   const searchInputRef = useRef<TextInput>(null);
 
-  // Mock data for demonstration - replace with actual API call
-  const mockFoodBanks: FoodBank[] = [
-    {
-      id: '1',
-      name: 'Community Food Bank of NYC',
-      address: '123 Main St, New York, NY 10001',
-      phone: '(212) 555-0123',
-      website: 'https://example.com',
-      hours: 'Mon-Fri: 9AM-5PM, Sat: 10AM-2PM',
-      distance: 2.3,
-      acceptedItems: ['Canned goods', 'Fresh produce', 'Non-perishables'],
-      specialNotes: 'Please call ahead for large donations',
-      coordinates: { lat: 40.7128, lng: -74.0060 }
-    },
-    {
-      id: '2',
-      name: 'Hope Food Pantry',
-      address: '456 Oak Ave, New York, NY 10002',
-      phone: '(212) 555-0456',
-      hours: 'Tue-Thu: 10AM-4PM',
-      distance: 4.7,
-      acceptedItems: ['Canned goods', 'Dry goods'],
-      coordinates: { lat: 40.7228, lng: -73.9960 }
-    },
-    {
-      id: '3',
-      name: 'Neighborhood Helping Hands',
-      address: '789 Pine St, New York, NY 10003',
-      phone: '(212) 555-0789',
-      website: 'https://example.org',
-      hours: 'Mon-Wed-Fri: 9AM-3PM',
-      distance: 6.2,
-      acceptedItems: ['Fresh produce', 'Dairy products', 'Baked goods'],
-      specialNotes: 'Accepts fresh donations until 2 hours before closing',
-      coordinates: { lat: 40.7328, lng: -73.9860 }
-    }
-  ];
-
   const validateZipCode = (zip: string): boolean => {
     const zipRegex = /^\d{5}$/;
     return zipRegex.test(zip);
   };
 
-  const handleSearch = async () => {
+  const handleSearch = async (forceRefresh = false) => {
     if (!validateZipCode(zipCode)) {
       Alert.alert('Invalid ZIP Code', 'Please enter a valid 5-digit ZIP code.');
       return;
     }
 
     try {
-      setLoading(true);
+      setLoading(!forceRefresh);
+      setRefreshing(forceRefresh);
       setError(null);
       setHasSearched(true);
       
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Clear cache if forcing refresh
+      if (forceRefresh) {
+        await clearFoodBankCache();
+      }
 
-      // In a real app, you'd call your API here:
-      // const response = await fetch(`/api/food-banks?zipCode=${zipCode}`);
-      // const data = await response.json();
+      // Call the real API
+      const results = await searchFoodBanks(zipCode);
       
-      // For now, use mock data
-      setFoodBanks(mockFoodBanks);
+      if (results.length === 0) {
+        setFoodBanks([]);
+      } else {
+        // Sort by distance
+        const sortedResults = results.sort((a, b) => a.distance - b.distance);
+        setFoodBanks(sortedResults);
+      }
       
     } catch (err) {
       console.error('Error searching food banks:', err);
-      setError('Failed to find food banks. Please try again.');
+      
+      // Provide user-friendly error messages
+      let errorMessage = 'Failed to find food banks. Please try again.';
+      
+      if (err instanceof Error) {
+        if (err.message.includes('network')) {
+          errorMessage = 'Network error. Please check your internet connection.';
+        } else if (err.message.includes('Invalid ZIP')) {
+          errorMessage = 'Invalid ZIP code. Please check and try again.';
+        } else if (err.message.includes('Unable to find')) {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
       setFoodBanks([]);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -312,6 +282,12 @@ export default function FoodBankLocatorScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedFoodBank(foodBank);
     setIsModalVisible(true);
+  };
+
+  const onRefresh = () => {
+    if (validateZipCode(zipCode)) {
+      handleSearch(true);
+    }
   };
 
   const renderFoodBankCard = (foodBank: FoodBank) => (
@@ -347,7 +323,7 @@ export default function FoodBankLocatorScreen() {
           </View>
         )}
 
-        {foodBank.acceptedItems && (
+        {foodBank.acceptedItems && foodBank.acceptedItems.length > 0 && (
           <View style={styles.itemsRow}>
             <Ionicons name="list" size={16} color={proto.textSecondary} />
             <Text style={styles.itemsText} numberOfLines={2}>
@@ -388,7 +364,7 @@ export default function FoodBankLocatorScreen() {
           <Ionicons name="warning" size={48} color="#E57373" />
           <Text style={styles.errorTitle}>Search Failed</Text>
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={handleSearch}>
+          <TouchableOpacity style={styles.retryButton} onPress={() => handleSearch()}>
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
@@ -415,7 +391,19 @@ export default function FoodBankLocatorScreen() {
 
     if (foodBanks.length > 0) {
       return (
-        <ScrollView style={styles.resultsContainer} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.resultsContainer} 
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={proto.accent}
+              title="Pull to refresh"
+              titleColor={proto.textSecondary}
+            />
+          }
+        >
           <Text style={styles.resultsHeader}>
             Found {foodBanks.length} food bank{foodBanks.length !== 1 ? 's' : ''} near {zipCode}
           </Text>
@@ -424,6 +412,13 @@ export default function FoodBankLocatorScreen() {
             <Text style={styles.footerText}>
               Always call ahead to confirm hours and donation requirements.
             </Text>
+            <TouchableOpacity 
+              style={styles.refreshButton}
+              onPress={onRefresh}
+            >
+              <Ionicons name="refresh" size={16} color={proto.accent} />
+              <Text style={styles.refreshButtonText}>Refresh Results</Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       );
@@ -450,7 +445,7 @@ export default function FoodBankLocatorScreen() {
             onChangeText={setZipCode}
             keyboardType="numeric"
             maxLength={5}
-            onSubmitEditing={handleSearch}
+            onSubmitEditing={() => handleSearch()}
             returnKeyType="search"
           />
           {zipCode.length > 0 && (
@@ -468,7 +463,7 @@ export default function FoodBankLocatorScreen() {
             styles.searchButton,
             (!validateZipCode(zipCode) || loading) && styles.searchButtonDisabled
           ]}
-          onPress={handleSearch}
+          onPress={() => handleSearch()}
           disabled={!validateZipCode(zipCode) || loading}
         >
           {loading ? (
@@ -782,12 +777,28 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     paddingHorizontal: 16,
     alignItems: 'center',
+    gap: 16,
   },
   footerText: {
     fontSize: 14,
     color: proto.textSecondary,
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  refreshButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: proto.accent,
+  },
+  refreshButtonText: {
+    color: proto.accent,
+    fontSize: 14,
+    fontWeight: '500',
   },
   // Modal styles
   modalOverlay: {

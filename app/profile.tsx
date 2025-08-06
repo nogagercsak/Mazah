@@ -44,11 +44,17 @@ export default function ProfileScreen() {
   const [preferencesModalVisible, setPreferencesModalVisible] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [emojiModalVisible, setEmojiModalVisible] = useState(false);
+  const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
   
   // Password change state
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  
+  // Account deletion state
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+  const [deletePassword, setDeletePassword] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Notification settings state
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -132,36 +138,63 @@ export default function ProfileScreen() {
       Alert.alert('Error', 'Password must be at least 6 characters long');
       return;
     }
+    
+    // TODO: Implement password change functionality with Supabase
+    Alert.alert('Feature Coming Soon', 'Password change functionality will be available in the next update.');
+  };
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmationText !== 'DELETE' || !deletePassword) {
+      Alert.alert('Error', 'Please complete all confirmation steps');
+      return;
+    }
+    
+    setIsDeleting(true);
+    
     try {
-      // First, verify the current password by attempting to sign in
+      // Verify password first
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user?.email || '',
-        password: currentPassword,
+        password: deletePassword,
       });
 
       if (signInError) {
-        Alert.alert('Error', 'Current password is incorrect');
+        Alert.alert('Error', 'Incorrect password');
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        setIsDeleting(false);
         return;
       }
 
-      // If current password is correct, update to new password
-      const { error: updateError } = await supabase.auth.updateUser({ 
-        password: newPassword 
-      });
+      // Delete the user account (this will also delete all their data)
+      const { error: deleteError } = await supabase.rpc('delete_user');
+
+      if (deleteError) throw deleteError;
+
+      // Clear local storage
+      await AsyncStorage.clear();
+
+      // The user will be automatically signed out since their account no longer exists
       
-      if (updateError) throw updateError;
-      
-      Alert.alert('Success', 'Password updated successfully');
-      setPasswordModalVisible(false);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      // Show success message and navigate to login
+      Alert.alert(
+        'Account Deleted',
+        'Your account has been successfully deleted.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/auth/login')
+          }
+        ],
+        { cancelable: false }
+      );
+
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update password');
+      console.error('Delete account error:', error);
+      Alert.alert('Error', error.message || 'Failed to delete account. Please contact support.');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -242,6 +275,24 @@ export default function ProfileScreen() {
               console.error('Sign out error:', error);
               Alert.alert('Sign Out Error', 'Failed to sign out. Please try again.');
             }
+          }
+        },
+      ]
+    );
+  };
+
+  const handleOpenDeleteModal = () => {
+    Alert.alert(
+      '⚠️ Warning',
+      'Deleting your account is permanent and cannot be undone. All your data will be lost forever.\n\nAre you sure you want to proceed?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Continue', 
+          style: 'destructive',
+          onPress: () => {
+            setDeleteAccountModalVisible(true);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
           }
         },
       ]
@@ -384,12 +435,95 @@ export default function ProfileScreen() {
           style={styles.signOutButton} 
           onPress={handleSignOut}
         >
-          <IconSymbol size={22} name={"trash" as any} color="#E57373" />
+          <IconSymbol size={22} name={"rectangle.portrait.and.arrow.right" as any} color="#E57373" />
           <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
+
+        {/* Delete Account Button */}
+        <TouchableOpacity 
+          style={styles.deleteAccountButton} 
+          onPress={handleOpenDeleteModal}
+        >
+          <IconSymbol size={22} name={"trash" as any} color="#FF5252" />
+          <Text style={styles.deleteAccountText}>Delete Account</Text>
         </TouchableOpacity>
 
         <Text style={styles.version}>Version 1.0.0</Text>
       </ScrollView>
+
+      {/* Delete Account Modal */}
+      <Modal
+        visible={deleteAccountModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setDeleteAccountModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.deleteModalContent}>
+            <View style={styles.deleteModalHeader}>
+              <IconSymbol size={48} name={"exclamationmark.triangle.fill" as any} color="#FF5252" />
+              <Text style={styles.deleteModalTitle}>Delete Account</Text>
+            </View>
+            
+            <Text style={styles.deleteWarningText}>
+              This action is <Text style={styles.boldText}>permanent and cannot be undone</Text>. 
+              All your data, including pantry items, shopping lists, and preferences will be deleted forever.
+            </Text>
+            
+            <View style={styles.deleteConfirmSection}>
+              <Text style={styles.deleteInstructionText}>
+                Type <Text style={styles.deleteCodeText}>DELETE</Text> to confirm:
+              </Text>
+              <TextInput
+                style={[styles.input, styles.deleteConfirmInput]}
+                placeholder="Type DELETE"
+                value={deleteConfirmationText}
+                onChangeText={setDeleteConfirmationText}
+                placeholderTextColor={proto.textSecondary}
+                autoCapitalize="characters"
+              />
+            </View>
+            
+            <View style={styles.deleteConfirmSection}>
+              <Text style={styles.deleteInstructionText}>
+                Enter your password to confirm:
+              </Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                secureTextEntry
+                value={deletePassword}
+                onChangeText={setDeletePassword}
+                placeholderTextColor={proto.textSecondary}
+              />
+            </View>
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => {
+                  setDeleteAccountModalVisible(false);
+                  setDeleteConfirmationText('');
+                  setDeletePassword('');
+                }}
+                disabled={isDeleting}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.deleteButton]}
+                onPress={handleDeleteAccount}
+                disabled={isDeleting || deleteConfirmationText !== 'DELETE' || !deletePassword}
+              >
+                <Text style={styles.deleteButtonText}>
+                  {isDeleting ? 'Deleting...' : 'Delete Account'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Emoji Selection Modal */}
       <Modal
@@ -688,86 +822,57 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: proto.border,
   },
   backButton: {
     padding: 8,
+    marginLeft: -8,
   },
   headerTitle: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: proto.accentDark,
-    opacity: 0.85,
-    letterSpacing: 0.5,
+    fontSize: 18,
+    fontWeight: '600',
+    color: proto.text,
   },
   headerRight: {
     width: 40,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
+    padding: 20,
   },
   profileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: proto.card,
-    borderRadius: 20,
+    borderRadius: 16,
     padding: 20,
     marginBottom: 24,
-    shadowColor: proto.shadow,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
   },
   avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: proto.background,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: proto.accent + '20',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
-    position: 'relative',
-    borderWidth: 3,
-    borderColor: proto.accentDark,
-    shadowColor: proto.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 3,
   },
   emojiAvatar: {
-    fontSize: 36,
-  },
-  editBadge: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: proto.accentDark,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: proto.background,
-    shadowColor: proto.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 3,
-  },
-  editBadgeText: {
-    fontSize: 14,
-    color: proto.buttonText,
+    fontSize: 32,
   },
   profileInfo: {
     flex: 1,
   },
   email: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: proto.text,
     marginBottom: 4,
@@ -778,50 +883,42 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   changePhotoButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    backgroundColor: proto.accentDark + '25',
-    borderWidth: 1,
-    borderColor: proto.accentDark + '40',
+    marginTop: 4,
   },
   changePhotoText: {
     fontSize: 12,
-    color: proto.accentDark,
-    fontWeight: '600',
+    color: proto.accent,
+    fontWeight: '500',
   },
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: proto.text,
     marginBottom: 12,
-    marginLeft: 4,
   },
   settingsCard: {
     backgroundColor: proto.card,
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: proto.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
     paddingHorizontal: 16,
+    paddingVertical: 16,
   },
   settingIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: proto.accentDark,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: proto.accent,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -834,24 +931,22 @@ const styles = StyleSheet.create({
   },
   settingDivider: {
     height: 1,
-    backgroundColor: proto.textSecondary,
-    opacity: 0.1,
-    marginHorizontal: 16,
+    backgroundColor: proto.border,
+    marginLeft: 60,
   },
   signOutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: proto.card,
-    padding: 16,
-    borderRadius: 20,
-    marginTop: 'auto',
+    borderRadius: 12,
+    paddingVertical: 16,
     marginBottom: 12,
-    shadowColor: proto.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   signOutText: {
     fontSize: 16,
@@ -859,45 +954,57 @@ const styles = StyleSheet.create({
     color: '#E57373',
     marginLeft: 8,
   },
+  deleteAccountButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: proto.card,
+    borderRadius: 12,
+    paddingVertical: 16,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  deleteAccountText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FF5252',
+    marginLeft: 8,
+  },
   version: {
     textAlign: 'center',
     fontSize: 14,
     color: proto.textSecondary,
-    marginBottom: 24,
+    marginBottom: 20,
   },
-  
-  // Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: 20,
   },
   modalContent: {
-    backgroundColor: proto.background,
-    borderRadius: 20,
+    backgroundColor: proto.card,
+    borderRadius: 16,
     padding: 24,
     width: '100%',
     maxWidth: 400,
-    shadowColor: proto.shadow,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 5,
   },
-  emojiModalContent: {
-    backgroundColor: proto.background,
-    borderRadius: 20,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
-    maxHeight: '80%',
-    shadowColor: proto.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: proto.text,
+    marginBottom: 20,
+    textAlign: 'center',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -905,102 +1012,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: proto.text,
-    textAlign: 'center',
-  },
-  emojiModalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: proto.text,
-    flex: 1,
-  },
-  emojiModalTitleCentered: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: proto.text,
-    textAlign: 'center',
-    marginBottom: 20,
-    marginTop: 8,
-  },
-  cornerCloseButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: proto.textSecondary + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 999,
-  },
-  closeButtonText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: proto.textSecondary,
-    lineHeight: 18,
-  },
   closeButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: proto.textSecondary + '20',
+    backgroundColor: proto.border,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 12,
   },
-  emojiGrid: {
-    maxHeight: 400,
-  },
-  emojiScrollContent: {
-    paddingHorizontal: 4,
-  },
-  emojiContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-evenly',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  emojiButton: {
-    width: 50,
-    height: 50,
-    backgroundColor: proto.card,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 4,
-    marginVertical: 6,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    shadowColor: proto.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  selectedEmojiButton: {
-    borderColor: proto.accentDark,
-    backgroundColor: proto.accentDark + '20',
-    transform: [{ scale: 1.05 }],
-  },
-  emojiText: {
-    fontSize: 24,
-    textAlign: 'center',
-    lineHeight: 28,
+  closeButtonText: {
+    fontSize: 18,
+    color: proto.textSecondary,
+    fontWeight: '600',
   },
   input: {
-    backgroundColor: proto.card,
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: proto.inputBackground,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     fontSize: 16,
     color: proto.text,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: proto.textSecondary + '20',
+    borderColor: proto.border,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -1009,54 +1043,56 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     flex: 1,
-    padding: 16,
-    borderRadius: 12,
+    borderRadius: 8,
+    paddingVertical: 12,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: proto.card,
-    borderWidth: 1,
-    borderColor: proto.textSecondary + '20',
+    backgroundColor: proto.border,
   },
   cancelButtonText: {
-    color: proto.text,
-    fontWeight: '600',
     fontSize: 16,
+    fontWeight: '600',
+    color: proto.textSecondary,
   },
   saveButton: {
     backgroundColor: proto.accent,
   },
   saveButtonText: {
-    color: proto.buttonText,
-    fontWeight: '600',
     fontSize: 16,
+    fontWeight: '600',
+    color: proto.buttonText,
+  },
+  fullWidthButton: {
+    flex: 1,
   },
   settingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
+  },
+  settingGroup: {
+    marginBottom: 16,
   },
   settingLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: proto.text,
-  },
-  settingGroup: {
-    marginBottom: 20,
+    marginBottom: 4,
   },
   settingDescription: {
     fontSize: 14,
     color: proto.textSecondary,
-    marginTop: 4,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   comingSoonText: {
     fontSize: 14,
     color: proto.textSecondary,
     textAlign: 'center',
-    marginVertical: 20,
     fontStyle: 'italic',
+    marginVertical: 16,
   },
   feedbackTypes: {
     flexDirection: 'row',
@@ -1065,20 +1101,21 @@ const styles = StyleSheet.create({
   },
   feedbackType: {
     flex: 1,
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: proto.card,
-    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: proto.background,
     borderWidth: 1,
-    borderColor: proto.textSecondary + '20',
+    borderColor: proto.border,
+    alignItems: 'center',
   },
   feedbackTypeActive: {
-    backgroundColor: proto.accentDark,
-    borderColor: proto.accentDark,
+    backgroundColor: proto.accent,
+    borderColor: proto.accent,
   },
   feedbackTypeText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: proto.text,
   },
   feedbackTypeTextActive: {
@@ -1086,9 +1123,129 @@ const styles = StyleSheet.create({
   },
   feedbackInput: {
     height: 100,
+    textAlignVertical: 'top',
   },
-  fullWidthButton: {
-    flex: 0,
+  deleteModalContent: {
+    backgroundColor: proto.card,
+    borderRadius: 16,
+    padding: 24,
     width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  deleteModalHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  deleteModalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#FF5252',
+    marginTop: 12,
+  },
+  deleteWarningText: {
+    fontSize: 16,
+    color: proto.text,
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 22,
+  },
+  boldText: {
+    fontWeight: '700',
+    color: '#FF5252',
+  },
+  deleteConfirmSection: {
+    marginBottom: 16,
+  },
+  deleteInstructionText: {
+    fontSize: 14,
+    color: proto.text,
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  deleteCodeText: {
+    fontFamily: 'monospace',
+    backgroundColor: proto.background,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 4,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  deleteConfirmInput: {
+    fontFamily: 'monospace',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  deleteButton: {
+    backgroundColor: '#FF5252',
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  emojiModalContent: {
+    backgroundColor: proto.card,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  cornerCloseButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: proto.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  emojiModalTitleCentered: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: proto.text,
+    textAlign: 'center',
+    marginBottom: 20,
+    marginTop: 8,
+  },
+  emojiGrid: {
+    flex: 1,
+  },
+  emojiContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  emojiButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: proto.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  selectedEmojiButton: {
+    borderColor: proto.accent,
+    backgroundColor: proto.accent + '20',
+  },
+  emojiText: {
+    fontSize: 24,
   },
 });

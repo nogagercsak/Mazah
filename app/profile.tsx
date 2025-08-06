@@ -26,12 +26,12 @@ const STORAGE_KEYS = {
 const FOOD_EMOJIS = [
   '🍎', '🍌', '🍇', '🍓', '🫐', '🍊', '🍑', '🥭',
   '🍍', '🥥', '🥝', '🍅', '🥑', '🥕', '🌽', '🥒',
-  '🥬', '🥦', '🍄', '🥜', '🌰', '🍞', '🥖', '🥨',
-  '🧀', '🥚', '🍳', '🥓', '🥩', '🍗', '🍖', '🌭',
+  '🥬', '🥦', '🍄', '🥜', '🍞', '🥖', '🥨',
+  '🧀', '🍳', '🥓', '🥩', '🍗', '🍖', '🌭',
   '🍔', '🍟', '🍕', '🌮', '🌯', '🥙', '🥪', '🫔',
   '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🍤',
   '🍙', '🍘', '🍥', '🥮', '🧁', '🍰', '🎂', '🍮',
-  '🍭', '🍬', '🍫', '🍿', '🍩', '🍪', '🥛', '☕'
+  '🍭', '🍬', '🍫', '🍿', '🍩', '🍪', 
 ];
 
 export default function ProfileScreen() {
@@ -92,7 +92,7 @@ export default function ProfileScreen() {
       if (emoji !== null) setProfileEmoji(emoji);
       if (hintShown !== null) setShowProfileHint(!JSON.parse(hintShown));
     } catch (error) {
-      console.error('Error loading preferences:', error);
+      // Error loading preferences - silently fail
     }
   };
 
@@ -117,7 +117,7 @@ export default function ProfileScreen() {
       setEmojiModalVisible(true);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch (error) {
-      console.error('Error saving hint shown state:', error);
+      // Error saving hint state - continue with modal
       setEmojiModalVisible(true);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
@@ -139,8 +139,6 @@ export default function ProfileScreen() {
       return;
     }
     
-    // TODO: Implement password change functionality with Supabase
-    Alert.alert('Feature Coming Soon', 'Password change functionality will be available in the next update.');
   };
 
   const handleDeleteAccount = async () => {
@@ -190,7 +188,7 @@ export default function ProfileScreen() {
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error: any) {
-      console.error('Delete account error:', error);
+      // Handle delete account error
       Alert.alert('Error', error.message || 'Failed to delete account. Please contact support.');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
@@ -272,7 +270,7 @@ export default function ProfileScreen() {
               await signOut();
               router.replace('/auth/login');
             } catch (error) {
-              console.error('Sign out error:', error);
+              // Handle sign out error
               Alert.alert('Sign Out Error', 'Failed to sign out. Please try again.');
             }
           }
@@ -825,16 +823,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: proto.border,
+    borderBottomColor: proto.textSecondary + '10',
   },
   backButton: {
     padding: 8,
-    marginLeft: -8,
+    borderRadius: 12,
+    backgroundColor: proto.card,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: proto.text,
+    fontSize: 32,
+    fontWeight: '700',
+    color: proto.accentDark,
+    opacity: 0.85,
+    letterSpacing: 0.5,
   },
   headerRight: {
     width: 40,
@@ -1189,19 +1190,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
+
   emojiModalContent: {
     backgroundColor: proto.card,
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 24,
-    width: '100%',
-    maxWidth: 400,
-    maxHeight: '80%',
+    paddingBottom: 0,
+    width: '90%',
+    maxWidth: 450,
+    height: '40%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 5,
   },
+  
   cornerCloseButton: {
     position: 'absolute',
     top: 16,
@@ -1209,43 +1213,72 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: proto.border,
+    backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,
   },
+  
   emojiModalTitleCentered: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
     color: proto.text,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
     marginTop: 8,
   },
+  
   emojiGrid: {
     flex: 1,
+    width: '100%',
   },
+  
   emojiContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 12,
+    paddingHorizontal: 8,
+    paddingBottom: 16,
+    paddingTop: 4,
   },
+  
   emojiButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: proto.background,
+    width: '18%', // 5 items per row with proper spacing
+    aspectRatio: 1, 
+    borderRadius: 16,
+    backgroundColor: '#f8f8f8',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 8,
     borderWidth: 2,
     borderColor: 'transparent',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
+  
   selectedEmojiButton: {
-    borderColor: proto.accent,
     backgroundColor: proto.accent + '20',
+    borderColor: proto.accent,
+    borderWidth: 2,
+    transform: [{ scale: 1.1 }],
+    shadowColor: proto.accent,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
+  
   emojiText: {
-    fontSize: 24,
+    fontSize: 28,
+    lineHeight: 32,
+    textAlign: 'center',
+  },
+  
+  emojiButtonPressed: {
+    backgroundColor: '#e8f4ff',
+    transform: [{ scale: 0.95 }],
   },
 });

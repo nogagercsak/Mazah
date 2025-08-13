@@ -2,7 +2,7 @@ import { Pressable } from 'react-native';
 import React from 'react';
 import * as Haptics from 'expo-haptics';
 
-export function HapticTab(props: any) {
+export default function HapticTab(props: any) {
   return (
     <Pressable
       {...props}

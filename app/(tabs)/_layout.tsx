@@ -1,13 +1,17 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { HapticTab } from '@/components/HapticTab';
+import HapticTab from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 
 const { proto } = Colors;
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  
   return (
     <Tabs
       screenOptions={{
@@ -17,7 +21,14 @@ export default function TabLayout() {
         tabBarInactiveTintColor: proto.textSecondary,
         tabBarStyle: {
           backgroundColor: proto.card,
-          borderTopColor: proto.shadow,
+          borderTopColor: 'transparent',
+          borderTopWidth: 0,
+          paddingBottom: insets.bottom,
+          height: 50 + insets.bottom,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
         },
       }}>
       <Tabs.Screen

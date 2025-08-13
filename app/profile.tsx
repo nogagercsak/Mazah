@@ -232,8 +232,6 @@ export default function ProfileScreen() {
     }
 
     try {
-      // In a real app, you would send this to your backend
-      // For now, we'll just store it in Supabase
       const { error } = await supabase
         .from('feedback')
         .insert({

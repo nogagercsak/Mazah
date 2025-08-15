@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Location from 'expo-location';
 
 // Types
 export type FoodBank = {
@@ -34,7 +33,9 @@ export const searchFoodBanks = async (zipCode: string): Promise<FoodBank[]> => {
     console.log('Searching for food banks near:', zipCode);
     const userLocation = await getUserLocation(zipCode);
     const foodBanks = await searchOpenStreetMap(zipCode, userLocation);
+
     
+   
     // Calculate distances for all food banks
     const foodBanksWithDistance = foodBanks.map(fb => ({
       ...fb,
@@ -43,7 +44,7 @@ export const searchFoodBanks = async (zipCode: string): Promise<FoodBank[]> => {
 
     // Sort by distance
     const sortedResults = foodBanksWithDistance.sort((a, b) => a.distance - b.distance);
-    
+   
     await setCachedData(cacheKey, sortedResults);
     return sortedResults;
   } catch (error) {
@@ -53,7 +54,7 @@ export const searchFoodBanks = async (zipCode: string): Promise<FoodBank[]> => {
 };
 
 const searchOpenStreetMap = async (
-  zipCode: string, 
+  zipCode: string,
   userLocation: { lat: number; lng: number }
 ): Promise<FoodBank[]> => {
   try {
@@ -62,12 +63,12 @@ const searchOpenStreetMap = async (
     const overpassQuery = `
       [out:json];
       (
-        node["social_facility"="food_bank"](around:16000,${lat},${lng});
-        way["social_facility"="food_bank"](around:16000,${lat},${lng});
-        node["amenity"="social_facility"]["social_facility:for"="food"](around:16000,${lat},${lng});
-        node["name"~"food bank|food pantry",i](around:16000,${lat},${lng});
-        node["shop"="charity"](around:16000,${lat},${lng});
-        way["shop"="charity"](around:16000,${lat},${lng});
+        node["social_facility"="food_bank"](around:48280,${lat},${lng});
+        way["social_facility"="food_bank"](around:48280,${lat},${lng});
+        node["amenity"="social_facility"]["social_facility:for"="food"](around:48280,${lat},${lng});
+        node["name"~"food bank|food pantry",i](around:48280,${lat},${lng});
+        node["shop"="charity"](around:48280,${lat},${lng});
+        way["shop"="charity"](around:48280,${lat},${lng});
       );
       out body;
     `;
@@ -85,24 +86,62 @@ const searchOpenStreetMap = async (
     }
 
     const overpassData = await overpassResponse.json();
+    console.log('Overpass query result:', overpassData);
+    console.log('Elements found:', overpassData.elements?.length || 0);
+    if (overpassData.elements) {
+      overpassData.elements.forEach((el: { tags: { name: any; shop: any; social_facility: any; }; lat: any; lon: any; }, i: any) => {
+        console.log(`Element ${i}:`, {
+          name: el.tags?.name,
+          shop: el.tags?.shop,
+          social_facility: el.tags?.social_facility,
+          coords: {lat: el.lat, lng: el.lon}
+        });
+      });
+    }
 
     if (!overpassData.elements || overpassData.elements.length === 0) {
       throw new Error('No food banks found in this area');
     }
 
-    return overpassData.elements.map((element: any) => ({
+    // Filter out elements without valid coordinates and add better filtering
+    const validElements = overpassData.elements.filter((element: { lat: any; lon: any; center: { lat: any; lon: any; }; tags: { [x: string]: string; name: string; shop: string; description: string; }; }) => {
+      // Must have valid coordinates
+      const hasValidCoords = (element.lat && element.lon) || (element.center?.lat && element.center?.lon);
+      if (!hasValidCoords) {
+        console.log('Filtering out element without coordinates:', element.tags?.name);
+        return false;
+      }
+
+      // Filter out charity shops unless they specifically mention food
+      if (element.tags?.shop === 'charity') {
+        const name = element.tags?.name?.toLowerCase() || '';
+        const description = element.tags?.description?.toLowerCase() || '';
+        const hasFood = name.includes('food') || 
+                       description.includes('food') || 
+                       element.tags?.['social_facility:for'] === 'food';
+        
+        if (!hasFood) {
+          console.log('Filtering out non-food charity shop:', element.tags?.name);
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    return validElements.map((element: any) => ({
       id: element.id.toString(),
       name: element.tags?.name || 'Food Bank',
       address: formatOSMAddress(element.tags),
       phone: element.tags?.phone || element.tags?.['contact:phone'],
       website: element.tags?.website || element.tags?.['contact:website'],
       hours: element.tags?.opening_hours,
-      distance: 0, // Will be calculated later
+      distance: 0,
       acceptedItems: element.tags?.['social_facility:for'] ? [element.tags['social_facility:for']] : undefined,
       specialNotes: element.tags?.description || element.tags?.note,
       coordinates: {
-        lat: element.lat || element.center?.lat || lat,
-        lng: element.lon || element.center?.lon || lng,
+        lat: element.lat || element.center?.lat,
+        lng: element.lon || element.center?.lon,
       },
     }));
   } catch (error) {
@@ -111,21 +150,9 @@ const searchOpenStreetMap = async (
   }
 };
 
-const getUserLocation = async (zipCode: string): Promise<{ lat: number; lng: number }> => {
-  try {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status === 'granted') {
-      const location = await Location.getCurrentPositionAsync({});
-      return {
-        lat: location.coords.latitude,
-        lng: location.coords.longitude,
-      };
-    }
-  } catch (error) {
-    console.log('Could not get user location, using ZIP code geocoding');
-  }
 
-  // Fallback to ZIP code geocoding
+const getUserLocation = async (zipCode: string): Promise<{ lat: number; lng: number }> => {
+  // Use ZIP code geocoding only
   try {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?` +
@@ -148,7 +175,7 @@ const getUserLocation = async (zipCode: string): Promise<{ lat: number; lng: num
     console.error('Geocoding error:', error);
   }
 
-  // Last resort: default to NYC coordinates
+  // If geocoding fails, throw error
   throw new Error('Unable to determine location from ZIP code');
 };
 
@@ -175,7 +202,6 @@ const calculateDistance = (
 
 const formatOSMAddress = (tags: any): string => {
   if (!tags) return 'Address not available';
-  
   const parts = [];
 
   if (tags['addr:housenumber']) parts.push(tags['addr:housenumber']);

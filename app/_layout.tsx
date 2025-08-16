@@ -11,6 +11,8 @@ import { Colors } from '../constants/Colors';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { useColorScheme } from '../hooks/useColorScheme';
 import { supabase } from '../lib/supabase';
+import notificationService from '../services/notificationService';
+import backgroundTaskService from '../services/backgroundTaskService';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -209,6 +211,48 @@ function RootLayoutNav() {
   
   // Use the protection hook
   useProtectedRoute(user);
+
+  // Initialize notifications when user is authenticated
+  useEffect(() => {
+    if (user && !loading) {
+      console.log('Main app: User authenticated, initializing notifications');
+      initializeNotifications();
+    }
+  }, [user, loading]);
+
+  const initializeNotifications = async () => {
+    try {
+      console.log('Initializing notifications...');
+      
+      // Initialize notification service
+      const notificationSuccess = await notificationService.initialize();
+      if (notificationSuccess) {
+        console.log('Notifications initialized successfully');
+        
+        // Try to register background fetch task (optional)
+        try {
+          const backgroundSuccess = await backgroundTaskService.registerBackgroundFetch();
+          if (backgroundSuccess) {
+            console.log('Background fetch task registered successfully');
+          } else {
+            console.log('Background fetch not available - using fallback local notification system');
+            // Schedule notifications for existing food items as a fallback
+            await notificationService.scheduleNotificationsForAllFood();
+          }
+        } catch (backgroundError) {
+          console.log('Background fetch initialization failed - using fallback local notification system');
+          // Schedule notifications for existing food items as a fallback
+          await notificationService.scheduleNotificationsForAllFood();
+        }
+      } else {
+        console.log('Failed to initialize notifications');
+      }
+    } catch (error) {
+      console.error('Error initializing notifications:', error);
+      // Don't fail the app initialization, just log the error
+      console.log('App will continue without full notification support');
+    }
+  };
 
   // Debug: Log authentication state
   console.log('RootLayoutNav: Loading:', loading, 'User:', user ? user.email : 'No user');

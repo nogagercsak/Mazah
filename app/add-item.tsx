@@ -68,6 +68,8 @@ export default function AddItemScreen() {
         throw insertError;
       }
 
+
+
       Alert.alert('Success!', 'Your item has been added.');
       router.back();
 

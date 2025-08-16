@@ -15,8 +15,6 @@ const proto = Colors.proto;
 
 // Storage keys for preferences
 const STORAGE_KEYS = {
-  NOTIFICATIONS: '@notifications_enabled',
-  EXPIRY_ALERTS: '@expiry_alerts_days',
   DARK_MODE: '@dark_mode_enabled',
   PROFILE_EMOJI: '@profile_emoji',
   PROFILE_HINT_SHOWN: '@profile_hint_shown',
@@ -40,7 +38,6 @@ export default function ProfileScreen() {
   
   // State for modals
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
-  const [notificationsModalVisible, setNotificationsModalVisible] = useState(false);
   const [preferencesModalVisible, setPreferencesModalVisible] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [emojiModalVisible, setEmojiModalVisible] = useState(false);
@@ -56,9 +53,7 @@ export default function ProfileScreen() {
   const [deletePassword, setDeletePassword] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   
-  // Notification settings state
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [expiryAlertDays, setExpiryAlertDays] = useState('3');
+
   
   // Preferences state
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
@@ -80,14 +75,10 @@ export default function ProfileScreen() {
 
   const loadPreferences = async () => {
     try {
-      const notifications = await AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
-      const expiryDays = await AsyncStorage.getItem(STORAGE_KEYS.EXPIRY_ALERTS);
       const darkMode = await AsyncStorage.getItem(STORAGE_KEYS.DARK_MODE);
       const emoji = await AsyncStorage.getItem(STORAGE_KEYS.PROFILE_EMOJI);
       const hintShown = await AsyncStorage.getItem(STORAGE_KEYS.PROFILE_HINT_SHOWN);
       
-      if (notifications !== null) setNotificationsEnabled(JSON.parse(notifications));
-      if (expiryDays !== null) setExpiryAlertDays(expiryDays);
       if (darkMode !== null) setDarkModeEnabled(JSON.parse(darkMode));
       if (emoji !== null) setProfileEmoji(emoji);
       if (hintShown !== null) setShowProfileHint(!JSON.parse(hintShown));
@@ -196,19 +187,7 @@ export default function ProfileScreen() {
     }
   };
 
-  const saveNotificationSettings = async () => {
-    try {
-      await AsyncStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notificationsEnabled));
-      await AsyncStorage.setItem(STORAGE_KEYS.EXPIRY_ALERTS, expiryAlertDays);
-      
-      Alert.alert('Success', 'Notification settings saved');
-      setNotificationsModalVisible(false);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save notification settings');
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    }
-  };
+
 
   const savePreferences = async () => {
     try {
@@ -361,7 +340,7 @@ export default function ProfileScreen() {
               style={styles.settingItem}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setNotificationsModalVisible(true);
+                router.push('/notifications');
               }}
             >
               <View style={styles.settingIconContainer}>
@@ -624,60 +603,7 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      {/* Notifications Modal */}
-      <Modal
-        visible={notificationsModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setNotificationsModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Notification Settings</Text>
-            
-            <View style={styles.settingRow}>
-              <Text style={styles.settingLabel}>Enable Notifications</Text>
-              <Switch
-                value={notificationsEnabled}
-                onValueChange={setNotificationsEnabled}
-                trackColor={{ false: proto.textSecondary, true: proto.accent }}
-                thumbColor={proto.buttonText}
-              />
-            </View>
-            
-            <View style={styles.settingGroup}>
-              <Text style={styles.settingLabel}>Expiry Alert Days</Text>
-              <Text style={styles.settingDescription}>
-                Get notified when items expire within this many days
-              </Text>
-              <TextInput
-                style={styles.input}
-                placeholder="3"
-                keyboardType="numeric"
-                value={expiryAlertDays}
-                onChangeText={setExpiryAlertDays}
-                placeholderTextColor={proto.textSecondary}
-              />
-            </View>
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setNotificationsModalVisible(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
-                onPress={saveNotificationSettings}
-              >
-                <Text style={styles.saveButtonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+
 
       {/* Preferences Modal */}
       <Modal
@@ -992,6 +918,17 @@ const styles = StyleSheet.create({
     padding: 24,
     width: '100%',
     maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  fullScreenModalContent: {
+    backgroundColor: proto.card,
+    borderRadius: 16,
+    width: '100%',
+    height: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,

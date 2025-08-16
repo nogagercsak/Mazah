@@ -10,6 +10,7 @@ import { IconSymbol, IconSymbolName } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { FoodItem, InventoryData, supabase } from '@/lib/supabase';
+import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
 
 const getFormattedDate = (daysFromNow: number): string => {
   const date = new Date();
@@ -377,6 +378,7 @@ export default function InventoryScreen() {
   const [error, setError] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<FoodItem | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
 
   // Debug: Log current user state
   console.log('InventoryScreen: Current user:', user ? user.email : 'No user');
@@ -385,9 +387,43 @@ export default function InventoryScreen() {
     useCallback(() => {
       if (user) {
         fetchInventory();
+        checkNotificationStatus();
+        refreshNotifications();
       }
     }, [user])
   );
+
+  const refreshNotifications = async () => {
+    try {
+      const notificationService = (await import('@/services/notificationService')).default;
+      await notificationService.refreshNotifications();
+    } catch (error) {
+      console.log('Failed to refresh notifications:', error);
+    }
+  };
+
+  const checkNotificationStatus = async () => {
+    try {
+      // Check if user has already been prompted for notifications
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('notifications_enabled')
+        .eq('user_id', user?.id)
+        .maybeSingle(); // Use maybeSingle to handle no rows gracefully
+
+      if (profileError) {
+        console.log('Error checking notification status:', profileError);
+        return;
+      }
+
+      // Show prompt if user hasn't been prompted yet
+      if (!profile || profile.notifications_enabled === null) {
+        setShowNotificationPrompt(true);
+      }
+    } catch (error) {
+      console.error('Error checking notification status:', error);
+    }
+  };
 
   const fetchInventory = async () => {
     try {
@@ -675,6 +711,13 @@ export default function InventoryScreen() {
           }}
           onSave={handleUpdateItem}
           onDelete={handleDeleteItem}
+        />
+      )}
+      
+      {/* Notification Permission Prompt */}
+      {showNotificationPrompt && (
+        <NotificationPermissionPrompt 
+          onDismiss={() => setShowNotificationPrompt(false)} 
         />
       )}
     </SafeAreaView>

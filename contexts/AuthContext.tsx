@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import notificationService from '@/services/notificationService';
 
 interface AuthContextType {
   user: User | null;
@@ -35,18 +36,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Initialize notifications when user is authenticated
+  const initializeNotifications = async (user: User) => {
+    try {
+      // Check if user has already been prompted for notifications
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('notifications_enabled')
+        .eq('user_id', user.id)
+        .maybeSingle(); // Use maybeSingle to handle no rows gracefully
+
+      if (profileError) {
+        console.log('Error checking profile for notifications:', profileError);
+        return;
+      }
+
+      // If user hasn't been prompted yet, initialize notifications
+      if (!profile || profile.notifications_enabled === null) {
+        console.log('Initializing notifications for user:', user.id);
+        await notificationService.initialize();
+      }
+    } catch (error) {
+      console.error('Error initializing notifications:', error);
+    }
+  };
+
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    const getInitialSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('AuthContext: Initial session:', session ? 'exists' : 'none');
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Initialize notifications if user is authenticated
+        if (session?.user) {
+          initializeNotifications(session.user);
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('AuthContext: Error getting initial session:', error);
+        setLoading(false);
+      }
+    };
+
+    getInitialSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('AuthContext: Auth state change:', event, session ? 'user exists' : 'no user');
+      
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Initialize notifications when user signs in
+        if (session?.user) {
+          initializeNotifications(session.user);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setSession(null);
+        setUser(null);
+      }
+      
       setLoading(false);
     });
 

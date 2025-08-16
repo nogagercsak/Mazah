@@ -28,9 +28,7 @@ export default function Step6Preferences({
   const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>(
     profile.dietary_restrictions || []
   );
-  const [notificationPreferences, setNotificationPreferences] = useState<string[]>(
-    profile.notification_preferences || []
-  );
+
 
   const handleCuisineSelect = (value: string) => {
     const newSelection = preferredCuisines.includes(value)
@@ -50,14 +48,7 @@ export default function Step6Preferences({
     updateProfile({ dietary_restrictions: newSelection });
   };
 
-  const handleNotificationSelect = (value: string) => {
-    const newSelection = notificationPreferences.includes(value)
-      ? notificationPreferences.filter(v => v !== value)
-      : [...notificationPreferences, value];
-    
-    setNotificationPreferences(newSelection);
-    updateProfile({ notification_preferences: newSelection });
-  };
+
 
   const cuisineOptions = [
     {
@@ -109,24 +100,7 @@ export default function Step6Preferences({
     },
   ];
 
-  const notificationOptions = [
-    {
-      label: 'Expiring food reminders',
-      value: 'expiry',
-    },
-    {
-      label: 'Weekly meal planning',
-      value: 'meal_planning',
-    },
-    {
-      label: 'Shopping list reminders',
-      value: 'shopping',
-    },
-    {
-      label: 'Recipe suggestions',
-      value: 'recipes',
-    },
-  ];
+
 
   return (
     <View style={styles.container}>
@@ -154,14 +128,7 @@ export default function Step6Preferences({
             multiSelect={true}
           />
 
-          <QuestionCard
-            title="How would you like Mazah to communicate with you?"
-            subtitle="Select all that apply"
-            options={notificationOptions}
-            selectedValues={notificationPreferences}
-            onSelect={handleNotificationSelect}
-            multiSelect={true}
-          />
+
         </ScrollView>
       </View>
 
@@ -176,12 +143,11 @@ export default function Step6Preferences({
           style={styles.backButton}
         />
         <OnboardingButton
-          title="Get Started"
+          title="Next"
           onPress={onNext}
           disabled={
             preferredCuisines.length === 0 ||
-            dietaryRestrictions.length === 0 ||
-            notificationPreferences.length === 0
+            dietaryRestrictions.length === 0
           }
         />
       </View>

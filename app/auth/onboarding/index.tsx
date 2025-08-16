@@ -10,6 +10,7 @@ import Step3Habits from './steps/Step3Habits';
 import Step4Goals from './steps/Step4Goals';
 import Step5Challenges from './steps/Step5Challenges';
 import Step6Preferences from './steps/Step6Preferences';
+import Step7Notifications from './steps/Step7Notifications';
 import ProgressBar from './components/ProgressBar';
 
 const proto = Colors.proto;
@@ -28,13 +29,15 @@ export interface OnboardingProfile {
   preferred_cuisines: string[];
   dietary_restrictions: string[];
   notification_preferences: string[];
+  notifications_enabled: boolean;
+  expiration_notifications_enabled: boolean;
   completed_at: string;
 }
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 6;
+  const totalSteps = 7;
   
   const [profile, setProfile] = useState<Partial<OnboardingProfile>>({});
 
@@ -116,13 +119,8 @@ export default function OnboardingScreen() {
     // Force refresh the page/app state by triggering a hard navigation
     console.log('🚀 ONBOARDING SUBMIT: Forcing app state refresh...');
     
-    // Try multiple navigation approaches
-    router.replace('/');
-    
-    // Also trigger a manual refresh of the auth context if possible
-    setTimeout(() => {
-      router.replace('/(tabs)');
-    }, 500);
+    // Navigate to main app and let the auth context handle the rest
+    router.replace('/(tabs)');
     
   } catch (error: any) {
     console.error('🚀 ONBOARDING SUBMIT: Error saving profile:', error);
@@ -154,6 +152,8 @@ export default function OnboardingScreen() {
         return <Step5Challenges {...commonProps} />;
       case 6:
         return <Step6Preferences {...commonProps} />;
+      case 7:
+        return <Step7Notifications {...commonProps} />;
       default:
         return null;
     }

@@ -7,6 +7,7 @@
 -- -----------------------------
 
 -- Drop existing tables in correct order (respecting foreign key constraints)
+DROP TABLE IF EXISTS public.push_tokens CASCADE;
 DROP TABLE IF EXISTS public.meal_ingredients CASCADE;
 DROP TABLE IF EXISTS public.meal_plans CASCADE;
 DROP TABLE IF EXISTS public.meals CASCADE;
@@ -60,10 +61,24 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
   preferred_cuisines TEXT[] DEFAULT '{}',
   dietary_restrictions TEXT[] DEFAULT '{}',
   notification_preferences TEXT[] DEFAULT '{}',
+  expiration_notifications_enabled BOOLEAN DEFAULT true,
+  expiration_notification_days INTEGER[] DEFAULT '{1, 3, 7}',
   completed_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
   UNIQUE(user_id)
+);
+
+-- Create push_tokens table for storing device tokens
+CREATE TABLE IF NOT EXISTS public.push_tokens (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  token TEXT NOT NULL,
+  device_type TEXT CHECK (device_type IN ('ios', 'android', 'web')) NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+  UNIQUE(token)
 );
 
 -- Create food_items table
@@ -74,6 +89,7 @@ CREATE TABLE IF NOT EXISTS public.food_items (
   remaining_quantity DECIMAL(10,2) NOT NULL DEFAULT 0,
   expiration_date DATE,
   storage_location TEXT CHECK (storage_location IN ('fridge', 'pantry', 'freezer')),
+  notification_sent BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL
@@ -187,6 +203,7 @@ ALTER TABLE public.meal_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.meal_ingredients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.recipe_ingredients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.push_tokens ENABLE ROW LEVEL SECURITY;
 
 -- -----------------------------
 -- 6. Create RLS Policies
@@ -298,12 +315,30 @@ CREATE POLICY "Users can modify recipe ingredients" ON public.recipe_ingredients
         AND recipes.user_id = auth.uid()
     ));
 
+-- Push tokens policies
+CREATE POLICY "Users can view own push tokens" ON public.push_tokens
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own push tokens" ON public.push_tokens
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own push tokens" ON public.push_tokens
+    FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own push tokens" ON public.push_tokens
+    FOR DELETE USING (auth.uid() = user_id);
+
 -- -----------------------------
 -- 7. Create Triggers
 -- -----------------------------
 
 CREATE TRIGGER handle_user_profiles_updated_at
   BEFORE UPDATE ON public.user_profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();
+
+CREATE TRIGGER handle_push_tokens_updated_at
+  BEFORE UPDATE ON public.push_tokens
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_updated_at();
 

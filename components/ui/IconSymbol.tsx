@@ -15,12 +15,16 @@ const MAPPING = {
   snowflake: 'ac-unit',
   plus: 'add',
   clock: 'schedule',
+  'clock.fill': 'schedule',
   star: 'star-outline',
   magnifyingglass: 'search',
   lightbulb: 'lightbulb-outline',
   calendar: 'event',
+  'bell.fill': 'notifications',
+  'lock.fill': 'lock',
   'flame.fill': 'local-fire-department',
   'arrowshape.turn.up.right.fill': 'send',
+  'rectangle.portrait.and.arrow.right': 'open-in-new',
   person: 'person',
   location: 'location-on',
   message: 'message',
@@ -46,11 +50,17 @@ export function IconSymbol({
   color,
   style,
 }: {
-  name: IconSymbolName;
+  // Accept either a known SF Symbol key (IconSymbolName) or a plain string
+  // (useful when callers have dynamic/typed-as-string icon names).
+  name: IconSymbolName | string;
   size?: number;
   color: string | OpaqueColorValue;
   style?: StyleProp<TextStyle>;
   weight?: SymbolWeight;
 }) {
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  // If the provided name exists in the mapping, use the mapped Material icon name.
+  // Otherwise assume the caller passed a valid Material icon name already and pass it through.
+  const resolvedName = (MAPPING as Record<string, string>)[name] ?? name;
+
+  return <MaterialIcons color={color} size={size} name={resolvedName as any} style={style} />;
 }

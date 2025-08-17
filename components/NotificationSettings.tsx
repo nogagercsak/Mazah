@@ -49,7 +49,6 @@ export default function NotificationSettings({ onClose }: NotificationSettingsPr
       
       if (success) {
         setPreferences(prev => ({ ...prev, ...newPreferences }));
-        Alert.alert('Success', 'Notification preferences updated successfully');
       } else {
         Alert.alert('Error', 'Failed to update notification preferences');
       }
@@ -144,7 +143,7 @@ export default function NotificationSettings({ onClose }: NotificationSettingsPr
             <View style={styles.infoItem}>
               <Text style={styles.infoBullet}>•</Text>
               <Text style={styles.infoText}>
-                You'll receive alerts when food items are approaching their expiration date
+                You&apos;ll receive alerts when food items are approaching their expiration date
               </Text>
             </View>
             <View style={styles.infoItem}>
@@ -168,7 +167,7 @@ export default function NotificationSettings({ onClose }: NotificationSettingsPr
           <Text style={styles.configText}>
             To enable push notifications, you need to:{'\n'}
             1. Set up your Expo project ID in environment variables{'\n'}
-            2. Build a development build (Expo Go doesn't support push notifications){'\n'}
+            2. Build a development build (Expo Go doesn&apos;t support push notifications){'\n'}
             3. Configure your app for production deployment{'\n\n'}
             Local notifications will still work for testing purposes.
           </Text>

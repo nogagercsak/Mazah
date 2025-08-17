@@ -259,11 +259,27 @@ export default function Step7Notifications({
           )}
 
           {/* Privacy Badge */}
-          <View style={styles.privacyBadge}>
-            <IconSymbol size={14} name="lock.fill" color={proto.accent} />
-            <Text style={styles.privacyText}>
-              Your privacy matters • No spam • Unsubscribe anytime
-            </Text>
+          <View style={styles.privacyContainer}>
+            <View style={styles.privacyIconWrapper}>
+              <IconSymbol size={16} name="lock.fill" color={proto.accent} />
+            </View>
+            <View style={styles.privacyContent}>
+              <Text style={styles.privacyTitle}>We respect your privacy</Text>
+              <View style={styles.privacyPoints}>
+                <View style={styles.privacyPoint}>
+                  <View style={styles.privacyDot} />
+                  <Text style={styles.privacyText}>No spam, ever</Text>
+                </View>
+                <View style={styles.privacyPoint}>
+                  <View style={styles.privacyDot} />
+                  <Text style={styles.privacyText}>Unsubscribe anytime</Text>
+                </View>
+                <View style={styles.privacyPoint}>
+                  <View style={styles.privacyDot} />
+                  <Text style={styles.privacyText}>Your data is secure</Text>
+                </View>
+              </View>
+            </View>
           </View>
         </Animated.View>
       </ScrollView>
@@ -450,21 +466,52 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
   },
-  privacyBadge: {
+  privacyContainer: {
+    backgroundColor: proto.card,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: proto.accent + '20',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  privacyIconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: proto.accent + '10',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  privacyContent: {
+    flex: 1,
+  },
+  privacyTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: proto.text,
+    marginBottom: 8,
+  },
+  privacyPoints: {
+    gap: 4,
+  },
+  privacyPoint: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: proto.accent + '10',
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    gap: 6,
-    alignSelf: 'center',
+  },
+  privacyDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: proto.accent,
+    marginRight: 8,
   },
   privacyText: {
-    fontSize: 12,
-    color: proto.accent,
-    fontWeight: '500',
+    fontSize: 13,
+    color: proto.textSecondary,
+    lineHeight: 18,
   },
   navigation: {
     flexDirection: 'row',

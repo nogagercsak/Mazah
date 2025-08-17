@@ -13,6 +13,23 @@ import { useColorScheme } from '../hooks/useColorScheme';
 import { supabase } from '../lib/supabase';
 import notificationService from '../services/notificationService';
 import backgroundTaskService from '../services/backgroundTaskService';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://960c62266ec0621640da06b05fb6d859@o4509860045389824.ingest.us.sentry.io/4509860047486976',
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [Sentry.mobileReplayIntegration(), Sentry.feedbackIntegration()],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -30,7 +47,7 @@ function AuthDebugInfo({ user, loading }: { user: any, loading: boolean }) {
   return null;
 }
 
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded, error] = useFonts({
     SpaceMono: SpaceMono_400Regular,
@@ -61,7 +78,7 @@ export default function RootLayout() {
       </ThemeProvider>
     </GestureHandlerRootView>
   );
-}
+});
 
 function useProtectedRoute(user: any) {
   const segments = useSegments();
@@ -283,7 +300,7 @@ function RootLayoutNav() {
       >
         {user ? (
           // Authenticated user - show main app and onboarding
-          <>
+          (<>
             <Stack.Screen 
               name="(tabs)" 
               options={{ 
@@ -294,13 +311,13 @@ function RootLayoutNav() {
             <Stack.Screen name="add-item" options={{ headerShown: false }} />
             <Stack.Screen name="profile" options={{ headerShown: false }} />
             <Stack.Screen name="auth/onboarding" options={{ headerShown: false }} />
-          </>
+          </>)
         ) : (
           // Not authenticated - show auth screens
-          <>
+          (<>
             <Stack.Screen name="auth/login" options={{ headerShown: false }} />
             <Stack.Screen name="auth/signup" options={{ headerShown: false }} />
-          </>
+          </>)
         )}
       </Stack>
     </>

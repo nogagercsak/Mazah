@@ -99,3 +99,5 @@ yarn-error.log
 *.log
 *.orig
 .tmp/
+
+.env.local

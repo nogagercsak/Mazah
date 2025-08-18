@@ -5,82 +5,25 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mazah",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.mazahapp.mazah",
-      "infoPlist": {
-        "UIBackgroundModes": [
-          "fetch",
-          "remote-notification",
-          "fetch",
-          "remote-notification"
-        ],
-        "ITSAppUsesNonExemptEncryption": false
-      }
+      "jsEngine": "jsc"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true,
-      "package": "com.mazahapp.mazah",
-      "permissions": [
-        "android.permission.RECEIVE_BOOT_COMPLETED",
-        "android.permission.WAKE_LOCK"
-      ]
+      }
     },
     "web": {
-      "bundler": "metro",
-      "output": "static",
       "favicon": "./assets/images/favicon.png"
-    },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/images/notification-icon.png",
-          "color": "#ffffff",
-          "sounds": [
-            "./assets/sounds/notification.wav"
-          ]
-        }
-      ],
-      [
-        "expo-background-fetch",
-        {
-          "startOnBoot": true
-        }
-      ]
-    ],
-    "experiments": {
-      "typedRoutes": true
-    },
-    "notification": {
-      "icon": "./assets/images/notification-icon.png",
-      "color": "#ffffff",
-      "iosDisplayInForeground": true,
-      "androidMode": "default",
-      "androidCollapsedTitle": "Food Expiration Alert"
-    },
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "5873456f-8d1c-4f08-9bfb-73eaa4eea1c5"
-      }
     }
   }
 }

@@ -14,7 +14,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.mazahapp.mazah",
-      "jsEngine": "jsc"
+      "jsEngine": "jsc",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,6 +27,11 @@
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5873456f-8d1c-4f08-9bfb-73eaa4eea1c5"
+      }
     }
   }
 }

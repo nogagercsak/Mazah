@@ -46,7 +46,8 @@ module.exports = {
             useFrameworks: "static",
             deploymentTarget: "15.1",
             newArchEnabled: false,
-            hermesEnabled: true
+            hermesEnabled: true,
+	    dwarfAndDsym: true
           }
         }
       ]

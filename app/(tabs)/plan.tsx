@@ -330,7 +330,7 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave, s
                     <Text style={styles.sectionLabel}>Ingredients *</Text>
                     {ingredients.length === 0 && (
                       <View style={styles.noIngredientsCard}>
-                        <IconSymbol size={20} name={"info.circle" as any} color={proto.textSecondary} />
+                        <IconSymbol size={20} name={"info" as any} color={proto.textSecondary} />
                         <Text style={styles.noIngredientsText}>Add at least one ingredient to your meal</Text>
                       </View>
                     )}
@@ -437,9 +437,9 @@ export default function PlanScreen() {
   const [tooltipVisible, setTooltipVisible] = useState(false);
   const [tooltipMessage, setTooltipMessage] = useState('');
   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
-  const [isImpactCollapsed, setIsImpactCollapsed] = useState(false);
+  const [isImpactCollapsed, setIsImpactCollapsed] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const impactAnimatedHeight = useRef(new Animated.Value(1)).current;
+  const impactAnimatedHeight = useRef(new Animated.Value(0)).current;
   const selectedDate = addDays(weekStart, selectedDayIndex);
 
   const toggleImpactCollapse = () => {
@@ -840,22 +840,40 @@ export default function PlanScreen() {
 
     return (
       <View style={styles.wasteReductionSection}>
-        <TouchableOpacity style={styles.collapsibleHeader} onPress={() => setIsImpactCollapsed(!isImpactCollapsed)} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.collapsibleHeader} onPress={toggleImpactCollapse} activeOpacity={0.7}>
           <View style={styles.sectionTitleContainer}>
             <View style={styles.iconWrapper}>
-              <IconSymbol size={24} name={'leaf.fill' as any} color={proto.accent} />
+              <IconSymbol size={20} name={'leaf.fill' as any} color={proto.accent} />
             </View>
             <Text style={styles.sectionTitleText}>Environmental Impact</Text>
           </View>
           <View style={styles.collapseButtonContainer}>
-            <Pressable style={styles.collapseButton}>
-              <Text style={styles.collapseButtonText}>{isImpactCollapsed ? 'Show details' : 'Hide details'}</Text>
-              <IconSymbol size={20} name={(isImpactCollapsed ? 'chevron.right' : 'chevron.left') as any} color={proto.accent} style={styles.collapseIcon} />
-            </Pressable>
+            <View style={styles.collapseButton}>
+              <Text style={styles.collapseButtonText}>
+                {isImpactCollapsed ? 'Show details' : 'Hide details'}
+              </Text>
+              <IconSymbol 
+                size={16} 
+                name={(isImpactCollapsed ? 'chevron.down' : 'chevron.up') as any} 
+                color={proto.accent} 
+                style={styles.collapseIcon} 
+              />
+            </View>
           </View>
         </TouchableOpacity>
 
-        <Animated.View style={[styles.collapsibleContent, { opacity: impactAnimatedHeight }]}>
+        <Animated.View 
+          style={[
+            styles.collapsibleContent, 
+            { 
+              opacity: impactAnimatedHeight,
+              maxHeight: impactAnimatedHeight.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, 500]
+              })
+            }
+          ]}
+        >
           <View style={styles.impactMessage}>
             <Text style={styles.impactText}>Your meal planning helps fight climate change by reducing food waste</Text>
           </View>
@@ -999,7 +1017,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.05)',
   },
-  headerTitle: { fontSize: 34, fontWeight: '700', color: proto.accentDark, opacity: 0.9, letterSpacing: -0.5 },
+  headerTitle: { fontSize: 32, fontWeight: '700', color: proto.accentDark, opacity: 0.85, letterSpacing: 0.5 },
   addButton: {
     backgroundColor: proto.accent,
     width: 48,
@@ -1194,20 +1212,45 @@ const styles = StyleSheet.create({
   wasteReductionSection: {
     backgroundColor: proto.card,
     borderRadius: 24,
-    padding: 16,
+    padding: 20,
     marginBottom: 20,
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.05)',
   },
-  collapsibleHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitleContainer: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  collapsibleHeader: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  sectionTitleContainer: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
   iconWrapper: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(143, 190, 157, 0.12)', alignItems: 'center', justifyContent: 'center' },
-  sectionTitleText: { fontSize: 18, fontWeight: '700', color: proto.text },
-  collapseButtonContainer: { flexDirection: 'row', alignItems: 'center' },
-  collapseButton: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  collapseButtonText: { color: proto.accent, fontWeight: '600' },
+  sectionTitleText: { fontSize: 18, fontWeight: '700', color: proto.text, flex: 1 },
+  collapseButtonContainer: { flexDirection: 'row', alignItems: 'center', paddingLeft: 12 },
+  collapseButton: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(143, 190, 157, 0.08)',
+  },
+  collapseButtonText: { 
+    color: proto.accent, 
+    fontWeight: '600',
+    fontSize: 14,
+  },
   collapseIcon: { opacity: 0.9 },
-  collapsibleContent: { marginTop: 12 },
+  collapsibleContent: { 
+    marginTop: 16,
+    overflow: 'hidden',
+  },
   impactMessage: { backgroundColor: 'rgba(143, 190, 157, 0.1)', padding: 12, borderRadius: 12, marginBottom: 12 },
   impactText: { color: proto.textSecondary, fontSize: 14 },
   wasteMetrics: { flexDirection: 'row', gap: 12, marginBottom: 12 },

@@ -739,7 +739,7 @@ const styles = StyleSheet.create({
     backgroundColor: proto.background,
   },
   headerTitle: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: '700',
     color: proto.accentDark,
     opacity: 0.85,

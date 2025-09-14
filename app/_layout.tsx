@@ -3,9 +3,10 @@ import { useFonts, SpaceMono_400Regular } from '@expo-google-fonts/space-mono';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View, Alert } from 'react-native';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import * as Notifications from 'expo-notifications';
 
 import { Colors } from '../constants/Colors';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
@@ -220,6 +221,33 @@ function RootLayoutNav() {
       initializeNotifications();
     }
   }, [user, loading]);
+
+  // Add notification handlers for production
+  useEffect(() => {
+    // Handle notifications when app is in foreground
+    const receivedSubscription = Notifications.addNotificationReceivedListener(notification => {
+      // Handle expiration notifications specially
+      const { body } = notification.request.content;
+      if (notification.request.content.data?.type === 'expiration_alert') {
+        Alert.alert('Food Expiration Alert', body || 'Food item is expiring soon');
+      }
+    });
+
+    // Handle notification taps
+    const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+      // Navigate to relevant screen based on notification type
+      const data = response.notification.request.content.data;
+      if (data?.type === 'expiration_alert' && data?.foodItemId) {
+        // Navigate to food details or inventory screen
+        // router.push(`/food/${data.foodItemId}`);
+      }
+    });
+    
+    return () => {
+      receivedSubscription.remove();
+      responseSubscription.remove();
+    };
+  }, []);
 
   const initializeNotifications = async () => {
     try {

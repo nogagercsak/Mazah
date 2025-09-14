@@ -10,6 +10,8 @@ const MAPPING = {
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.left': 'chevron-left',
   'chevron.right': 'chevron-right',
+  'chevron.up': 'keyboard-arrow-up',
+  'chevron.down': 'keyboard-arrow-down',
   thermometer: 'thermostat',
   cabinet: 'kitchen',
   snowflake: 'ac-unit',
@@ -35,6 +37,10 @@ const MAPPING = {
   trash: 'delete',
   'leaf.fill': 'eco',
   'wand.and.stars': 'auto-fix-high',
+  'square.grid.2x2': 'apps',
+  'clock.badge.exclamationmark': 'schedule',
+  'bolt': 'flash-on',
+  'cart': 'shopping-cart',
 } as const;
 
 export type IconSymbolName = keyof typeof MAPPING;

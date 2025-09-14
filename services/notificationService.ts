@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
+import { EXPO_PROJECT_ID } from '@env';
 
 // Configure notification behavior
 Notifications.setNotificationHandler({
@@ -65,7 +66,7 @@ export class NotificationService {
       if (Device.isDevice) {
         try {
           // Check if we have a valid project ID
-          const projectId = process.env.EXPO_PROJECT_ID;
+          const projectId = EXPO_PROJECT_ID;
           if (!projectId || projectId === 'your-project-id') {
             if (__DEV__) {
               if (__DEV__) console.log('Expo project ID not configured. Push notifications will not work.');
@@ -243,7 +244,7 @@ export class NotificationService {
    * Check if push notifications are properly configured
    */
   isPushNotificationsConfigured(): boolean {
-    const projectId = process.env.EXPO_PROJECT_ID;
+    const projectId = EXPO_PROJECT_ID;
     return !!(projectId && projectId !== 'your-expo-project-id-here' && projectId !== 'your-project-id');
   }
 
@@ -305,7 +306,12 @@ export class NotificationService {
   /**
    * Schedule local notification for food expiration
    */
-  async scheduleExpirationNotification(foodItemId: string, foodName: string, expirationDate: Date, daysUntilExpiry: number): Promise<void> {
+  async scheduleExpirationNotification(
+    foodItemId: string, 
+    foodName: string, 
+    expirationDate: Date, 
+    daysUntilExpiry: number
+  ): Promise<void> {
     try {
       const preferences = await this.getNotificationPreferences();
       if (!preferences?.expiration_notifications_enabled) return;
@@ -325,25 +331,35 @@ export class NotificationService {
         return;
       }
 
-      const notificationId = await Notifications.scheduleNotificationAsync({
-        content: {
-          title: 'Food Expiration Alert',
-          body: `${foodName} expires in ${daysUntilExpiry} day${daysUntilExpiry > 1 ? 's' : ''}`,
-          data: { 
-            foodItemId, 
-            foodName, 
-            expirationDate: expirationDate.toISOString(),
-            type: 'expiration_alert',
-            daysUntilExpiry
-          },
-        },
-        trigger: {
-          type: 'date' as any,
-          date: new Date(Date.now() + 1000), // Send immediately
-        },
-      });
+      // Calculate when to send the notification (e.g., 9 AM on the day)
+      const notificationDate = new Date(expirationDate);
+      notificationDate.setDate(notificationDate.getDate() - daysUntilExpiry);
+      notificationDate.setHours(9, 0, 0, 0); // Set to 9 AM
 
-      if (__DEV__) console.log(`Scheduled notification for ${foodName}: ${notificationId}`);
+      // Only schedule if the notification date is in the future
+      if (notificationDate > new Date()) {
+        const notificationId = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'Food Expiration Alert ⚠️',
+            body: `${foodName} expires in ${daysUntilExpiry} day${daysUntilExpiry > 1 ? 's' : ''}`,
+            data: { 
+              foodItemId, 
+              foodName, 
+              expirationDate: expirationDate.toISOString(),
+              type: 'expiration_alert',
+              daysUntilExpiry
+            },
+            sound: 'default',
+            categoryIdentifier: 'expiration',
+          },
+          trigger: {
+            type: 'date' as any,
+            date: notificationDate,
+          },
+        });
+
+        if (__DEV__) console.log(`Scheduled notification for ${foodName}: ${notificationId} at ${notificationDate}`);
+      }
     } catch (error) {
       if (__DEV__) console.error('Error scheduling expiration notification:', error);
     }
@@ -412,7 +428,7 @@ export class NotificationService {
   async sendPushNotification(userId: string, title: string, body: string, data?: any): Promise<boolean> {
     try {
       // Check if we have a valid project ID for push notifications
-      const projectId = process.env.EXPO_PROJECT_ID;
+      const projectId = EXPO_PROJECT_ID;
       if (!projectId || projectId === 'your-project-id') {
         if (__DEV__) console.log('Expo project ID not configured. Cannot send push notifications.');
         return false;
@@ -525,7 +541,66 @@ export class NotificationService {
     return this.expoPushToken;
   }
 
+  /**
+   * Send a test push notification
+   */
+  async sendTestPushNotification(): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        if (__DEV__) console.log('No user found');
+        return false;
+      }
 
+      // This sends an actual push notification through Expo's servers
+      return await this.sendPushNotification(
+        user.id,
+        'Test Push Notification 🚀',
+        'This is a real push notification from your server!',
+        { type: 'test', timestamp: new Date().toISOString() }
+      );
+    } catch (error) {
+      if (__DEV__) console.error('Error sending test push:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Schedule a test expiration notification for testing purposes
+   */
+  async scheduleTestExpirationNotification(): Promise<boolean> {
+    try {
+      // Create a test food item that expires in 3 days
+      const testDate = new Date();
+      testDate.setDate(testDate.getDate() + 3); // 3 days from now
+      
+      // Schedule an immediate notification for testing
+      const notificationId = await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Food Expiration Alert ⚠️',
+          body: 'Milk expires in 3 days',
+          data: { 
+            foodItemId: 'test-item', 
+            foodName: 'Milk', 
+            expirationDate: testDate.toISOString(),
+            type: 'expiration_alert',
+            daysUntilExpiry: 3
+          },
+          sound: 'default',
+        },
+        trigger: {
+          type: 'timeInterval' as any,
+          seconds: 2, // Show after 2 seconds for testing
+        },
+      });
+      
+      if (__DEV__) console.log('Test expiration notification scheduled:', notificationId);
+      return true;
+    } catch (error) {
+      if (__DEV__) console.error('Error scheduling test expiration notification:', error);
+      return false;
+    }
+  }
 
   /**
    * Clear expired notifications and clean up old scheduled notifications

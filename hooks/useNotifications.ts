@@ -85,16 +85,28 @@ export function useNotifications() {
 
   const testNotification = async () => {
     try {
-      const preferences = await notificationService.getNotificationPreferences();
-      if (preferences) {
-        // This would typically send to the current user
-        // For testing, we'll just log success
-        if (__DEV__) console.log('Test notification would be sent');
-        return true;
+      // Check permissions first
+      const { status } = await Notifications.getPermissionsAsync();
+      if (status !== 'granted') {
+        return false;
       }
-      return false;
+      
+      // Schedule the notification
+      const notificationId = await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Test Notification 🎉',
+          body: 'Your notifications are working properly!',
+          data: { type: 'test' },
+          sound: 'default',
+        },
+        trigger: {
+          type: 'timeInterval' as any,
+          seconds: 2, // 2 second delay so user can background app if needed
+        },
+      });
+      
+      return true;
     } catch (error) {
-      if (__DEV__) console.error('Error sending test notification:', error);
       return false;
     }
   };

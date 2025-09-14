@@ -13,9 +13,8 @@ import { supabase } from '@/lib/supabase';
 // Use the proto color scheme
 const proto = Colors.proto;
 
-// Storage keys for preferences
+// Storage keys
 const STORAGE_KEYS = {
-  DARK_MODE: '@dark_mode_enabled',
   PROFILE_EMOJI: '@profile_emoji',
   PROFILE_HINT_SHOWN: '@profile_hint_shown',
 };
@@ -38,7 +37,6 @@ export default function ProfileScreen() {
   
   // State for modals
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
-  const [preferencesModalVisible, setPreferencesModalVisible] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [emojiModalVisible, setEmojiModalVisible] = useState(false);
   const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
@@ -53,11 +51,6 @@ export default function ProfileScreen() {
   const [deletePassword, setDeletePassword] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   
-
-  
-  // Preferences state
-  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
-  
   // Profile emoji state
   const [profileEmoji, setProfileEmoji] = useState('🍎');
   
@@ -67,25 +60,6 @@ export default function ProfileScreen() {
   // Feedback state
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackType, setFeedbackType] = useState<'bug' | 'feature' | 'general'>('general');
-
-  // Load saved preferences on mount
-  React.useEffect(() => {
-    loadPreferences();
-  }, []);
-
-  const loadPreferences = async () => {
-    try {
-      const darkMode = await AsyncStorage.getItem(STORAGE_KEYS.DARK_MODE);
-      const emoji = await AsyncStorage.getItem(STORAGE_KEYS.PROFILE_EMOJI);
-      const hintShown = await AsyncStorage.getItem(STORAGE_KEYS.PROFILE_HINT_SHOWN);
-      
-      if (darkMode !== null) setDarkModeEnabled(JSON.parse(darkMode));
-      if (emoji !== null) setProfileEmoji(emoji);
-      if (hintShown !== null) setShowProfileHint(!JSON.parse(hintShown));
-    } catch (error) {
-      // Error loading preferences - silently fail
-    }
-  };
 
   const handleEmojiSelect = async (emoji: string) => {
     try {
@@ -184,23 +158,6 @@ export default function ProfileScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsDeleting(false);
-    }
-  };
-
-
-
-  const savePreferences = async () => {
-    try {
-      await AsyncStorage.setItem(STORAGE_KEYS.DARK_MODE, JSON.stringify(darkModeEnabled));
-      
-      Alert.alert('Success', 'Preferences saved');
-      setPreferencesModalVisible(false);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      
-      // In a real app, you would trigger a theme change here
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save preferences');
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 
@@ -351,20 +308,6 @@ export default function ProfileScreen() {
             </TouchableOpacity>
 
             <View style={styles.settingDivider} />
-
-            <TouchableOpacity 
-              style={styles.settingItem}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setPreferencesModalVisible(true);
-              }}
-            >
-              <View style={styles.settingIconContainer}>
-                <IconSymbol size={22} name={"wand.and.stars" as any} color={proto.buttonText} />
-              </View>
-              <Text style={styles.settingText}>Preferences</Text>
-              <IconSymbol size={20} name={"chevron.right" as any} color={proto.textSecondary} />
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -436,13 +379,12 @@ export default function ProfileScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.deleteModalContent}>
             <View style={styles.deleteModalHeader}>
-              <IconSymbol size={48} name={"exclamationmark.triangle.fill" as any} color="#FF5252" />
               <Text style={styles.deleteModalTitle}>Delete Account</Text>
             </View>
             
             <Text style={styles.deleteWarningText}>
               This action is <Text style={styles.boldText}>permanent and cannot be undone</Text>. 
-              All your data, including pantry items, shopping lists, and preferences will be deleted forever.
+              All your data, including pantry items and shopping lists will be deleted forever.
             </Text>
             
             <View style={styles.deleteConfirmSection}>
@@ -597,52 +539,6 @@ export default function ProfileScreen() {
                 onPress={handleChangePassword}
               >
                 <Text style={styles.saveButtonText}>Update</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-
-
-      {/* Preferences Modal */}
-      <Modal
-        visible={preferencesModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setPreferencesModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Preferences</Text>
-            
-            <View style={styles.settingRow}>
-              <Text style={styles.settingLabel}>Dark Mode</Text>
-              <Switch
-                value={darkModeEnabled}
-                onValueChange={setDarkModeEnabled}
-                trackColor={{ false: proto.textSecondary, true: proto.accent }}
-                thumbColor={proto.buttonText}
-              />
-            </View>
-            
-            <Text style={styles.comingSoonText}>
-              More preferences coming soon!
-            </Text>
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setPreferencesModalVisible(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
-                onPress={savePreferences}
-              >
-                <Text style={styles.saveButtonText}>Save</Text>
               </TouchableOpacity>
             </View>
           </View>

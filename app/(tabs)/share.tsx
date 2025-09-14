@@ -20,9 +20,244 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
 
 import { Colors } from '@/constants/Colors';
-import { searchFoodBanks, clearFoodBankCache, type FoodBank } from '@/services/foodBankService';
+import { 
+  searchFoodBanks, 
+  clearFoodBankCache, 
+  filterFoodBanks,
+  sortFoodBanks,
+  isCurrentlyOpen,
+  getCurrentLocation,
+  type FoodBank, 
+  type FoodBankType 
+} from '@/services/foodBankService';
 
 const proto = Colors.proto;
+
+type FilterPanelProps = {
+  visible: boolean;
+  onClose: () => void;
+  selectedTypes: FoodBankType[];
+  onTypesChange: (types: FoodBankType[]) => void;
+  openNowOnly: boolean;
+  onOpenNowChange: (value: boolean) => void;
+  hasPhoneOnly: boolean;
+  onHasPhoneChange: (value: boolean) => void;
+  maxDistance: number;
+  onMaxDistanceChange: (value: number) => void;
+  sortBy: 'distance' | 'name' | 'type' | 'openStatus';
+  onSortByChange: (value: 'distance' | 'name' | 'type' | 'openStatus') => void;
+  onApply: () => void;
+};
+
+const FilterPanel: React.FC<FilterPanelProps> = ({
+  visible,
+  onClose,
+  selectedTypes,
+  onTypesChange,
+  openNowOnly,
+  onOpenNowChange,
+  hasPhoneOnly,
+  onHasPhoneChange,
+  maxDistance,
+  onMaxDistanceChange,
+  sortBy,
+  onSortByChange,
+  onApply,
+}) => {
+  const foodBankTypes: { key: FoodBankType; label: string }[] = [
+    { key: 'food_bank', label: 'Food Banks' },
+    { key: 'food_pantry', label: 'Food Pantries' },
+    { key: 'soup_kitchen', label: 'Soup Kitchens' },
+    { key: 'mobile_food_bank', label: 'Mobile Food Banks' },
+    { key: 'community_fridge', label: 'Community Fridges' },
+    { key: 'other', label: 'Other' },
+  ];
+
+  const sortOptions = [
+    { key: 'distance' as const, label: 'Distance', icon: 'location' },
+    { key: 'name' as const, label: 'Name', icon: 'text' },
+    { key: 'type' as const, label: 'Type', icon: 'list' },
+    { key: 'openStatus' as const, label: 'Open Now', icon: 'time' },
+  ];
+
+  const toggleType = (type: FoodBankType) => {
+    if (selectedTypes.includes(type)) {
+      onTypesChange(selectedTypes.filter(t => t !== type));
+    } else {
+      onTypesChange([...selectedTypes, type]);
+    }
+  };
+
+  const clearAllFilters = () => {
+    onTypesChange([]);
+    onOpenNowChange(false);
+    onHasPhoneChange(false);
+    onMaxDistanceChange(30);
+    onSortByChange('distance');
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={onClose}
+    >
+      <Pressable style={styles.filterModalOverlay} onPress={onClose}>
+        <Pressable style={styles.filterModalContent} onPress={e => e.stopPropagation()}>
+          <View style={styles.filterHeader}>
+            <Text style={styles.filterTitle}>Filter & Sort</Text>
+            <TouchableOpacity onPress={onClose} style={styles.filterCloseButton}>
+              <Ionicons name="close" size={24} color={proto.text} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.filterBody} showsVerticalScrollIndicator={false}>
+            {/* Sort Section */}
+            <View style={styles.filterSection}>
+              <Text style={styles.filterSectionTitle}>Sort By</Text>
+              <View style={styles.sortOptionsContainer}>
+                {sortOptions.map(option => (
+                  <TouchableOpacity
+                    key={option.key}
+                    style={[
+                      styles.sortOption,
+                      sortBy === option.key && styles.sortOptionSelected
+                    ]}
+                    onPress={() => onSortByChange(option.key)}
+                  >
+                    <Ionicons 
+                      name={option.icon as any} 
+                      size={16} 
+                      color={sortBy === option.key ? proto.buttonText : proto.textSecondary} 
+                    />
+                    <Text style={[
+                      styles.sortOptionText,
+                      sortBy === option.key && styles.sortOptionTextSelected
+                    ]}>
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Type Filter Section */}
+            <View style={styles.filterSection}>
+              <Text style={styles.filterSectionTitle}>Food Bank Types</Text>
+              <View style={styles.typeFiltersContainer}>
+                {foodBankTypes.map(type => (
+                  <TouchableOpacity
+                    key={type.key}
+                    style={[
+                      styles.typeFilter,
+                      selectedTypes.includes(type.key) && styles.typeFilterSelected
+                    ]}
+                    onPress={() => toggleType(type.key)}
+                  >
+                    <Text style={[
+                      styles.typeFilterText,
+                      selectedTypes.includes(type.key) && styles.typeFilterTextSelected
+                    ]}>
+                      {type.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Other Filters Section */}
+            <View style={styles.filterSection}>
+              <Text style={styles.filterSectionTitle}>Other Filters</Text>
+              
+              <TouchableOpacity
+                style={styles.toggleFilter}
+                onPress={() => onOpenNowChange(!openNowOnly)}
+              >
+                <View style={styles.toggleFilterLeft}>
+                  <Ionicons name="time" size={20} color={proto.text} />
+                  <Text style={styles.toggleFilterText}>Open Now</Text>
+                </View>
+                <View style={[
+                  styles.toggleSwitch,
+                  openNowOnly && styles.toggleSwitchActive
+                ]}>
+                  <View style={[
+                    styles.toggleSwitchThumb,
+                    openNowOnly && styles.toggleSwitchThumbActive
+                  ]} />
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.toggleFilter}
+                onPress={() => onHasPhoneChange(!hasPhoneOnly)}
+              >
+                <View style={styles.toggleFilterLeft}>
+                  <Ionicons name="call" size={20} color={proto.text} />
+                  <Text style={styles.toggleFilterText}>Has Phone Number</Text>
+                </View>
+                <View style={[
+                  styles.toggleSwitch,
+                  hasPhoneOnly && styles.toggleSwitchActive
+                ]}>
+                  <View style={[
+                    styles.toggleSwitchThumb,
+                    hasPhoneOnly && styles.toggleSwitchThumbActive
+                  ]} />
+                </View>
+              </TouchableOpacity>
+
+              <View style={styles.distanceFilter}>
+                <View style={styles.distanceFilterHeader}>
+                  <Ionicons name="location" size={20} color={proto.text} />
+                  <Text style={styles.toggleFilterText}>Max Distance: {maxDistance} miles</Text>
+                </View>
+                <View style={styles.distanceOptions}>
+                  {[10, 20, 30, 50].map(distance => (
+                    <TouchableOpacity
+                      key={distance}
+                      style={[
+                        styles.distanceOption,
+                        maxDistance === distance && styles.distanceOptionSelected
+                      ]}
+                      onPress={() => onMaxDistanceChange(distance)}
+                    >
+                      <Text style={[
+                        styles.distanceOptionText,
+                        maxDistance === distance && styles.distanceOptionTextSelected
+                      ]}>
+                        {distance}mi
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+
+          <View style={styles.filterFooter}>
+            <TouchableOpacity 
+              style={styles.clearFiltersButton}
+              onPress={clearAllFilters}
+            >
+              <Text style={styles.clearFiltersButtonText}>Clear All</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.applyFiltersButton}
+              onPress={() => {
+                onApply();
+                onClose();
+              }}
+            >
+              <Text style={styles.applyFiltersButtonText}>Apply Filters</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+};
 
 type FoodBankDetailsModalProps = {
   foodBank: FoodBank;
@@ -209,6 +444,7 @@ const EmptySearchState = ({ onSearch }: { onSearch: () => void }) => {
 export default function FoodBankLocatorScreen() {
   const router = useRouter();
   const [zipCode, setZipCode] = useState('');
+  const [allFoodBanks, setAllFoodBanks] = useState<FoodBank[]>([]);
   const [foodBanks, setFoodBanks] = useState<FoodBank[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -216,17 +452,94 @@ export default function FoodBankLocatorScreen() {
   const [hasSearched, setHasSearched] = useState(false);
   const [selectedFoodBank, setSelectedFoodBank] = useState<FoodBank | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchType, setSearchType] = useState<'zip' | 'location' | 'city'>('zip');
+  const [citySearch, setCitySearch] = useState('');
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  
+  // Filter states
+  const [selectedTypes, setSelectedTypes] = useState<FoodBankType[]>([]);
+  const [openNowOnly, setOpenNowOnly] = useState(false);
+  const [hasPhoneOnly, setHasPhoneOnly] = useState(false);
+  const [maxDistance, setMaxDistance] = useState<number>(30);
+  const [sortBy, setSortBy] = useState<'distance' | 'name' | 'type' | 'openStatus'>('distance');
 
   const searchInputRef = useRef<TextInput>(null);
 
-  const validateZipCode = (zip: string): boolean => {
-    const zipRegex = /^\d{5}$/;
-    return zipRegex.test(zip);
+  // Update displayed results when filters change
+  useEffect(() => {
+    updateFilters();
+  }, [selectedTypes, openNowOnly, hasPhoneOnly, maxDistance, sortBy]);
+
+  const validateInput = (): boolean => {
+    if (searchType === 'zip') {
+      const zipRegex = /^\d{5}$/;
+      return zipRegex.test(zipCode);
+    } else if (searchType === 'city') {
+      return citySearch.trim().length >= 2;
+    }
+    return false;
+  };
+
+  const getCurrentInput = (): string => {
+    return searchType === 'zip' ? zipCode : citySearch;
+  };
+
+  const handleUseCurrentLocation = async () => {
+    try {
+      setIsGettingLocation(true);
+      const location = await getCurrentLocation();
+      
+      // Use coordinates directly for search
+      const results = await searchFoodBanks(`${location.lat},${location.lng}`, 'location');
+      setAllFoodBanks(results);
+      applyFiltersAndSort(results);
+      setHasSearched(true);
+      setError(null);
+      
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch (err) {
+      if (__DEV__) console.error('Location error:', err);
+      
+      let errorMessage = 'Unable to get your location.';
+      if (err instanceof Error) {
+        if (err.message.includes('permission')) {
+          errorMessage = 'Location permission denied. Please enable location access in settings.';
+        }
+      }
+      
+      Alert.alert('Location Error', errorMessage);
+    } finally {
+      setIsGettingLocation(false);
+    }
+  };
+
+  // Apply filters and sorting
+  const applyFiltersAndSort = (banks: FoodBank[]) => {
+    const filtered = filterFoodBanks(banks, {
+      type: selectedTypes.length > 0 ? selectedTypes : undefined,
+      openNow: openNowOnly,
+      hasPhone: hasPhoneOnly,
+      maxDistance,
+    });
+    
+    const sorted = sortFoodBanks(filtered, sortBy);
+    setFoodBanks(sorted);
+  };
+
+  // Update displayed results when filters change
+  const updateFilters = () => {
+    if (allFoodBanks.length > 0) {
+      applyFiltersAndSort(allFoodBanks);
+    }
   };
 
   const handleSearch = async (forceRefresh = false) => {
-    if (!validateZipCode(zipCode)) {
-      Alert.alert('Invalid ZIP Code', 'Please enter a valid 5-digit ZIP code.');
+    if (!validateInput()) {
+      const message = searchType === 'zip' 
+        ? 'Please enter a valid 5-digit ZIP code.' 
+        : 'Please enter a valid city name.';
+      Alert.alert('Invalid Input', message);
       return;
     }
 
@@ -244,14 +557,14 @@ export default function FoodBankLocatorScreen() {
       }
 
       // Call the real API
-      const results = await searchFoodBanks(zipCode);
+      const results = await searchFoodBanks(getCurrentInput(), searchType);
       
       if (results.length === 0) {
+        setAllFoodBanks([]);
         setFoodBanks([]);
       } else {
-        // Sort by distance
-        const sortedResults = results.sort((a, b) => a.distance - b.distance);
-        setFoodBanks(sortedResults);
+        setAllFoodBanks(results);
+        applyFiltersAndSort(results);
       }
       
     } catch (err) {
@@ -271,6 +584,7 @@ export default function FoodBankLocatorScreen() {
       }
       
       setError(errorMessage);
+      setAllFoodBanks([]);
       setFoodBanks([]);
     } finally {
       setLoading(false);
@@ -285,7 +599,7 @@ export default function FoodBankLocatorScreen() {
   };
 
   const onRefresh = () => {
-    if (validateZipCode(zipCode)) {
+    if (validateInput()) {
       handleSearch(true);
     }
   };
@@ -302,10 +616,33 @@ export default function FoodBankLocatorScreen() {
           <Text style={styles.foodBankName} numberOfLines={2}>
             {foodBank.name}
           </Text>
-          <View style={styles.distanceBadge}>
-            <Text style={styles.distanceText}>{foodBank.distance.toFixed(1)} mi</Text>
+          <View style={styles.cardHeaderRight}>
+            <View style={styles.distanceBadge}>
+              <Text style={styles.distanceText}>{foodBank.distance.toFixed(1)} mi</Text>
+            </View>
+            {foodBank.type !== 'other' && (
+              <View style={styles.typeBadge}>
+                <Text style={styles.typeText}>
+                  {foodBank.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
+        {foodBank.hours && (
+          <View style={styles.statusIndicator}>
+            <View style={[
+              styles.statusDot,
+              isCurrentlyOpen(foodBank.hours) ? styles.statusDotOpen : styles.statusDotClosed
+            ]} />
+            <Text style={[
+              styles.statusText,
+              isCurrentlyOpen(foodBank.hours) ? styles.statusTextOpen : styles.statusTextClosed
+            ]}>
+              {isCurrentlyOpen(foodBank.hours) ? 'Open' : 'Closed'}
+            </Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.cardBody}>
@@ -329,6 +666,16 @@ export default function FoodBankLocatorScreen() {
             <Text style={styles.itemsText} numberOfLines={2}>
               Accepts: {foodBank.acceptedItems.slice(0, 2).join(', ')}
               {foodBank.acceptedItems.length > 2 && '...'}
+            </Text>
+          </View>
+        )}
+
+        {foodBank.requirements && foodBank.requirements.length > 0 && (
+          <View style={styles.itemsRow}>
+            <Ionicons name="information-circle" size={16} color={proto.accentDark} />
+            <Text style={styles.requirementsText} numberOfLines={1}>
+              Requirements: {foodBank.requirements[0]}
+              {foodBank.requirements.length > 1 && '...'}
             </Text>
           </View>
         )}
@@ -377,7 +724,7 @@ export default function FoodBankLocatorScreen() {
           <Ionicons name="search" size={48} color={proto.textSecondary} />
           <Text style={styles.noResultsTitle}>No Food Banks Found</Text>
           <Text style={styles.noResultsText}>
-            We couldn't find any food banks near ZIP code {zipCode}. Try searching a nearby area or check back later.
+            We couldn't find any food banks near {getCurrentInput()}. Try searching a nearby area or check back later.
           </Text>
           <TouchableOpacity 
             style={styles.searchAgainButton} 
@@ -404,9 +751,18 @@ export default function FoodBankLocatorScreen() {
             />
           }
         >
-          <Text style={styles.resultsHeader}>
-            Found {foodBanks.length} food bank{foodBanks.length !== 1 ? 's' : ''} near {zipCode}
-          </Text>
+          <View style={styles.resultsHeaderContainer}>
+            <Text style={styles.resultsHeader}>
+              Found {foodBanks.length} food bank{foodBanks.length !== 1 ? 's' : ''} near {getCurrentInput()}
+            </Text>
+            <TouchableOpacity 
+              style={styles.filterButton}
+              onPress={() => setShowFilters(true)}
+            >
+              <Ionicons name="options" size={16} color={proto.accent} />
+              <Text style={styles.filterButtonText}>Filter</Text>
+            </TouchableOpacity>
+          </View>
           {foodBanks.map(renderFoodBankCard)}
           <View style={styles.resultsFooter}>
             <Text style={styles.footerText}>
@@ -434,23 +790,65 @@ export default function FoodBankLocatorScreen() {
       </View>
 
       <View style={styles.searchSection}>
+        <View style={styles.searchTypeSelector}>
+          <TouchableOpacity
+            style={[
+              styles.searchTypeButton,
+              searchType === 'zip' && styles.searchTypeButtonActive
+            ]}
+            onPress={() => setSearchType('zip')}
+          >
+            <Text style={[
+              styles.searchTypeText,
+              searchType === 'zip' && styles.searchTypeTextActive
+            ]}>
+              ZIP Code
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.searchTypeButton,
+              searchType === 'city' && styles.searchTypeButtonActive
+            ]}
+            onPress={() => setSearchType('city')}
+          >
+            <Text style={[
+              styles.searchTypeText,
+              searchType === 'city' && styles.searchTypeTextActive
+            ]}>
+              City
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.locationButton}
+            onPress={handleUseCurrentLocation}
+            disabled={isGettingLocation}
+          >
+            {isGettingLocation ? (
+              <ActivityIndicator size="small" color={proto.accent} />
+            ) : (
+              <Ionicons name="locate" size={20} color={proto.accent} />
+            )}
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color={proto.textSecondary} />
           <TextInput
             ref={searchInputRef}
             style={styles.searchInput}
-            placeholder="Enter your ZIP code"
+            placeholder={searchType === 'zip' ? "Enter your ZIP code" : "Enter city name"}
             placeholderTextColor={proto.textSecondary}
-            value={zipCode}
-            onChangeText={setZipCode}
-            keyboardType="numeric"
-            maxLength={5}
+            value={searchType === 'zip' ? zipCode : citySearch}
+            onChangeText={searchType === 'zip' ? setZipCode : setCitySearch}
+            keyboardType={searchType === 'zip' ? "numeric" : "default"}
+            maxLength={searchType === 'zip' ? 5 : 50}
             onSubmitEditing={() => handleSearch()}
             returnKeyType="search"
           />
-          {zipCode.length > 0 && (
+          {(searchType === 'zip' ? zipCode.length > 0 : citySearch.length > 0) && (
             <TouchableOpacity 
-              onPress={() => setZipCode('')}
+              onPress={() => searchType === 'zip' ? setZipCode('') : setCitySearch('')}
               style={styles.clearButton}
             >
               <Ionicons name="close-circle" size={18} color={proto.textSecondary} />
@@ -461,10 +859,10 @@ export default function FoodBankLocatorScreen() {
         <TouchableOpacity 
           style={[
             styles.searchButton,
-            (!validateZipCode(zipCode) || loading) && styles.searchButtonDisabled
+            (!validateInput() || loading) && styles.searchButtonDisabled
           ]}
           onPress={() => handleSearch()}
-          disabled={!validateZipCode(zipCode) || loading}
+          disabled={!validateInput() || loading}
         >
           {loading ? (
             <ActivityIndicator size="small" color={proto.buttonText} />
@@ -492,6 +890,22 @@ export default function FoodBankLocatorScreen() {
           }}
         />
       )}
+
+      <FilterPanel
+        visible={showFilters}
+        onClose={() => setShowFilters(false)}
+        selectedTypes={selectedTypes}
+        onTypesChange={setSelectedTypes}
+        openNowOnly={openNowOnly}
+        onOpenNowChange={setOpenNowOnly}
+        hasPhoneOnly={hasPhoneOnly}
+        onHasPhoneChange={setHasPhoneOnly}
+        maxDistance={maxDistance}
+        onMaxDistanceChange={setMaxDistance}
+        sortBy={sortBy}
+        onSortByChange={setSortBy}
+        onApply={updateFilters}
+      />
     </SafeAreaView>
   );
 }
@@ -518,7 +932,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: '700',
     color: proto.accentDark,
     opacity: 0.85,
@@ -531,6 +945,41 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 16,
     gap: 12,
+  },
+  searchTypeSelector: {
+    flexDirection: 'row',
+    backgroundColor: proto.card,
+    borderRadius: 12,
+    padding: 4,
+    gap: 4,
+  },
+  searchTypeButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  searchTypeButtonActive: {
+    backgroundColor: proto.accent,
+  },
+  searchTypeText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: proto.textSecondary,
+  },
+  searchTypeTextActive: {
+    color: proto.buttonText,
+  },
+  locationButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    backgroundColor: proto.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: proto.border,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -679,12 +1128,33 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
   },
+  resultsHeaderContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   resultsHeader: {
-    fontSize: 18,
+    flex: 1,
+    fontSize: 16,
     fontWeight: '600',
     color: proto.text,
-    marginBottom: 16,
-    textAlign: 'center',
+  },
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: proto.card,
+    borderWidth: 1,
+    borderColor: proto.border,
+    gap: 6,
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: proto.accent,
   },
   foodBankCard: {
     backgroundColor: proto.card,
@@ -725,6 +1195,54 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: proto.buttonText,
+  },
+  cardHeaderRight: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  typeBadge: {
+    backgroundColor: proto.accent,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  typeText: {
+    color: proto.buttonText,
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  statusIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusDotOpen: {
+    backgroundColor: '#4CAF50',
+  },
+  statusDotClosed: {
+    backgroundColor: '#F44336',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  statusTextOpen: {
+    color: '#4CAF50',
+  },
+  statusTextClosed: {
+    color: '#F44336',
+  },
+  requirementsText: {
+    fontSize: 14,
+    color: proto.accentDark,
+    fontWeight: '500',
   },
   cardBody: {
     padding: 16,
@@ -888,5 +1406,219 @@ const styles = StyleSheet.create({
     color: proto.buttonText,
     fontWeight: '600',
     fontSize: 14,
+  },
+  // Filter Modal Styles
+  filterModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  filterModalContent: {
+    backgroundColor: proto.background,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '85%',
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  filterHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: proto.border,
+  },
+  filterTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: proto.text,
+  },
+  filterCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: proto.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterBody: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+  },
+  filterSection: {
+    marginBottom: 32,
+  },
+  filterSectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: proto.text,
+    marginBottom: 16,
+  },
+  sortOptionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  sortOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: proto.card,
+    borderWidth: 1,
+    borderColor: proto.border,
+    gap: 8,
+  },
+  sortOptionSelected: {
+    backgroundColor: proto.accent,
+    borderColor: proto.accent,
+  },
+  sortOptionText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: proto.textSecondary,
+  },
+  sortOptionTextSelected: {
+    color: proto.buttonText,
+  },
+  typeFiltersContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  typeFilter: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: proto.card,
+    borderWidth: 1,
+    borderColor: proto.border,
+  },
+  typeFilterSelected: {
+    backgroundColor: proto.accentDark,
+    borderColor: proto.accentDark,
+  },
+  typeFilterText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: proto.textSecondary,
+  },
+  typeFilterTextSelected: {
+    color: proto.buttonText,
+  },
+  toggleFilter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: proto.border,
+  },
+  toggleFilterLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  toggleFilterText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: proto.text,
+  },
+  toggleSwitch: {
+    width: 50,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: proto.border,
+    padding: 2,
+    justifyContent: 'center',
+  },
+  toggleSwitchActive: {
+    backgroundColor: proto.accent,
+  },
+  toggleSwitchThumb: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: proto.buttonText,
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  toggleSwitchThumbActive: {
+    transform: [{ translateX: 22 }],
+  },
+  distanceFilter: {
+    paddingVertical: 16,
+  },
+  distanceFilterHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  distanceOptions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  distanceOption: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: proto.card,
+    borderWidth: 1,
+    borderColor: proto.border,
+  },
+  distanceOptionSelected: {
+    backgroundColor: proto.accent,
+    borderColor: proto.accent,
+  },
+  distanceOptionText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: proto.textSecondary,
+  },
+  distanceOptionTextSelected: {
+    color: proto.buttonText,
+  },
+  filterFooter: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderTopColor: proto.border,
+  },
+  clearFiltersButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: proto.border,
+    alignItems: 'center',
+  },
+  clearFiltersButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: proto.textSecondary,
+  },
+  applyFiltersButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 12,
+    backgroundColor: proto.accent,
+    alignItems: 'center',
+  },
+  applyFiltersButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: proto.buttonText,
   },
 });

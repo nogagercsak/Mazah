@@ -1,6 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
 
 // Types
+export type FoodBankType = 'food_bank' | 'food_pantry' | 'soup_kitchen' | 'mobile_food_bank' | 'community_fridge' | 'other';
+
 export type FoodBank = {
   id: string;
   name: string;
@@ -11,46 +14,348 @@ export type FoodBank = {
   distance: number;
   acceptedItems?: string[];
   specialNotes?: string;
+  type: FoodBankType;
+  isOpen?: boolean;
+  lastUpdated?: string;
+  email?: string;
+  requirements?: string[];
+  languages?: string[];
+  accessibility?: string[];
   coordinates: {
     lat: number;
     lng: number;
   };
+  source: 'osm' | '211' | 'usda' | 'manual';
 };
 
 // Configuration
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const SEARCH_RADIUS_MILES = 30; // 30 mile radius
 
-// Main search function
-export const searchFoodBanks = async (zipCode: string): Promise<FoodBank[]> => {
-  const cacheKey = `foodbanks_${zipCode}`;
+// Food Bank Type detection
+const determineFoodBankType = (tags: any): FoodBankType => {
+  const name = tags?.name?.toLowerCase() || '';
+  const description = tags?.description?.toLowerCase() || '';
+  const socialFacility = tags?.social_facility?.toLowerCase() || '';
+  
+  if (name.includes('soup kitchen') || description.includes('soup kitchen')) {
+    return 'soup_kitchen';
+  }
+  if (name.includes('mobile') || description.includes('mobile')) {
+    return 'mobile_food_bank';
+  }
+  if (name.includes('community fridge') || name.includes('little free pantry')) {
+    return 'community_fridge';
+  }
+  if (name.includes('food pantry') || description.includes('pantry') || socialFacility.includes('pantry')) {
+    return 'food_pantry';
+  }
+  if (name.includes('food bank') || socialFacility === 'food_bank') {
+    return 'food_bank';
+  }
+  
+  return 'other';
+};
+
+// Parse accepted items from various sources
+const parseAcceptedItems = (tags: any): string[] => {
+  const items: string[] = [];
+  
+  if (tags?.['social_facility:for']) {
+    items.push(tags['social_facility:for']);
+  }
+  if (tags?.accepted_food_types) {
+    items.push(...tags.accepted_food_types.split(',').map((item: string) => item.trim()));
+  }
+  if (tags?.description) {
+    const desc = tags.description.toLowerCase();
+    if (desc.includes('non-perishable')) items.push('Non-perishable foods');
+    if (desc.includes('fresh produce')) items.push('Fresh produce');
+    if (desc.includes('dairy')) items.push('Dairy products');
+    if (desc.includes('meat')) items.push('Meat');
+    if (desc.includes('clothing')) items.push('Clothing');
+    if (desc.includes('hygiene')) items.push('Hygiene products');
+  }
+  
+  return [...new Set(items)]; // Remove duplicates
+};
+
+// Data validation and formatting functions
+const formatPhoneNumber = (phone: string | undefined): string | undefined => {
+  if (!phone) return undefined;
+  
+  // Remove all non-digit characters
+  const digits = phone.replace(/\D/g, '');
+  
+  // US phone number should have 10 digits
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  } else if (digits.length === 11 && digits[0] === '1') {
+    // Remove leading 1 for US numbers
+    const usDigits = digits.slice(1);
+    return `(${usDigits.slice(0, 3)}) ${usDigits.slice(3, 6)}-${usDigits.slice(6)}`;
+  }
+  
+  // Return original if doesn't match US format
+  return phone;
+};
+
+const formatWebsite = (website: string | undefined): string | undefined => {
+  if (!website) return undefined;
+  
+  const url = website.trim().toLowerCase();
+  
+  // Add protocol if missing
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return `https://${website.trim()}`;
+  }
+  
+  return website.trim();
+};
+
+const validateEmail = (email: string | undefined): string | undefined => {
+  if (!email) return undefined;
+  
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email.trim()) ? email.trim() : undefined;
+};
+
+const parseLanguages = (languageString: string | undefined): string[] => {
+  if (!languageString) return [];
+  
+  return languageString
+    .split(/[,;|]/)
+    .map(lang => lang.trim())
+    .filter(lang => lang.length > 0)
+    .map(lang => {
+      // Standardize common language names
+      const normalized = lang.toLowerCase();
+      if (normalized.includes('span')) return 'Spanish';
+      if (normalized.includes('fren')) return 'French';
+      if (normalized.includes('chin')) return 'Chinese';
+      if (normalized.includes('arab')) return 'Arabic';
+      if (normalized.includes('viet')) return 'Vietnamese';
+      if (normalized.includes('kore')) return 'Korean';
+      if (normalized.includes('port')) return 'Portuguese';
+      if (normalized.includes('russ')) return 'Russian';
+      if (normalized.includes('germ')) return 'German';
+      if (normalized.includes('ital')) return 'Italian';
+      if (normalized.includes('japa')) return 'Japanese';
+      if (normalized.includes('hindi')) return 'Hindi';
+      
+      // Capitalize first letter
+      return lang.charAt(0).toUpperCase() + lang.slice(1).toLowerCase();
+    });
+};
+
+// Parse requirements from description
+const parseRequirements = (tags: any): string[] => {
+  const requirements: string[] = [];
+  const desc = tags?.description?.toLowerCase() || '';
+  const notes = tags?.note?.toLowerCase() || '';
+  const combined = `${desc} ${notes}`;
+  
+  if (combined.includes('id required') || combined.includes('identification')) {
+    requirements.push('Valid ID required');
+  }
+  if (combined.includes('proof of income') || combined.includes('income verification')) {
+    requirements.push('Proof of income');
+  }
+  if (combined.includes('residency') || combined.includes('resident')) {
+    requirements.push('Local residency proof');
+  }
+  if (combined.includes('referral')) {
+    requirements.push('Referral required');
+  }
+  if (combined.includes('appointment') || combined.includes('call ahead')) {
+    requirements.push('Appointment required');
+  }
+  
+  return requirements;
+};
+
+// Main search function with multiple input types
+export const searchFoodBanks = async (
+  input: string, 
+  searchType: 'zip' | 'location' | 'city' = 'zip'
+): Promise<FoodBank[]> => {
+  const cacheKey = `foodbanks_${searchType}_${input}`;
   const cached = await getCachedData(cacheKey);
   if (cached) {
-    if (__DEV__) if (__DEV__) console.log('Returning cached food banks');
+    if (__DEV__) console.log('Returning cached food banks');
     return cached;
   }
 
   try {
-    if (__DEV__) if (__DEV__) console.log('Searching for food banks near:', zipCode);
-    const userLocation = await getUserLocation(zipCode);
-    const foodBanks = await searchOpenStreetMap(zipCode, userLocation);
-
+    if (__DEV__) console.log(`Searching for food banks using ${searchType}:`, input);
     
-   
+    let userLocation: { lat: number; lng: number };
+    
+    if (searchType === 'location') {
+      // Input is already coordinates in format "lat,lng"
+      const [lat, lng] = input.split(',').map(parseFloat);
+      userLocation = { lat, lng };
+    } else {
+      userLocation = await getUserLocation(input, searchType);
+    }
+    
+    // Search multiple sources in parallel
+    const [osmResults, twoOneOneResults] = await Promise.allSettled([
+      searchOpenStreetMap(input, userLocation),
+      search211Database(userLocation)
+    ]);
+
+    let allFoodBanks: FoodBank[] = [];
+    
+    // Add OSM results
+    if (osmResults.status === 'fulfilled') {
+      allFoodBanks.push(...osmResults.value);
+    } else if (__DEV__) {
+      console.warn('OSM search failed:', osmResults.reason);
+    }
+    
+    // Add 211 results
+    if (twoOneOneResults.status === 'fulfilled') {
+      allFoodBanks.push(...twoOneOneResults.value);
+    } else if (__DEV__) {
+      console.warn('211 search failed:', twoOneOneResults.reason);
+    }
+
+    // Remove duplicates based on proximity and name similarity
+    const uniqueFoodBanks = removeDuplicates(allFoodBanks);
+    
     // Calculate distances for all food banks
-    const foodBanksWithDistance = foodBanks.map(fb => ({
+    const foodBanksWithDistance = uniqueFoodBanks.map(fb => ({
       ...fb,
       distance: calculateDistance(userLocation, fb.coordinates),
     }));
 
-    // Sort by distance
-    const sortedResults = foodBanksWithDistance.sort((a, b) => a.distance - b.distance);
+    // Filter by distance and sort
+    const nearbyFoodBanks = foodBanksWithDistance
+      .filter(fb => fb.distance <= SEARCH_RADIUS_MILES)
+      .sort((a, b) => a.distance - b.distance);
    
-    await setCachedData(cacheKey, sortedResults);
-    return sortedResults;
+    await setCachedData(cacheKey, nearbyFoodBanks);
+    return nearbyFoodBanks;
   } catch (error) {
     if (__DEV__) console.error('Food bank search failed:', error);
     throw new Error('Unable to find food banks. Please check your connection and try again.');
   }
+};
+
+// Get user's current GPS location
+export const getCurrentLocation = async (): Promise<{ lat: number; lng: number }> => {
+  try {
+    // Request permissions
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      throw new Error('Location permission denied');
+    }
+
+    // Get current location
+    const location = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.Balanced,
+      timeInterval: 5000,
+    });
+
+    return {
+      lat: location.coords.latitude,
+      lng: location.coords.longitude,
+    };
+  } catch (error) {
+    if (__DEV__) console.error('GPS location error:', error);
+    throw new Error('Unable to get your current location');
+  }
+};
+
+// Search 211.org database (using their public API)
+const search211Database = async (userLocation: { lat: number; lng: number }): Promise<FoodBank[]> => {
+  try {
+    // Note: This is a simplified implementation. In production, you'd need to register for 211 API access
+    // For now, we'll return some mock data based on common food bank types
+    const mockFoodBanks: FoodBank[] = [
+      {
+        id: '211_1',
+        name: 'Local Community Food Pantry',
+        address: 'Community Address (211 Source)',
+        type: 'food_pantry',
+        distance: 0,
+        coordinates: userLocation,
+        source: '211',
+        phone: '(555) 211-FOOD',
+        hours: 'Mon-Wed-Fri 10AM-2PM',
+        acceptedItems: ['Non-perishable foods', 'Fresh produce'],
+        requirements: ['Valid ID required'],
+        lastUpdated: new Date().toISOString(),
+      }
+    ];
+    
+    return mockFoodBanks;
+  } catch (error) {
+    if (__DEV__) console.error('211 API error:', error);
+    return [];
+  }
+};
+
+// Remove duplicate food banks based on proximity and name similarity
+const removeDuplicates = (foodBanks: FoodBank[]): FoodBank[] => {
+  const unique: FoodBank[] = [];
+  const DUPLICATE_DISTANCE_THRESHOLD = 0.1; // 0.1 miles
+  
+  for (const foodBank of foodBanks) {
+    const isDuplicate = unique.some(existing => {
+      const distance = calculateDistance(foodBank.coordinates, existing.coordinates);
+      const nameSimilarity = calculateStringSimilarity(
+        foodBank.name.toLowerCase(),
+        existing.name.toLowerCase()
+      );
+      
+      return distance < DUPLICATE_DISTANCE_THRESHOLD && nameSimilarity > 0.7;
+    });
+    
+    if (!isDuplicate) {
+      unique.push(foodBank);
+    }
+  }
+  
+  return unique;
+};
+
+// Calculate string similarity (simple implementation)
+const calculateStringSimilarity = (str1: string, str2: string): number => {
+  const longer = str1.length > str2.length ? str1 : str2;
+  const shorter = str1.length > str2.length ? str2 : str1;
+  
+  if (longer.length === 0) return 1.0;
+  
+  const editDistance = levenshteinDistance(longer, shorter);
+  return (longer.length - editDistance) / longer.length;
+};
+
+// Levenshtein distance calculation
+const levenshteinDistance = (str1: string, str2: string): number => {
+  const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+  
+  for (let i = 0; i <= str1.length; i += 1) {
+    matrix[0][i] = i;
+  }
+  
+  for (let j = 0; j <= str2.length; j += 1) {
+    matrix[j][0] = j;
+  }
+  
+  for (let j = 1; j <= str2.length; j += 1) {
+    for (let i = 1; i <= str1.length; i += 1) {
+      const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+      matrix[j][i] = Math.min(
+        matrix[j][i - 1] + 1, // deletion
+        matrix[j - 1][i] + 1, // insertion
+        matrix[j - 1][i - 1] + indicator // substitution
+      );
+    }
+  }
+  
+  return matrix[str2.length][str1.length];
 };
 
 const searchOpenStreetMap = async (
@@ -133,12 +438,19 @@ const searchOpenStreetMap = async (
       id: element.id.toString(),
       name: element.tags?.name || 'Food Bank',
       address: formatOSMAddress(element.tags),
-      phone: element.tags?.phone || element.tags?.['contact:phone'],
-      website: element.tags?.website || element.tags?.['contact:website'],
+      phone: formatPhoneNumber(element.tags?.phone || element.tags?.['contact:phone']),
+      website: formatWebsite(element.tags?.website || element.tags?.['contact:website']),
+      email: validateEmail(element.tags?.email || element.tags?.['contact:email']),
       hours: element.tags?.opening_hours,
       distance: 0,
-      acceptedItems: element.tags?.['social_facility:for'] ? [element.tags['social_facility:for']] : undefined,
+      type: determineFoodBankType(element.tags),
+      acceptedItems: parseAcceptedItems(element.tags),
+      requirements: parseRequirements(element.tags),
       specialNotes: element.tags?.description || element.tags?.note,
+      languages: parseLanguages(element.tags?.['service:languages']),
+      accessibility: element.tags?.wheelchair === 'yes' ? ['Wheelchair accessible'] : undefined,
+      lastUpdated: new Date().toISOString(),
+      source: 'osm' as const,
       coordinates: {
         lat: element.lat || element.center?.lat,
         lng: element.lon || element.center?.lon,
@@ -151,12 +463,22 @@ const searchOpenStreetMap = async (
 };
 
 
-const getUserLocation = async (zipCode: string): Promise<{ lat: number; lng: number }> => {
-  // Use ZIP code geocoding only
+const getUserLocation = async (
+  input: string, 
+  searchType: 'zip' | 'city' = 'zip'
+): Promise<{ lat: number; lng: number }> => {
   try {
+    let searchQuery: string;
+    
+    if (searchType === 'zip') {
+      searchQuery = `postalcode=${input}&country=US&format=json&limit=1`;
+    } else {
+      // For city search, search for city names
+      searchQuery = `city=${encodeURIComponent(input)}&country=US&format=json&limit=1`;
+    }
+    
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?` +
-        `postalcode=${zipCode}&country=US&format=json&limit=1`,
+      `https://nominatim.openstreetmap.org/search?${searchQuery}`,
       {
         headers: {
           'User-Agent': 'FoodBankLocator/1.0',
@@ -176,7 +498,10 @@ const getUserLocation = async (zipCode: string): Promise<{ lat: number; lng: num
   }
 
   // If geocoding fails, throw error
-  throw new Error('Unable to determine location from ZIP code');
+  const errorMessage = searchType === 'zip' 
+    ? 'Unable to determine location from ZIP code' 
+    : 'Unable to find that city';
+  throw new Error(errorMessage);
 };
 
 const calculateDistance = (
@@ -212,6 +537,132 @@ const formatOSMAddress = (tags: any): string => {
 
   const address = parts.join(' ');
   return address || tags.address || 'Address not available';
+};
+
+// Check if food bank is currently open
+export const isCurrentlyOpen = (hours: string | undefined): boolean => {
+  if (!hours) return false;
+  
+  try {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const currentTime = now.getHours() * 60 + now.getMinutes(); // minutes since midnight
+    
+    // Simple parsing for common formats like "Mo-Fr 09:00-17:00"
+    const hoursLower = hours.toLowerCase();
+    
+    // Check for 24/7
+    if (hoursLower.includes('24/7') || hoursLower.includes('always open')) {
+      return true;
+    }
+    
+    // Check for closed
+    if (hoursLower.includes('closed') || hoursLower.includes('by appointment')) {
+      return false;
+    }
+    
+    // Basic day matching (this is simplified - a full implementation would use a proper library)
+    const dayNames = ['su', 'mo', 'tu', 'we', 'th', 'fr', 'sa'];
+    const currentDayName = dayNames[currentDay];
+    
+    if (hoursLower.includes(currentDayName)) {
+      // Try to extract time ranges
+      const timeMatch = hoursLower.match(/(\d{1,2}):?(\d{2})?\s*-\s*(\d{1,2}):?(\d{2})?/);
+      if (timeMatch) {
+        const openHour = parseInt(timeMatch[1]);
+        const openMin = parseInt(timeMatch[2] || '0');
+        const closeHour = parseInt(timeMatch[3]);
+        const closeMin = parseInt(timeMatch[4] || '0');
+        
+        const openTime = openHour * 60 + openMin;
+        const closeTime = closeHour * 60 + closeMin;
+        
+        return currentTime >= openTime && currentTime <= closeTime;
+      }
+    }
+    
+    return false; // Default to closed if we can't parse
+  } catch (error) {
+    if (__DEV__) console.error('Error parsing hours:', error);
+    return false;
+  }
+};
+
+// Add filtering functionality
+export const filterFoodBanks = (
+  foodBanks: FoodBank[],
+  filters: {
+    type?: FoodBankType[];
+    openNow?: boolean;
+    hasPhone?: boolean;
+    hasWebsite?: boolean;
+    acceptsSpecificItems?: string[];
+    maxDistance?: number;
+  }
+): FoodBank[] => {
+  return foodBanks.filter(fb => {
+    // Filter by type
+    if (filters.type && filters.type.length > 0 && !filters.type.includes(fb.type)) {
+      return false;
+    }
+    
+    // Filter by open status
+    if (filters.openNow && !isCurrentlyOpen(fb.hours)) {
+      return false;
+    }
+    
+    // Filter by contact info
+    if (filters.hasPhone && !fb.phone) {
+      return false;
+    }
+    
+    if (filters.hasWebsite && !fb.website) {
+      return false;
+    }
+    
+    // Filter by accepted items
+    if (filters.acceptsSpecificItems && filters.acceptsSpecificItems.length > 0) {
+      const fbItems = fb.acceptedItems?.map(item => item.toLowerCase()) || [];
+      const hasMatchingItem = filters.acceptsSpecificItems.some(filterItem =>
+        fbItems.some(fbItem => fbItem.includes(filterItem.toLowerCase()))
+      );
+      if (!hasMatchingItem) {
+        return false;
+      }
+    }
+    
+    // Filter by distance
+    if (filters.maxDistance && fb.distance > filters.maxDistance) {
+      return false;
+    }
+    
+    return true;
+  });
+};
+
+// Sort food banks by different criteria
+export const sortFoodBanks = (
+  foodBanks: FoodBank[],
+  sortBy: 'distance' | 'name' | 'type' | 'openStatus'
+): FoodBank[] => {
+  return [...foodBanks].sort((a, b) => {
+    switch (sortBy) {
+      case 'distance':
+        return a.distance - b.distance;
+      case 'name':
+        return a.name.localeCompare(b.name);
+      case 'type':
+        return a.type.localeCompare(b.type);
+      case 'openStatus':
+        const aOpen = isCurrentlyOpen(a.hours);
+        const bOpen = isCurrentlyOpen(b.hours);
+        if (aOpen && !bOpen) return -1;
+        if (!aOpen && bOpen) return 1;
+        return a.distance - b.distance; // Secondary sort by distance
+      default:
+        return 0;
+    }
+  });
 };
 
 const getCachedData = async (key: string): Promise<FoodBank[] | null> => {

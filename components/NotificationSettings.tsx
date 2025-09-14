@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import * as Notifications from 'expo-notifications';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import notificationService, { NotificationPreferences } from '../services/notificationService';
@@ -172,54 +173,6 @@ export default function NotificationSettings({ onClose }: NotificationSettingsPr
             Local notifications will still work for testing purposes.
           </Text>
         </View>
-
-        {/* Test Notification Button */}
-        {preferences.expiration_notifications_enabled && (
-          <TouchableOpacity
-            style={styles.testButton}
-            onPress={() => {
-              Alert.alert(
-                'Test Notification',
-                'This will send a test notification to verify your settings are working correctly.',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Send Test',
-                    onPress: async () => {
-                      try {
-                        // Check if push notifications are properly configured
-                        if (!notificationService.isPushNotificationsConfigured()) {
-                          Alert.alert(
-                            'Configuration Required',
-                            'Push notifications are not fully configured. Please set up your Expo project ID and build a development build to test push notifications.',
-                            [
-                              { text: 'OK' },
-                              {
-                                text: 'Learn More',
-                                onPress: () => {
-                                  // In a real app, you could open a help page or documentation
-                                  if (__DEV__) console.log('Opening help documentation...');
-                                }
-                              }
-                            ]
-                          );
-                        } else {
-                          Alert.alert('Success', 'Test notification functionality is working!');
-                        }
-                      } catch (error) {
-                        Alert.alert('Error', 'Failed to send test notification');
-                      }
-                    }
-                  }
-                ]
-              );
-            }}
-            disabled={loading}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.testButtonText}>Send Test Notification</Text>
-          </TouchableOpacity>
-        )}
       </ScrollView>
     </View>
   );
@@ -376,23 +329,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#856404',
     lineHeight: 20,
-  },
-  testButton: {
-    backgroundColor: proto.accent,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: proto.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  testButtonText: {
-    color: proto.buttonText,
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

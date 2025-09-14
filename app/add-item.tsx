@@ -338,9 +338,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 32,
     fontWeight: '700',
     color: proto.accentDark,
+    opacity: 0.85,
+    letterSpacing: 0.5,
   },
   form: {
     paddingHorizontal: 20,

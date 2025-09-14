@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setSession(null);
     } catch (error) {
-      console.error('Error signing out:', error);
+      if (__DEV__) console.error('Error signing out:', error);
       throw error;
     }
   };
@@ -47,17 +47,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle(); // Use maybeSingle to handle no rows gracefully
 
       if (profileError) {
-        console.log('Error checking profile for notifications:', profileError);
+        if (__DEV__) console.log('Error checking profile for notifications:', profileError);
         return;
       }
 
       // If user hasn't been prompted yet, initialize notifications
       if (!profile || profile.notifications_enabled === null) {
-        console.log('Initializing notifications for user:', user.id);
+        if (__DEV__) console.log('Initializing notifications for user:', user.id);
         await notificationService.initialize();
       }
     } catch (error) {
-      console.error('Error initializing notifications:', error);
+      if (__DEV__) console.error('Error initializing notifications:', error);
     }
   };
 
@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const getInitialSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('AuthContext: Initial session:', session ? 'exists' : 'none');
+        if (__DEV__) console.log('AuthContext: Initial session:', session ? 'exists' : 'none');
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         setLoading(false);
       } catch (error) {
-        console.error('AuthContext: Error getting initial session:', error);
+        if (__DEV__) console.error('AuthContext: Error getting initial session:', error);
         setLoading(false);
       }
     };
@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('AuthContext: Auth state change:', event, session ? 'user exists' : 'no user');
+      if (__DEV__) console.log('AuthContext: Auth state change:', event, session ? 'user exists' : 'no user');
       
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         setSession(session);

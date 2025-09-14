@@ -25,12 +25,12 @@ export const searchFoodBanks = async (zipCode: string): Promise<FoodBank[]> => {
   const cacheKey = `foodbanks_${zipCode}`;
   const cached = await getCachedData(cacheKey);
   if (cached) {
-    console.log('Returning cached food banks');
+    if (__DEV__) if (__DEV__) console.log('Returning cached food banks');
     return cached;
   }
 
   try {
-    console.log('Searching for food banks near:', zipCode);
+    if (__DEV__) if (__DEV__) console.log('Searching for food banks near:', zipCode);
     const userLocation = await getUserLocation(zipCode);
     const foodBanks = await searchOpenStreetMap(zipCode, userLocation);
 
@@ -48,7 +48,7 @@ export const searchFoodBanks = async (zipCode: string): Promise<FoodBank[]> => {
     await setCachedData(cacheKey, sortedResults);
     return sortedResults;
   } catch (error) {
-    console.error('Food bank search failed:', error);
+    if (__DEV__) console.error('Food bank search failed:', error);
     throw new Error('Unable to find food banks. Please check your connection and try again.');
   }
 };
@@ -86,11 +86,11 @@ const searchOpenStreetMap = async (
     }
 
     const overpassData = await overpassResponse.json();
-    console.log('Overpass query result:', overpassData);
-    console.log('Elements found:', overpassData.elements?.length || 0);
+    if (__DEV__) console.log('Overpass query result:', overpassData);
+    if (__DEV__) console.log('Elements found:', overpassData.elements?.length || 0);
     if (overpassData.elements) {
       overpassData.elements.forEach((el: { tags: { name: any; shop: any; social_facility: any; }; lat: any; lon: any; }, i: any) => {
-        console.log(`Element ${i}:`, {
+        if (__DEV__) console.log(`Element ${i}:`, {
           name: el.tags?.name,
           shop: el.tags?.shop,
           social_facility: el.tags?.social_facility,
@@ -108,7 +108,7 @@ const searchOpenStreetMap = async (
       // Must have valid coordinates
       const hasValidCoords = (element.lat && element.lon) || (element.center?.lat && element.center?.lon);
       if (!hasValidCoords) {
-        console.log('Filtering out element without coordinates:', element.tags?.name);
+        if (__DEV__) console.log('Filtering out element without coordinates:', element.tags?.name);
         return false;
       }
 
@@ -121,7 +121,7 @@ const searchOpenStreetMap = async (
                        element.tags?.['social_facility:for'] === 'food';
         
         if (!hasFood) {
-          console.log('Filtering out non-food charity shop:', element.tags?.name);
+          if (__DEV__) console.log('Filtering out non-food charity shop:', element.tags?.name);
           return false;
         }
       }
@@ -145,7 +145,7 @@ const searchOpenStreetMap = async (
       },
     }));
   } catch (error) {
-    console.error('OpenStreetMap error:', error);
+    if (__DEV__) console.error('OpenStreetMap error:', error);
     throw new Error('Failed to search OpenStreetMap. Please try again.');
   }
 };
@@ -172,7 +172,7 @@ const getUserLocation = async (zipCode: string): Promise<{ lat: number; lng: num
       };
     }
   } catch (error) {
-    console.error('Geocoding error:', error);
+    if (__DEV__) console.error('Geocoding error:', error);
   }
 
   // If geocoding fails, throw error
@@ -228,7 +228,7 @@ const getCachedData = async (key: string): Promise<FoodBank[] | null> => {
 
     return data;
   } catch (error) {
-    console.error('Cache read error:', error);
+    if (__DEV__) console.error('Cache read error:', error);
     return null;
   }
 };
@@ -243,7 +243,7 @@ const setCachedData = async (key: string, data: FoodBank[]) => {
       })
     );
   } catch (error) {
-    console.error('Cache write error:', error);
+    if (__DEV__) console.error('Cache write error:', error);
   }
 };
 
@@ -253,6 +253,6 @@ export const clearFoodBankCache = async () => {
     const foodBankKeys = keys.filter((key) => key.startsWith('foodbanks_'));
     await AsyncStorage.multiRemove(foodBankKeys);
   } catch (error) {
-    console.error('Clear cache error:', error);
+    if (__DEV__) console.error('Clear cache error:', error);
   }
 };

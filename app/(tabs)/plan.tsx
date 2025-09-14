@@ -102,7 +102,7 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave, s
         setAvailableIngredients(data);
       }
     } catch (err) {
-      console.error('Error fetching ingredients:', err);
+      if (__DEV__) console.error('Error fetching ingredients:', err);
       Alert.alert('Error', 'Failed to load ingredients. Please try again.');
     } finally {
       setLoading(false);
@@ -612,7 +612,7 @@ export default function PlanScreen() {
 
       setWeekPlans(plans);
     } catch (err) {
-      console.error('Error fetching meal plans:', err);
+      if (__DEV__) console.error('Error fetching meal plans:', err);
       setError(err instanceof Error ? err.message : 'Failed to load meal plans');
     } finally {
       setLoading(false);
@@ -697,7 +697,7 @@ export default function PlanScreen() {
       fetchWeekPlans();
       Alert.alert('Success', 'Meal added successfully!');
     } catch (err) {
-      console.error('Error adding meal:', err);
+      if (__DEV__) console.error('Error adding meal:', err);
       Alert.alert('Error', err instanceof Error ? err.message : 'Failed to add meal');
       throw err; // Re-throw to handle in modal
     }
@@ -742,7 +742,7 @@ export default function PlanScreen() {
 
       await fetchWeekPlans();
     } catch (err) {
-      console.error('Error deleting meal:', err);
+      if (__DEV__) console.error('Error deleting meal:', err);
       Alert.alert('Error', 'Failed to delete meal. Please try again.');
     } finally {
       setDeleting(null);

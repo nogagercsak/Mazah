@@ -255,7 +255,7 @@ export default function FoodBankLocatorScreen() {
       }
       
     } catch (err) {
-      console.error('Error searching food banks:', err);
+      if (__DEV__) console.error('Error searching food banks:', err);
       
       // Provide user-friendly error messages
       let errorMessage = 'Failed to find food banks. Please try again.';

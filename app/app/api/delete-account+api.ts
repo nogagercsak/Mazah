@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log('Starting complete account deletion for user:', userId);
+    if (__DEV__) console.log('Starting complete account deletion for user:', userId);
 
     // Step 1: Delete user data from custom tables FIRST
     // This is important because once we delete the auth user, we lose the reference
@@ -33,11 +33,11 @@ export async function POST(request: Request) {
     const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteUserError) {
-      console.error('Error deleting auth user:', deleteUserError);
+      if (__DEV__) console.error('Error deleting auth user:', deleteUserError);
       throw deleteUserError;
     }
 
-    console.log('Complete account deletion successful');
+    if (__DEV__) console.log('Complete account deletion successful');
 
     return Response.json({
       success: true,
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     });
 
   } catch (error) {
-    console.error('Complete account deletion error:', error);
+    if (__DEV__) console.error('Complete account deletion error:', error);
     
     return Response.json(
       { 
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 // Function to delete all user-related data from custom tables
 async function deleteUserData(userId: string) {
   try {
-    console.log('Deleting user data for:', userId);
+    if (__DEV__) console.log('Deleting user data for:', userId);
 
     // Delete in the correct order to respect foreign key constraints
     
@@ -71,7 +71,7 @@ async function deleteUserData(userId: string) {
       .eq('user_id', userId);
     
     if (mealPlansError && mealPlansError.code !== 'PGRST116') {
-      console.error('Error deleting meal plans:', mealPlansError);
+      if (__DEV__) console.error('Error deleting meal plans:', mealPlansError);
       throw mealPlansError;
     }
 
@@ -82,7 +82,7 @@ async function deleteUserData(userId: string) {
       .eq('user_id', userId);
     
     if (foodItemsError && foodItemsError.code !== 'PGRST116') {
-      console.error('Error deleting food items:', foodItemsError);
+      if (__DEV__) console.error('Error deleting food items:', foodItemsError);
       throw foodItemsError;
     }
 
@@ -99,9 +99,9 @@ async function deleteUserData(userId: string) {
     }
     */
 
-    console.log('User data deleted successfully');
+    if (__DEV__) console.log('User data deleted successfully');
   } catch (error) {
-    console.error('Error deleting user data:', error);
+    if (__DEV__) console.error('Error deleting user data:', error);
     throw error;
   }
 }

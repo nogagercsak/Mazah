@@ -381,7 +381,7 @@ export default function InventoryScreen() {
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
 
   // Debug: Log current user state
-  console.log('InventoryScreen: Current user:', user ? user.email : 'No user');
+  if (__DEV__) console.log('InventoryScreen: Current user:', user ? user.email : 'No user');
 
   useFocusEffect(
     useCallback(() => {
@@ -398,7 +398,7 @@ export default function InventoryScreen() {
       const notificationService = (await import('@/services/notificationService')).default;
       await notificationService.refreshNotifications();
     } catch (error) {
-      console.log('Failed to refresh notifications:', error);
+      if (__DEV__) console.log('Failed to refresh notifications:', error);
     }
   };
 
@@ -412,7 +412,7 @@ export default function InventoryScreen() {
         .maybeSingle(); // Use maybeSingle to handle no rows gracefully
 
       if (profileError) {
-        console.log('Error checking notification status:', profileError);
+        if (__DEV__) console.log('Error checking notification status:', profileError);
         return;
       }
 
@@ -421,7 +421,7 @@ export default function InventoryScreen() {
         setShowNotificationPrompt(true);
       }
     } catch (error) {
-      console.error('Error checking notification status:', error);
+      if (__DEV__) console.error('Error checking notification status:', error);
     }
   };
 
@@ -467,7 +467,7 @@ export default function InventoryScreen() {
 
       setInventory(transformedData);
     } catch (err) {
-      console.error('Error fetching inventory:', err);
+      if (__DEV__) console.error('Error fetching inventory:', err);
       setError(err instanceof Error ? err.message : 'Failed to load inventory');
     } finally {
       setLoading(false);
@@ -500,7 +500,7 @@ export default function InventoryScreen() {
       // Refresh the inventory
       fetchInventory();
     } catch (err) {
-      console.error('Error deleting item:', err);
+      if (__DEV__) console.error('Error deleting item:', err);
       Alert.alert('Error', 'Failed to delete item. Please try again.');
     }
   };
@@ -521,7 +521,7 @@ export default function InventoryScreen() {
       // Refresh the inventory
       fetchInventory();
     } catch (err) {
-      console.error('Error marking item as used:', err);
+      if (__DEV__) console.error('Error marking item as used:', err);
       Alert.alert('Error', 'Failed to mark item as used. Please try again.');
     }
   };
@@ -543,7 +543,7 @@ export default function InventoryScreen() {
       fetchInventory();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (err) {
-      console.error('Error updating item:', err);
+      if (__DEV__) console.error('Error updating item:', err);
       Alert.alert('Error', 'Failed to update item. Please try again.');
     }
   };

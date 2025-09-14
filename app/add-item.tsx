@@ -74,7 +74,7 @@ export default function AddItemScreen() {
       router.back();
 
     } catch (err) {
-      console.error('Error adding item:', err);
+      if (__DEV__) console.error('Error adding item:', err);
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
       Alert.alert('Error', `Could not add the item: ${errorMessage}`);
     } finally {

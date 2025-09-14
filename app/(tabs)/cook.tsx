@@ -140,7 +140,7 @@ export default function CookScreen() {
 
       setRecipes(fetchedRecipes);
     } catch (err: any) {
-      console.error('Recipe loading error:', err);
+      if (__DEV__) console.error('Recipe loading error:', err);
       setError(err.message || 'Failed to load recipes');
     } finally {
       setLoading(false);
@@ -184,7 +184,7 @@ export default function CookScreen() {
 
   const handleStartCooking = async (recipe: ProcessedRecipe) => {
     if (!apiKey) {
-      console.error('API key not found');
+      if (__DEV__) console.error('API key not found');
       return;
     }
 
@@ -218,7 +218,7 @@ export default function CookScreen() {
       });
       
     } catch (error) {
-      console.error('Failed to fetch recipe details:', error);
+      if (__DEV__) console.error('Failed to fetch recipe details:', error);
       setError('Failed to load recipe details. Please try again.');
       setSelectedRecipeForCooking(null);
     } finally {

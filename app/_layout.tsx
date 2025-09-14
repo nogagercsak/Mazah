@@ -80,7 +80,7 @@ function useProtectedRoute(user: any) {
       }
 
       try {
-        console.log('Checking onboarding status for user:', user.id);
+        if (__DEV__) console.log('Checking onboarding status for user:', user.id);
         
         const { data, error } = await supabase
           .from('user_profiles')
@@ -90,7 +90,7 @@ function useProtectedRoute(user: any) {
 
         if (error && error.code !== 'PGRST116') {
           // PGRST116 is "not found" which is expected for new users
-          console.error('Error checking onboarding status:', error);
+          if (__DEV__) console.error('Error checking onboarding status:', error);
           // Assume needs onboarding if we can't check
           setNeedsOnboarding(true);
           setHasCheckedOnboarding(true);
@@ -99,7 +99,7 @@ function useProtectedRoute(user: any) {
 
         // If no profile exists or completed_at is null, user needs onboarding
         const needsOnboarding = !data || !data.completed_at;
-        console.log('Onboarding check result:', { 
+        if (__DEV__) console.log('Onboarding check result:', { 
           hasProfile: !!data, 
           completedAt: data?.completed_at,
           createdAt: data?.created_at,
@@ -111,7 +111,7 @@ function useProtectedRoute(user: any) {
         setNeedsOnboarding(needsOnboarding);
         setHasCheckedOnboarding(true);
       } catch (error) {
-        console.error('Unexpected error checking onboarding status:', error);
+        if (__DEV__) console.error('Unexpected error checking onboarding status:', error);
         // Assume needs onboarding on unexpected errors
         setNeedsOnboarding(true);
         setHasCheckedOnboarding(true);
@@ -133,10 +133,10 @@ function useProtectedRoute(user: any) {
     const isOnboarding = segments[1] === 'onboarding';
     
     if (user && isOnboarding && hasCheckedOnboarding && needsOnboarding) {
-      console.log('Setting up periodic onboarding status check...');
+      if (__DEV__) console.log('Setting up periodic onboarding status check...');
       
       const interval = setInterval(async () => {
-        console.log('Periodic check: Re-checking onboarding status...');
+        if (__DEV__) console.log('Periodic check: Re-checking onboarding status...');
         
         const { data } = await supabase
           .from('user_profiles')
@@ -145,14 +145,14 @@ function useProtectedRoute(user: any) {
           .maybeSingle();
         
         if (data && data.completed_at) {
-          console.log('Periodic check: Onboarding completed! Updating state...');
+          if (__DEV__) console.log('Periodic check: Onboarding completed! Updating state...');
           setNeedsOnboarding(false);
           clearInterval(interval);
         }
       }, 2000); // Check every 2 seconds
       
       return () => {
-        console.log('Cleaning up periodic onboarding check...');
+        if (__DEV__) console.log('Cleaning up periodic onboarding check...');
         clearInterval(interval);
       };
     }
@@ -161,7 +161,7 @@ function useProtectedRoute(user: any) {
   // Handle navigation
   useEffect(() => {
     if (!hasCheckedOnboarding) {
-      console.log('Still checking onboarding status, skipping navigation...');
+      if (__DEV__) console.log('Still checking onboarding status, skipping navigation...');
       return;
     }
 
@@ -172,7 +172,7 @@ function useProtectedRoute(user: any) {
     const inMainApp = segments[0] === '(tabs)';
     const isProfile = segments[0] === 'profile';
     
-    console.log('Navigation check:', {
+    if (__DEV__) console.log('Navigation check:', {
       user: !!user,
       hasCheckedOnboarding,
       inAuthGroup,
@@ -185,21 +185,21 @@ function useProtectedRoute(user: any) {
     if (!user) {
       // If not signed in and not in auth group, go to login
       if (!inAuthGroup) {
-        console.log('No user, redirecting to login...');
+        if (__DEV__) console.log('No user, redirecting to login...');
         router.replace('/auth/login');
       }
     } else if (user && hasCheckedOnboarding) {
       if (needsOnboarding) {
         // If needs onboarding and not already there, go to onboarding
         if (!isOnboarding) {
-          console.log('User needs onboarding, redirecting...');
+          if (__DEV__) console.log('User needs onboarding, redirecting...');
           router.replace('/auth/onboarding');
         }
       } else {
         // Onboarding is complete
         if (inAuthGroup && !isSignup && !isLogin) {
           // If in auth group (but not signup/login), go to main app
-          console.log('Onboarding complete, redirecting to main app...');
+          if (__DEV__) console.log('Onboarding complete, redirecting to main app...');
           router.replace('/');
         }
       }
@@ -216,51 +216,51 @@ function RootLayoutNav() {
   // Initialize notifications when user is authenticated
   useEffect(() => {
     if (user && !loading) {
-      console.log('Main app: User authenticated, initializing notifications');
+      if (__DEV__) console.log('Main app: User authenticated, initializing notifications');
       initializeNotifications();
     }
   }, [user, loading]);
 
   const initializeNotifications = async () => {
     try {
-      console.log('Initializing notifications...');
+      if (__DEV__) console.log('Initializing notifications...');
       
       // Initialize notification service
       const notificationSuccess = await notificationService.initialize();
       if (notificationSuccess) {
-        console.log('Notifications initialized successfully');
+        if (__DEV__) console.log('Notifications initialized successfully');
         
         // Try to register background fetch task (optional)
         try {
           const backgroundSuccess = await backgroundTaskService.registerBackgroundFetch();
           if (backgroundSuccess) {
-            console.log('Background fetch task registered successfully');
+            if (__DEV__) console.log('Background fetch task registered successfully');
           } else {
-            console.log('Background fetch not available - using fallback local notification system');
+            if (__DEV__) console.log('Background fetch not available - using fallback local notification system');
             // Schedule notifications for existing food items as a fallback
             await notificationService.scheduleNotificationsForAllFood();
           }
         } catch (backgroundError) {
-          console.log('Background fetch initialization failed - using fallback local notification system');
+          if (__DEV__) console.log('Background fetch initialization failed - using fallback local notification system');
           // Schedule notifications for existing food items as a fallback
           await notificationService.scheduleNotificationsForAllFood();
         }
       } else {
-        console.log('Failed to initialize notifications');
+        if (__DEV__) console.log('Failed to initialize notifications');
       }
     } catch (error) {
-      console.error('Error initializing notifications:', error);
+      if (__DEV__) console.error('Error initializing notifications:', error);
       // Don't fail the app initialization, just log the error
-      console.log('App will continue without full notification support');
+      if (__DEV__) console.log('App will continue without full notification support');
     }
   };
 
   // Debug: Log authentication state
-  console.log('RootLayoutNav: Loading:', loading, 'User:', user ? user.email : 'No user');
+  if (__DEV__) console.log('RootLayoutNav: Loading:', loading, 'User:', user ? user.email : 'No user');
 
   // Show loading screen while checking authentication
   if (loading) {
-    console.log('RootLayoutNav: Showing loading screen');
+    if (__DEV__) console.log('RootLayoutNav: Showing loading screen');
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: proto.background }}>
         <AuthDebugInfo user={user} loading={loading} />
@@ -270,8 +270,8 @@ function RootLayoutNav() {
     );
   }
 
-  console.log('RootLayoutNav: Loading complete, user authenticated:', !!user);
-  console.log('RootLayoutNav: Rendering stack with screens:', user ? '(tabs) and add-item' : 'auth/login and auth/signup');
+  if (__DEV__) console.log('RootLayoutNav: Loading complete, user authenticated:', !!user);
+  if (__DEV__) console.log('RootLayoutNav: Rendering stack with screens:', user ? '(tabs) and add-item' : 'auth/login and auth/signup');
 
   return (
     <>

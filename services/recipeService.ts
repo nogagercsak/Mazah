@@ -126,7 +126,7 @@ export class RecipeService {
         .sort((a, b) => b.wasteReductionScore - a.wasteReductionScore);
 
     } catch (error) {
-      console.error('Recipe search error:', error);
+      if (__DEV__) console.error('Recipe search error:', error);
       return [];
     }
   }
@@ -355,7 +355,7 @@ export class RecipeService {
         .sort((a, b) => b.expiringIngredients.length - a.expiringIngredients.length);
 
     } catch (error) {
-      console.error('Expiration-based recipe search error:', error);
+      if (__DEV__) console.error('Expiration-based recipe search error:', error);
       return [];
     }
   }

@@ -79,7 +79,7 @@ export default function Step7Notifications({
         });
       }
     } catch (error) {
-      console.error('Error checking notification permissions:', error);
+      if (__DEV__) console.error('Error checking notification permissions:', error);
     }
   };
 
@@ -123,7 +123,7 @@ export default function Step7Notifications({
         );
       }
     } catch (error) {
-      console.error('Error requesting notification permissions:', error);
+      if (__DEV__) console.error('Error requesting notification permissions:', error);
       Alert.alert('Error', 'Failed to request notification permissions. Please try again.');
     } finally {
       setIsRequesting(false);

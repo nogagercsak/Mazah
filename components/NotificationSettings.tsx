@@ -38,7 +38,7 @@ export default function NotificationSettings({ onClose }: NotificationSettingsPr
         setPreferences(prefs);
       }
     } catch (error) {
-      console.error('Error loading preferences:', error);
+      if (__DEV__) console.error('Error loading preferences:', error);
     }
   };
 
@@ -53,7 +53,7 @@ export default function NotificationSettings({ onClose }: NotificationSettingsPr
         Alert.alert('Error', 'Failed to update notification preferences');
       }
     } catch (error) {
-      console.error('Error updating preferences:', error);
+      if (__DEV__) console.error('Error updating preferences:', error);
       Alert.alert('Error', 'Failed to update notification preferences');
     } finally {
       setLoading(false);
@@ -198,7 +198,7 @@ export default function NotificationSettings({ onClose }: NotificationSettingsPr
                                 text: 'Learn More',
                                 onPress: () => {
                                   // In a real app, you could open a help page or documentation
-                                  console.log('Opening help documentation...');
+                                  if (__DEV__) console.log('Opening help documentation...');
                                 }
                               }
                             ]

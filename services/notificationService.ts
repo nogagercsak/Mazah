@@ -39,9 +39,9 @@ export class NotificationService {
     try {
       // Check if we're running in Expo Go (which has limited notification support)
       const isExpoGo = __DEV__ && !process.env.EXPO_PROJECT_ID;
-      if (isExpoGo) {
-        console.log('Running in Expo Go - notifications will have limited functionality');
-        console.log('For full notification support, build a development build');
+      if (isExpoGo && __DEV__) {
+        if (__DEV__) console.log('Running in Expo Go - notifications will have limited functionality');
+        if (__DEV__) console.log('For full notification support, build a development build');
       }
 
       // Ensure user profile exists
@@ -57,7 +57,7 @@ export class NotificationService {
       }
 
       if (finalStatus !== 'granted') {
-        console.log('Failed to get notification permissions!');
+        if (__DEV__) console.log('Failed to get notification permissions!');
         return false;
       }
 
@@ -67,8 +67,10 @@ export class NotificationService {
           // Check if we have a valid project ID
           const projectId = process.env.EXPO_PROJECT_ID;
           if (!projectId || projectId === 'your-project-id') {
-            console.log('Expo project ID not configured. Push notifications will not work.');
-            console.log('Please set EXPO_PROJECT_ID in your environment variables.');
+            if (__DEV__) {
+              if (__DEV__) console.log('Expo project ID not configured. Push notifications will not work.');
+              if (__DEV__) console.log('Please set EXPO_PROJECT_ID in your environment variables.');
+            }
             // Still return true so the app can continue, but push notifications won't work
             return true;
           }
@@ -81,15 +83,15 @@ export class NotificationService {
           // Save token to database
           await this.savePushToken(token.data);
           
-          console.log('Expo push token:', token.data);
+          if (__DEV__) console.log('Expo push token:', token.data);
         } catch (error) {
-          console.error('Error getting Expo push token:', error);
+          if (__DEV__) console.error('Error getting Expo push token:', error);
           // Don't fail the entire initialization, just log the error
-          console.log('Push notifications will not work, but local notifications may still function.');
+          if (__DEV__) console.log('Push notifications will not work, but local notifications may still function.');
           return true;
         }
       } else {
-        console.log('Must use physical device for Push Notifications');
+        if (__DEV__) console.log('Must use physical device for Push Notifications');
         return false;
       }
 
@@ -105,7 +107,7 @@ export class NotificationService {
 
       return true;
     } catch (error) {
-      console.error('Error initializing notifications:', error);
+      if (__DEV__) console.error('Error initializing notifications:', error);
       return false;
     }
   }
@@ -148,7 +150,7 @@ export class NotificationService {
           });
       }
     } catch (error) {
-      console.error('Error saving push token:', error);
+      if (__DEV__) console.error('Error saving push token:', error);
     }
   }
 
@@ -167,7 +169,7 @@ export class NotificationService {
         .maybeSingle(); // Use maybeSingle to handle no rows gracefully
 
       if (selectError) {
-        console.error('Error selecting profile:', selectError);
+        if (__DEV__) console.error('Error selecting profile:', selectError);
         return null;
       }
 
@@ -178,14 +180,14 @@ export class NotificationService {
         };
       } else {
         // Profile doesn't exist yet, return default preferences
-        console.log('No profile found for user, returning default notification preferences');
+        if (__DEV__) console.log('No profile found for user, returning default notification preferences');
         return {
           expiration_notifications_enabled: true,
           expiration_notification_days: [1, 3, 7]
         };
       }
     } catch (error) {
-      console.error('Error getting notification preferences:', error);
+      if (__DEV__) console.error('Error getting notification preferences:', error);
       return null;
     }
   }
@@ -205,7 +207,7 @@ export class NotificationService {
         .maybeSingle();
 
       if (checkError) {
-        console.error('Error checking if profile exists:', checkError);
+        if (__DEV__) console.error('Error checking if profile exists:', checkError);
         return false;
       }
 
@@ -223,16 +225,16 @@ export class NotificationService {
           });
 
         if (insertError) {
-          console.error('Error creating user profile:', insertError);
+          if (__DEV__) console.error('Error creating user profile:', insertError);
           return false;
         }
 
-        console.log('Created user profile for notifications');
+        if (__DEV__) console.log('Created user profile for notifications');
       }
 
       return true;
     } catch (error) {
-      console.error('Error ensuring user profile:', error);
+      if (__DEV__) console.error('Error ensuring user profile:', error);
       return false;
     }
   }
@@ -261,7 +263,7 @@ export class NotificationService {
         .maybeSingle();
 
       if (checkError) {
-        console.error('Error checking if profile exists:', checkError);
+        if (__DEV__) console.error('Error checking if profile exists:', checkError);
         return false;
       }
 
@@ -290,12 +292,12 @@ export class NotificationService {
       }
 
       if (result.error) {
-        console.error('Supabase error updating notification preferences:', result.error);
+        if (__DEV__) console.error('Supabase error updating notification preferences:', result.error);
       }
 
       return !result.error;
     } catch (error) {
-      console.error('Error updating notification preferences:', error);
+      if (__DEV__) console.error('Error updating notification preferences:', error);
       return false;
     }
   }
@@ -319,7 +321,7 @@ export class NotificationService {
       );
 
       if (notificationExists) {
-        console.log(`Notification already scheduled for ${foodName} (${daysUntilExpiry} days)`);
+        if (__DEV__) console.log(`Notification already scheduled for ${foodName} (${daysUntilExpiry} days)`);
         return;
       }
 
@@ -341,9 +343,9 @@ export class NotificationService {
         },
       });
 
-      console.log(`Scheduled notification for ${foodName}: ${notificationId}`);
+      if (__DEV__) console.log(`Scheduled notification for ${foodName}: ${notificationId}`);
     } catch (error) {
-      console.error('Error scheduling expiration notification:', error);
+      if (__DEV__) console.error('Error scheduling expiration notification:', error);
     }
   }
 
@@ -380,9 +382,9 @@ export class NotificationService {
         }
       }
 
-      console.log(`Scheduled notifications for ${foodItems.length} food items`);
+      if (__DEV__) console.log(`Scheduled notifications for ${foodItems.length} food items`);
     } catch (error) {
-      console.error('Error scheduling notifications for all food:', error);
+      if (__DEV__) console.error('Error scheduling notifications for all food:', error);
     }
   }
 
@@ -398,9 +400,9 @@ export class NotificationService {
       // Then schedule notifications for all current food items
       await this.scheduleNotificationsForAllFood();
       
-      console.log('Notifications refreshed successfully');
+      if (__DEV__) console.log('Notifications refreshed successfully');
     } catch (error) {
-      console.error('Error refreshing notifications:', error);
+      if (__DEV__) console.error('Error refreshing notifications:', error);
     }
   }
 
@@ -412,7 +414,7 @@ export class NotificationService {
       // Check if we have a valid project ID for push notifications
       const projectId = process.env.EXPO_PROJECT_ID;
       if (!projectId || projectId === 'your-project-id') {
-        console.log('Expo project ID not configured. Cannot send push notifications.');
+        if (__DEV__) console.log('Expo project ID not configured. Cannot send push notifications.');
         return false;
       }
 
@@ -424,7 +426,7 @@ export class NotificationService {
         .eq('is_active', true);
 
       if (!tokens || tokens.length === 0) {
-        console.log('No active push tokens found for user');
+        if (__DEV__) console.log('No active push tokens found for user');
         return false;
       }
 
@@ -448,14 +450,14 @@ export class NotificationService {
       });
 
       if (response.ok) {
-        console.log('Push notifications sent successfully');
+        if (__DEV__) console.log('Push notifications sent successfully');
         return true;
       } else {
-        console.error('Failed to send push notifications:', response.statusText);
+        if (__DEV__) console.error('Failed to send push notifications:', response.statusText);
         return false;
       }
     } catch (error) {
-      console.error('Error sending push notification:', error);
+      if (__DEV__) console.error('Error sending push notification:', error);
       return false;
     }
   }
@@ -512,7 +514,7 @@ export class NotificationService {
         }
       }
     } catch (error) {
-      console.error('Error checking expiring food items:', error);
+      if (__DEV__) console.error('Error checking expiring food items:', error);
     }
   }
 
@@ -553,18 +555,18 @@ export class NotificationService {
         const foodItemId = notification.content.data?.foodItemId;
         const expirationDate = notification.content.data?.expirationDate;
         
-        if (foodItemId && expirationDate) {
+        if (foodItemId && expirationDate && typeof expirationDate === 'string') {
           const isExpired = new Date(expirationDate) <= today;
           const foodStillExists = validFoodIds.has(foodItemId);
           
           if (isExpired || !foodStillExists) {
             await Notifications.cancelScheduledNotificationAsync(notification.identifier);
-            console.log(`Cancelled notification for expired/removed food item: ${foodItemId}`);
+            if (__DEV__) console.log(`Cancelled notification for expired/removed food item: ${foodItemId}`);
           }
         }
       }
     } catch (error) {
-      console.error('Error cleaning up notifications:', error);
+      if (__DEV__) console.error('Error cleaning up notifications:', error);
     }
   }
 

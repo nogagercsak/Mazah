@@ -69,7 +69,7 @@ export default function LoginScreen() {
       router.replace('/(tabs)');
 
     } catch (error) {
-      console.error('Login error:', error);
+      if (__DEV__) console.error('Login error:', error);
       
       // Show appropriate error message
       if (error instanceof Error) {

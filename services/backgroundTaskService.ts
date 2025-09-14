@@ -7,7 +7,7 @@ const BACKGROUND_FETCH_TASK = 'background-fetch-food-expiration';
 // Define the background task
 TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
   try {
-    console.log('Background task: Checking for expiring food items');
+    if (__DEV__) console.log('Background task: Checking for expiring food items');
     
     // Check for expiring food items and send notifications
     await notificationService.checkExpiringFoodItems();
@@ -15,7 +15,7 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     // Return success
     return BackgroundFetch.BackgroundFetchResult.NewData;
   } catch (error) {
-    console.error('Background task error:', error);
+    if (__DEV__) console.error('Background task error:', error);
     return BackgroundFetch.BackgroundFetchResult.Failed;
   }
 });
@@ -37,28 +37,23 @@ export class BackgroundTaskService {
    */
   async registerBackgroundFetch(): Promise<boolean> {
     try {
-      // Check if background fetch is available on this platform
-      if (!BackgroundFetch.isAvailableAsync) {
-        console.log('Background fetch is not available on this platform');
-        return false;
-      }
-
+      // Check background fetch status
       const status = await BackgroundFetch.getStatusAsync();
       
       if (status === BackgroundFetch.BackgroundFetchStatus.Restricted) {
-        console.log('Background fetch is restricted');
+        if (__DEV__) console.log('Background fetch is restricted');
         return false;
       }
 
       if (status === BackgroundFetch.BackgroundFetchStatus.Denied) {
-        console.log('Background fetch is denied');
+        if (__DEV__) console.log('Background fetch is denied');
         return false;
       }
 
       // Check if the task is already registered
       const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_FETCH_TASK);
       if (isRegistered) {
-        console.log('Background fetch task already registered');
+        if (__DEV__) console.log('Background fetch task already registered');
         return true;
       }
 
@@ -69,14 +64,14 @@ export class BackgroundTaskService {
         startOnBoot: true,
       });
 
-      console.log('Background fetch task registered successfully');
+      if (__DEV__) console.log('Background fetch task registered successfully');
       return true;
     } catch (error) {
-      console.error('Error registering background fetch:', error);
+      if (__DEV__) console.error('Error registering background fetch:', error);
       
       // Check if it's a configuration error
       if (error instanceof Error && error.message.includes('Background Fetch has not been configured')) {
-        console.log('Background fetch not configured - this is expected in development');
+        if (__DEV__) console.log('Background fetch not configured - this is expected in development');
         return false;
       }
       
@@ -90,9 +85,9 @@ export class BackgroundTaskService {
   async unregisterBackgroundFetch(): Promise<void> {
     try {
       await BackgroundFetch.unregisterTaskAsync(BACKGROUND_FETCH_TASK);
-      console.log('Background fetch task unregistered');
+      if (__DEV__) console.log('Background fetch task unregistered');
     } catch (error) {
-      console.error('Error unregistering background fetch:', error);
+      if (__DEV__) console.error('Error unregistering background fetch:', error);
     }
   }
 
@@ -110,7 +105,7 @@ export class BackgroundTaskService {
         return 'restricted';
       }
     } catch (error) {
-      console.error('Error getting background fetch status:', error);
+      if (__DEV__) console.error('Error getting background fetch status:', error);
       return 'restricted';
     }
   }
@@ -121,9 +116,9 @@ export class BackgroundTaskService {
   async triggerBackgroundTask(): Promise<void> {
     try {
       await notificationService.checkExpiringFoodItems();
-      console.log('Background task triggered manually');
+      if (__DEV__) console.log('Background task triggered manually');
     } catch (error) {
-      console.error('Error triggering background task:', error);
+      if (__DEV__) console.error('Error triggering background task:', error);
     }
   }
 }

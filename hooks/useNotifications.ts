@@ -50,7 +50,7 @@ export function useNotifications() {
         pushToken,
       });
     } catch (error) {
-      console.error('Error checking notification status:', error);
+      if (__DEV__) console.error('Error checking notification status:', error);
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ export function useNotifications() {
       }
       return false;
     } catch (error) {
-      console.error('Error requesting notification permissions:', error);
+      if (__DEV__) console.error('Error requesting notification permissions:', error);
       return false;
     }
   };
@@ -78,7 +78,7 @@ export function useNotifications() {
       }
       return success;
     } catch (error) {
-      console.error('Error updating notification preferences:', error);
+      if (__DEV__) console.error('Error updating notification preferences:', error);
       return false;
     }
   };
@@ -89,12 +89,12 @@ export function useNotifications() {
       if (preferences) {
         // This would typically send to the current user
         // For testing, we'll just log success
-        console.log('Test notification would be sent');
+        if (__DEV__) console.log('Test notification would be sent');
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Error sending test notification:', error);
+      if (__DEV__) console.error('Error sending test notification:', error);
       return false;
     }
   };

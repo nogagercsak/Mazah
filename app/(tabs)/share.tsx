@@ -26,7 +26,6 @@ import {
   filterFoodBanks,
   sortFoodBanks,
   isCurrentlyOpen,
-  getCurrentLocation,
   type FoodBank, 
   type FoodBankType 
 } from '@/services/foodBankService';
@@ -453,9 +452,8 @@ export default function FoodBankLocatorScreen() {
   const [selectedFoodBank, setSelectedFoodBank] = useState<FoodBank | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [searchType, setSearchType] = useState<'zip' | 'location' | 'city'>('zip');
+  const [searchType, setSearchType] = useState<'zip' | 'city'>('zip');
   const [citySearch, setCitySearch] = useState('');
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
   
   // Filter states
   const [selectedTypes, setSelectedTypes] = useState<FoodBankType[]>([]);
@@ -483,35 +481,6 @@ export default function FoodBankLocatorScreen() {
 
   const getCurrentInput = (): string => {
     return searchType === 'zip' ? zipCode : citySearch;
-  };
-
-  const handleUseCurrentLocation = async () => {
-    try {
-      setIsGettingLocation(true);
-      const location = await getCurrentLocation();
-      
-      // Use coordinates directly for search
-      const results = await searchFoodBanks(`${location.lat},${location.lng}`, 'location');
-      setAllFoodBanks(results);
-      applyFiltersAndSort(results);
-      setHasSearched(true);
-      setError(null);
-      
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    } catch (err) {
-      if (__DEV__) console.error('Location error:', err);
-      
-      let errorMessage = 'Unable to get your location.';
-      if (err instanceof Error) {
-        if (err.message.includes('permission')) {
-          errorMessage = 'Location permission denied. Please enable location access in settings.';
-        }
-      }
-      
-      Alert.alert('Location Error', errorMessage);
-    } finally {
-      setIsGettingLocation(false);
-    }
   };
 
   // Apply filters and sorting
@@ -819,17 +788,6 @@ export default function FoodBankLocatorScreen() {
               City
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.locationButton}
-            onPress={handleUseCurrentLocation}
-            disabled={isGettingLocation}
-          >
-            {isGettingLocation ? (
-              <ActivityIndicator size="small" color={proto.accent} />
-            ) : (
-              <Ionicons name="locate" size={20} color={proto.accent} />
-            )}
-          </TouchableOpacity>
         </View>
 
         <View style={styles.searchContainer}>
@@ -970,16 +928,6 @@ const styles = StyleSheet.create({
   },
   searchTypeTextActive: {
     color: proto.buttonText,
-  },
-  locationButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    backgroundColor: proto.card,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: proto.border,
   },
   searchContainer: {
     flexDirection: 'row',

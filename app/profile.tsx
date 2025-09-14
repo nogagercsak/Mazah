@@ -37,7 +37,6 @@ export default function ProfileScreen() {
   
   // State for modals
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
-  const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [emojiModalVisible, setEmojiModalVisible] = useState(false);
   const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
   
@@ -56,10 +55,6 @@ export default function ProfileScreen() {
   
   // Profile hint state
   const [showProfileHint, setShowProfileHint] = useState(true);
-  
-  // Feedback state
-  const [feedbackText, setFeedbackText] = useState('');
-  const [feedbackType, setFeedbackType] = useState<'bug' | 'feature' | 'general'>('general');
 
   const handleEmojiSelect = async (emoji: string) => {
     try {
@@ -161,35 +156,6 @@ export default function ProfileScreen() {
     }
   };
 
-  const sendFeedback = async () => {
-    if (!feedbackText.trim()) {
-      Alert.alert('Error', 'Please enter your feedback');
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('feedback')
-        .insert({
-          user_id: user?.id,
-          type: feedbackType,
-          message: feedbackText,
-          created_at: new Date().toISOString(),
-        });
-
-      if (error) throw error;
-
-      Alert.alert('Thank You!', 'Your feedback has been sent successfully');
-      setFeedbackModalVisible(false);
-      setFeedbackText('');
-      setFeedbackType('general');
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to send feedback. Please try again.');
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    }
-  };
-
   const handleSignOut = async () => {
     Alert.alert(
       'Sign Out',
@@ -241,7 +207,7 @@ export default function ProfileScreen() {
             router.back();
           }}
         >
-          <IconSymbol size={24} name={"chevron.left" as any} color={proto.text} />
+          <IconSymbol size={24} name="chevron.left" color={proto.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile</Text>
         <View style={styles.headerRight} />
@@ -285,10 +251,10 @@ export default function ProfileScreen() {
               }}
             >
               <View style={styles.settingIconContainer}>
-                <IconSymbol size={22} name={"star" as any} color={proto.buttonText} />
+                <IconSymbol size={22} name="lock" color={proto.buttonText} />
               </View>
               <Text style={styles.settingText}>Change Password</Text>
-              <IconSymbol size={20} name={"chevron.right" as any} color={proto.textSecondary} />
+              <IconSymbol size={20} name="chevron.right" color={proto.textSecondary} />
             </TouchableOpacity>
 
             <View style={styles.settingDivider} />
@@ -301,10 +267,10 @@ export default function ProfileScreen() {
               }}
             >
               <View style={styles.settingIconContainer}>
-                <IconSymbol size={22} name={"lightbulb" as any} color={proto.buttonText} />
+                <IconSymbol size={22} name="notif" color={proto.buttonText} />
               </View>
               <Text style={styles.settingText}>Notifications</Text>
-              <IconSymbol size={20} name={"chevron.right" as any} color={proto.textSecondary} />
+              <IconSymbol size={20} name="chevron.right" color={proto.textSecondary} />
             </TouchableOpacity>
 
             <View style={styles.settingDivider} />
@@ -324,10 +290,10 @@ export default function ProfileScreen() {
               }}
             >
               <View style={styles.settingIconContainer}>
-                <IconSymbol size={22} name={"message" as any} color={proto.buttonText} />
+                <IconSymbol size={22} name="help" color={proto.buttonText} />
               </View>
               <Text style={styles.settingText}>Help Center</Text>
-              <IconSymbol size={20} name={"chevron.right" as any} color={proto.textSecondary} />
+              <IconSymbol size={20} name="chevron.right" color={proto.textSecondary} />
             </TouchableOpacity>
 
             <View style={styles.settingDivider} />
@@ -336,14 +302,14 @@ export default function ProfileScreen() {
               style={styles.settingItem}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setFeedbackModalVisible(true);
+                router.push('/feedback' as any);
               }}
             >
               <View style={styles.settingIconContainer}>
-                <IconSymbol size={22} name={"paperplane.fill" as any} color={proto.buttonText} />
+                <IconSymbol size={22} name="paperplane.fill" color={proto.buttonText} />
               </View>
               <Text style={styles.settingText}>Send Feedback</Text>
-              <IconSymbol size={20} name={"chevron.right" as any} color={proto.textSecondary} />
+              <IconSymbol size={20} name="chevron.right" color={proto.textSecondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -353,7 +319,7 @@ export default function ProfileScreen() {
           style={styles.signOutButton} 
           onPress={handleSignOut}
         >
-          <IconSymbol size={22} name={"rectangle.portrait.and.arrow.right" as any} color="#E57373" />
+          <IconSymbol size={22} name="sign-out" color="#E57373" />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
 
@@ -362,7 +328,7 @@ export default function ProfileScreen() {
           style={styles.deleteAccountButton} 
           onPress={handleOpenDeleteModal}
         >
-          <IconSymbol size={22} name={"trash" as any} color="#FF5252" />
+          <IconSymbol size={22} name="delete" color="#E57373" />
           <Text style={styles.deleteAccountText}>Delete Account</Text>
         </TouchableOpacity>
 
@@ -539,89 +505,6 @@ export default function ProfileScreen() {
                 onPress={handleChangePassword}
               >
                 <Text style={styles.saveButtonText}>Update</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Feedback Modal */}
-      <Modal
-        visible={feedbackModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setFeedbackModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Send Feedback</Text>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => setFeedbackModalVisible(false)}
-              >
-                <Text style={styles.closeButtonText}>×</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.feedbackTypes}>
-              <TouchableOpacity
-                style={[
-                  styles.feedbackType,
-                  feedbackType === 'bug' && styles.feedbackTypeActive
-                ]}
-                onPress={() => setFeedbackType('bug')}
-              >
-                <Text style={[
-                  styles.feedbackTypeText,
-                  feedbackType === 'bug' && styles.feedbackTypeTextActive
-                ]}>Bug Report</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[
-                  styles.feedbackType,
-                  feedbackType === 'feature' && styles.feedbackTypeActive
-                ]}
-                onPress={() => setFeedbackType('feature')}
-              >
-                <Text style={[
-                  styles.feedbackTypeText,
-                  feedbackType === 'feature' && styles.feedbackTypeTextActive
-                ]}>Feature Request</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[
-                  styles.feedbackType,
-                  feedbackType === 'general' && styles.feedbackTypeActive
-                ]}
-                onPress={() => setFeedbackType('general')}
-              >
-                <Text style={[
-                  styles.feedbackTypeText,
-                  feedbackType === 'general' && styles.feedbackTypeTextActive
-                ]}>General</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <TextInput
-              style={[styles.input, styles.feedbackInput]}
-              placeholder="Tell us what you think..."
-              multiline
-              numberOfLines={4}
-              value={feedbackText}
-              onChangeText={setFeedbackText}
-              placeholderTextColor={proto.textSecondary}
-              textAlignVertical="top"
-            />
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton, styles.fullWidthButton]}
-                onPress={sendFeedback}
-              >
-                <Text style={styles.saveButtonText}>Send</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -925,37 +808,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
     marginVertical: 16,
-  },
-  feedbackTypes: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-  feedbackType: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    backgroundColor: proto.background,
-    borderWidth: 1,
-    borderColor: proto.border,
-    alignItems: 'center',
-  },
-  feedbackTypeActive: {
-    backgroundColor: proto.accent,
-    borderColor: proto.accent,
-  },
-  feedbackTypeText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: proto.text,
-  },
-  feedbackTypeTextActive: {
-    color: proto.buttonText,
-  },
-  feedbackInput: {
-    height: 100,
-    textAlignVertical: 'top',
   },
   deleteModalContent: {
     backgroundColor: proto.card,

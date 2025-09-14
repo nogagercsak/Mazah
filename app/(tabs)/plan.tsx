@@ -77,6 +77,12 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave, s
 
   const commonUnits = ['g', 'kg', 'ml', 'L', 'cup', 'tbsp', 'tsp', 'oz', 'lb', 'piece', 'pinch', 'handful'];
 
+  // Helper function to safely get ingredient name
+  const getIngredientName = (ingredientId: string): string => {
+    const ingredient = availableIngredients.find(ing => ing.id === ingredientId);
+    return ingredient?.name || 'Loading ingredient...';
+  };
+
   useEffect(() => {
     if (visible) {
       fetchIngredients();
@@ -94,16 +100,42 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave, s
   const fetchIngredients = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.from('ingredients').select('id, name, standard_unit').order('name');
-      if (error) throw error;
-      if (!data || data.length === 0) setNoIngredientsAvailable(true);
-      else {
+      setNoIngredientsAvailable(false);
+      
+      const { data, error } = await supabase
+        .from('ingredients')
+        .select('id, name, standard_unit')
+        .order('name');
+      
+      if (error) {
+        console.error('Supabase error fetching ingredients:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+      
+      if (!data || data.length === 0) {
+        setNoIngredientsAvailable(true);
+        setAvailableIngredients([]);
+      } else {
         setNoIngredientsAvailable(false);
-        setAvailableIngredients(data);
+        // Ensure standard_unit has a default value
+        const processedData = data.map(ingredient => ({
+          ...ingredient,
+          standard_unit: ingredient.standard_unit || 'g'
+        }));
+        setAvailableIngredients(processedData);
       }
     } catch (err) {
       if (__DEV__) console.error('Error fetching ingredients:', err);
-      Alert.alert('Error', 'Failed to load ingredients. Please try again.');
+      setNoIngredientsAvailable(true);
+      setAvailableIngredients([]);
+      Alert.alert(
+        'Unable to Load Ingredients', 
+        'There was a problem loading your ingredients. Please check your internet connection and try again.',
+        [
+          { text: 'Retry', onPress: fetchIngredients },
+          { text: 'Cancel', style: 'cancel' }
+        ]
+      );
     } finally {
       setLoading(false);
     }
@@ -115,9 +147,16 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave, s
       return;
     }
     if (availableIngredients.length > 0) {
-      const newIngredient = { id: availableIngredients[0].id, quantity: 1, unit: availableIngredients[0].standard_unit };
+      const firstIngredient = availableIngredients[0];
+      const newIngredient = { 
+        id: firstIngredient.id, 
+        quantity: 1, 
+        unit: firstIngredient.standard_unit || 'g' 
+      };
+      const newIndex = ingredients.length;
       setIngredients(prev => [...prev, newIngredient]);
-      setEditingIngredientIndex(ingredients.length);
+      // Use the calculated index instead of stale state
+      setEditingIngredientIndex(newIndex);
       setShowIngredientPicker(true);
     }
   };
@@ -126,9 +165,18 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave, s
     const updated = [...ingredients];
     if (field === 'id') {
       const selected = availableIngredients.find(ing => ing.id === value);
-      if (selected) updated[index] = { ...updated[index], id: value as string, unit: selected.standard_unit };
+      if (selected) {
+        updated[index] = { 
+          ...updated[index], 
+          id: value as string, 
+          unit: selected.standard_unit || 'g' 
+        };
+      }
     } else if (field === 'quantity') {
-      updated[index] = { ...updated[index], quantity: value as number };
+      // Better quantity validation
+      const numValue = typeof value === 'string' ? parseFloat(value) : value;
+      const validatedValue = isNaN(numValue) || numValue < 0 ? 0 : numValue;
+      updated[index] = { ...updated[index], quantity: validatedValue };
     } else {
       updated[index] = { ...updated[index], unit: value as string };
     }
@@ -137,10 +185,14 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave, s
 
   const removeIngredient = (index: number) => {
     setIngredients(prev => prev.filter((_, i) => i !== index));
+    
+    // Close any open pickers and reset editing state
     if (editingIngredientIndex === index) {
       setEditingIngredientIndex(null);
       setShowIngredientPicker(false);
+      setShowUnitPicker(false);
     } else if (editingIngredientIndex !== null && editingIngredientIndex > index) {
+      // Adjust the editing index if it's after the removed item
       setEditingIngredientIndex(editingIngredientIndex - 1);
     }
   };
@@ -154,18 +206,27 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave, s
       Alert.alert('Missing Information', 'Please add at least one ingredient to your meal');
       return;
     }
+    
+    // Check for invalid quantities
     const invalid = ingredients.find(ing => ing.quantity <= 0 || isNaN(ing.quantity));
     if (invalid) {
       Alert.alert('Invalid Quantity', 'Please enter valid quantities for all ingredients');
       return;
     }
+    
+    // Check for ingredients that don't exist in available ingredients
+    const invalidIngredient = ingredients.find(ing => 
+      !availableIngredients.some(avail => avail.id === ing.id)
+    );
+    if (invalidIngredient) {
+      Alert.alert('Invalid Ingredient', 'One or more ingredients are no longer available. Please refresh the modal and try again.');
+      return;
+    }
+    
     setSaving(true);
     try {
       await onSave(mealName, mealType, ingredients);
-      setMealName('');
-      setMealType('lunch');
-      setIngredients([]);
-      setSaving(false);
+      // Don't close modal here - let the parent handle success
     } catch (e) {
       setSaving(false);
       Alert.alert('Error', 'Failed to save meal. Please try again.');
@@ -179,69 +240,107 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave, s
     ]).start(() => cb?.());
   };
 
-  const renderIngredientPicker = () => (
-    <Modal transparent visible={showIngredientPicker} animationType="slide" onRequestClose={() => setShowIngredientPicker(false)}>
-      <TouchableOpacity style={styles.pickerModalOverlay} activeOpacity={1} onPress={() => setShowIngredientPicker(false)}>
-        <View style={styles.pickerContainer}>
-          <View style={styles.pickerHeader}>
-            <Text style={styles.pickerTitle}>Select Ingredient</Text>
-            <TouchableOpacity onPress={() => setShowIngredientPicker(false)} style={styles.pickerDoneButton}>
-              <Text style={styles.pickerDoneText}>Done</Text>
-            </TouchableOpacity>
+  const renderIngredientPicker = () => {
+    // Safely get current ingredient
+    const currentIngredient = editingIngredientIndex !== null && 
+                            editingIngredientIndex >= 0 && 
+                            editingIngredientIndex < ingredients.length 
+                            ? ingredients[editingIngredientIndex] 
+                            : null;
+    
+    const selectedValue = currentIngredient?.id || availableIngredients[0]?.id || '';
+    
+    return (
+      <Modal transparent visible={showIngredientPicker} animationType="slide" onRequestClose={() => setShowIngredientPicker(false)}>
+        <TouchableOpacity style={styles.pickerModalOverlay} activeOpacity={1} onPress={() => setShowIngredientPicker(false)}>
+          <View style={styles.pickerContainer}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>Select Ingredient</Text>
+              <TouchableOpacity onPress={() => setShowIngredientPicker(false)} style={styles.pickerDoneButton}>
+                <Text style={styles.pickerDoneText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+            <Picker
+              selectedValue={selectedValue}
+              onValueChange={value => {
+                if (editingIngredientIndex !== null && 
+                    editingIngredientIndex >= 0 && 
+                    editingIngredientIndex < ingredients.length) {
+                  updateIngredient(editingIngredientIndex, 'id', value);
+                }
+              }}
+              style={styles.picker}
+            >
+              {availableIngredients.map(ing => (
+                <Picker.Item key={ing.id} label={ing.name} value={ing.id} color={proto.text} />
+              ))}
+            </Picker>
           </View>
-          <Picker
-            selectedValue={editingIngredientIndex !== null && ingredients[editingIngredientIndex] ? ingredients[editingIngredientIndex].id : availableIngredients[0]?.id}
-            onValueChange={value => {
-              if (editingIngredientIndex !== null && ingredients[editingIngredientIndex]) {
-                updateIngredient(editingIngredientIndex, 'id', value);
-              }
-            }}
-            style={styles.picker}
-          >
-            {availableIngredients.map(ing => (
-              <Picker.Item key={ing.id} label={ing.name} value={ing.id} color={proto.text} />
-            ))}
-          </Picker>
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
 
-  const renderUnitPicker = () => (
-    <Modal transparent visible={showUnitPicker} animationType="slide" onRequestClose={() => setShowUnitPicker(false)}>
-      <TouchableOpacity style={styles.pickerModalOverlay} activeOpacity={1} onPress={() => setShowUnitPicker(false)}>
-        <View style={styles.pickerContainer}>
-          <View style={styles.pickerHeader}>
-            <Text style={styles.pickerTitle}>Select Unit</Text>
-            <TouchableOpacity onPress={() => setShowUnitPicker(false)} style={styles.pickerDoneButton}>
-              <Text style={styles.pickerDoneText}>Done</Text>
-            </TouchableOpacity>
+  const renderUnitPicker = () => {
+    // Safely get current ingredient
+    const currentIngredient = editingIngredientIndex !== null && 
+                            editingIngredientIndex >= 0 && 
+                            editingIngredientIndex < ingredients.length 
+                            ? ingredients[editingIngredientIndex] 
+                            : null;
+    
+    const selectedValue = currentIngredient?.unit || commonUnits[0];
+    
+    return (
+      <Modal transparent visible={showUnitPicker} animationType="slide" onRequestClose={() => setShowUnitPicker(false)}>
+        <TouchableOpacity style={styles.pickerModalOverlay} activeOpacity={1} onPress={() => setShowUnitPicker(false)}>
+          <View style={styles.pickerContainer}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>Select Unit</Text>
+              <TouchableOpacity onPress={() => setShowUnitPicker(false)} style={styles.pickerDoneButton}>
+                <Text style={styles.pickerDoneText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+            <Picker
+              selectedValue={selectedValue}
+              onValueChange={value => {
+                if (editingIngredientIndex !== null && 
+                    editingIngredientIndex >= 0 && 
+                    editingIngredientIndex < ingredients.length) {
+                  updateIngredient(editingIngredientIndex, 'unit', value);
+                  setShowUnitPicker(false);
+                }
+              }}
+              style={styles.picker}
+            >
+              {commonUnits.map(unit => (
+                <Picker.Item key={unit} label={unit} value={unit} color={proto.text} />
+              ))}
+            </Picker>
           </View>
-          <Picker
-            selectedValue={editingIngredientIndex !== null && ingredients[editingIngredientIndex] ? ingredients[editingIngredientIndex].unit : commonUnits[0]}
-            onValueChange={value => {
-              if (editingIngredientIndex !== null && ingredients[editingIngredientIndex]) {
-                updateIngredient(editingIngredientIndex, 'unit', value);
-                setShowUnitPicker(false);
-              }
-            }}
-            style={styles.picker}
-          >
-            {commonUnits.map(unit => (
-              <Picker.Item key={unit} label={unit} value={unit} color={proto.text} />
-            ))}
-          </Picker>
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
 
   const handleClose = () => {
-    if (saving) return;
+    // Prevent closing if saving or if any pickers are open
+    if (saving || showIngredientPicker || showUnitPicker) return;
+    
     Animated.parallel([
       Animated.timing(backdropAnimation, { toValue: 0, duration: 200, useNativeDriver: true }),
       Animated.timing(modalAnimation, { toValue: 0, duration: 200, useNativeDriver: true }),
-    ]).start(() => onClose());
+    ]).start(() => {
+      // Reset all modal state when closing
+      setMealName('');
+      setMealType('lunch');
+      setIngredients([]);
+      setEditingIngredientIndex(null);
+      setShowIngredientPicker(false);
+      setShowUnitPicker(false);
+      setSaving(false);
+      onClose();
+    });
   };
 
   if (!visible) return null;
@@ -282,7 +381,7 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave, s
           ) : noIngredientsAvailable ? (
             <View style={styles.emptyStateContainer}>
               <View style={styles.emptyStateIcon}>
-                <IconSymbol size={48} name={"exclamationmark.triangle" as any} color={proto.textSecondary} />
+                <IconSymbol size={48} name="exclamationmark.triangle" color={proto.textSecondary} />
               </View>
               <Text style={styles.emptyStateTitle}>No Ingredients Available</Text>
               <Text style={styles.emptyStateMessage}>You need to add ingredients to your inventory first before creating meals.</Text>
@@ -330,7 +429,7 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave, s
                     <Text style={styles.sectionLabel}>Ingredients *</Text>
                     {ingredients.length === 0 && (
                       <View style={styles.noIngredientsCard}>
-                        <IconSymbol size={20} name={"info" as any} color={proto.textSecondary} />
+                        <IconSymbol size={20} name="info" color={proto.textSecondary} />
                         <Text style={styles.noIngredientsText}>Add at least one ingredient to your meal</Text>
                       </View>
                     )}
@@ -346,7 +445,7 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave, s
                           disabled={saving}
                         >
                           <Text style={styles.ingredientName}>
-                            {availableIngredients.find(ing => ing.id === ingredient.id)?.name || 'Select ingredient'}
+                            {getIngredientName(ingredient.id)}
                           </Text>
                           <IconSymbol size={16} name={"chevron.right" as any} color={proto.textSecondary} />
                         </TouchableOpacity>
@@ -355,12 +454,24 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave, s
                           <View style={styles.quantityInputWrapper}>
                             <TextInput
                               style={styles.quantityInput}
-                              value={ingredient.quantity.toString()}
-                              onChangeText={value => updateIngredient(index, 'quantity', parseFloat(value) || 0)}
+                              value={ingredient.quantity === 0 ? '' : ingredient.quantity.toString()}
+                              onChangeText={value => {
+                                // Allow empty string for better UX while typing
+                                if (value === '') {
+                                  updateIngredient(index, 'quantity', 0);
+                                } else {
+                                  // Only update if it's a valid number
+                                  const numValue = parseFloat(value);
+                                  if (!isNaN(numValue) && numValue >= 0) {
+                                    updateIngredient(index, 'quantity', numValue);
+                                  }
+                                }
+                              }}
                               keyboardType="decimal-pad"
                               placeholder="Qty"
                               placeholderTextColor={proto.textSecondary}
                               editable={!saving}
+                              selectTextOnFocus={true}
                             />
                           </View>
 
@@ -625,23 +736,45 @@ export default function PlanScreen() {
     ingredients: Array<{id: string, quantity: number, unit: string, foodItemId?: string}>
   ) => {
     if (!user) {
-      Alert.alert('Error', 'You must be logged in to add meals');
+      Alert.alert('Authentication Error', 'You must be logged in to add meals. Please log in and try again.');
       return;
     }
 
     try {
-      // Start a transaction
+      // Validate inputs
+      if (!name.trim()) {
+        Alert.alert('Missing Information', 'Please enter a meal name');
+        return;
+      }
+
+      if (ingredients.length === 0) {
+        Alert.alert('Missing Information', 'Please add at least one ingredient to your meal');
+        return;
+      }
+
+      // Validate all ingredients have valid quantities
+      const invalidIngredient = ingredients.find(ing => ing.quantity <= 0 || isNaN(ing.quantity));
+      if (invalidIngredient) {
+        Alert.alert('Invalid Quantity', 'Please enter valid quantities for all ingredients (must be greater than 0)');
+        return;
+      }
+
+      // Create the meal
       const { data: meal, error: mealError } = await supabase
         .from('meals')
         .insert({
-          name,
+          name: name.trim(),
           user_id: user.id,
         })
         .select()
         .single();
 
-      if (mealError) throw mealError;
+      if (mealError) {
+        console.error('Error creating meal:', mealError);
+        throw new Error(`Failed to create meal: ${mealError.message}`);
+      }
 
+      // Create the meal plan
       const { error: planError } = await supabase
         .from('meal_plans')
         .insert({
@@ -651,22 +784,27 @@ export default function PlanScreen() {
           meal_type: mealType,
         });
 
-      if (planError) throw planError;
+      if (planError) {
+        console.error('Error creating meal plan:', planError);
+        throw new Error(`Failed to create meal plan: ${planError.message}`);
+      }
 
-      // Add ingredients and update inventory
+      // Add ingredients
       for (const ingredient of ingredients) {
-        // Add meal ingredient
         const { error: ingredientError } = await supabase
           .from('meal_ingredients')
           .insert({
             meal_id: meal.id,
             ingredient_id: ingredient.id,
-            food_item_id: ingredient.foodItemId,
+            food_item_id: ingredient.foodItemId || null,
             quantity: ingredient.quantity,
             unit: ingredient.unit,
           });
 
-        if (ingredientError) throw ingredientError;
+        if (ingredientError) {
+          console.error('Error adding meal ingredient:', ingredientError);
+          throw new Error(`Failed to add ingredient with ID: ${ingredient.id}`);
+        }
 
         // Update inventory if a food item was selected
         if (ingredient.foodItemId) {
@@ -676,29 +814,42 @@ export default function PlanScreen() {
             .eq('id', ingredient.foodItemId)
             .single();
 
-          if (foodItemError) throw foodItemError;
-
-          const newQuantity = foodItem.remaining_quantity - ingredient.quantity;
-          
-          if (newQuantity < 0) {
-            throw new Error(`Not enough quantity available for ${ingredient.id}`);
+          if (foodItemError) {
+            console.error('Error fetching food item:', foodItemError);
+            // Don't throw here - ingredient was added successfully
+            continue;
           }
 
+          const newQuantity = Math.max(0, foodItem.remaining_quantity - ingredient.quantity);
+          
           const { error: updateError } = await supabase
             .from('food_items')
             .update({ remaining_quantity: newQuantity })
             .eq('id', ingredient.foodItemId);
 
-          if (updateError) throw updateError;
+          if (updateError) {
+            console.error('Error updating food item quantity:', updateError);
+            // Don't throw here - meal was created successfully
+          }
         }
       }
 
+      // Close modal and refresh data
       setIsModalVisible(false);
-      fetchWeekPlans();
+      await fetchWeekPlans();
       Alert.alert('Success', 'Meal added successfully!');
+      
     } catch (err) {
       if (__DEV__) console.error('Error adding meal:', err);
-      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to add meal');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add meal due to an unexpected error';
+      Alert.alert(
+        'Error Adding Meal', 
+        errorMessage,
+        [
+          { text: 'Try Again', style: 'default' },
+          { text: 'Close', style: 'cancel' }
+        ]
+      );
       throw err; // Re-throw to handle in modal
     }
   };
@@ -881,14 +1032,14 @@ export default function PlanScreen() {
           <View style={styles.wasteMetrics}>
             <View style={[styles.metricCard, styles.environmentCard]}>
               <View style={styles.metricIconContainer}>
-                <IconSymbol size={20} name={'calendar' as any} color="#4CAF50" />
+                <IconSymbol size={20} name='clouds' color="#4CAF50" />
               </View>
               <Text style={styles.metricValue}>{co2_saved.toFixed(1)}kg</Text>
               <Text style={styles.metricLabel}>{`CO₂ Emissions\nPrevented`}</Text>
             </View>
             <View style={[styles.metricCard, styles.environmentCard]}>
               <View style={styles.metricIconContainer}>
-                <IconSymbol size={20} name={'drop' as any} color="#2196F3" />
+                <IconSymbol size={20} name="drop" color="#2196F3" />
               </View>
               <Text style={styles.metricValue}>{water_saved.toFixed(0)}L</Text>
               <Text style={styles.metricLabel}>{`Water\nSaved`}</Text>

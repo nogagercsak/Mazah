@@ -272,25 +272,8 @@ export const getCurrentLocation = async (): Promise<{ lat: number; lng: number }
 const search211Database = async (userLocation: { lat: number; lng: number }): Promise<FoodBank[]> => {
   try {
     // Note: This is a simplified implementation. In production, you'd need to register for 211 API access
-    // For now, we'll return some mock data based on common food bank types
-    const mockFoodBanks: FoodBank[] = [
-      {
-        id: '211_1',
-        name: 'Local Community Food Pantry',
-        address: 'Community Address (211 Source)',
-        type: 'food_pantry',
-        distance: 0,
-        coordinates: userLocation,
-        source: '211',
-        phone: '(555) 211-FOOD',
-        hours: 'Mon-Wed-Fri 10AM-2PM',
-        acceptedItems: ['Non-perishable foods', 'Fresh produce'],
-        requirements: ['Valid ID required'],
-        lastUpdated: new Date().toISOString(),
-      }
-    ];
-    
-    return mockFoodBanks;
+    // For now, we'll return empty array until real API integration is implemented
+    return [];
   } catch (error) {
     if (__DEV__) console.error('211 API error:', error);
     return [];

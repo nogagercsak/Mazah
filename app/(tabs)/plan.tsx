@@ -108,7 +108,7 @@ const AddMealModal: React.FC<AddMealModalProps> = ({ visible, onClose, onSave, s
         .order('name');
       
       if (error) {
-        console.error('Supabase error fetching ingredients:', error);
+        if (__DEV__) console.error('Supabase error fetching ingredients:', error);
         throw new Error(`Database error: ${error.message}`);
       }
       
@@ -770,7 +770,7 @@ export default function PlanScreen() {
         .single();
 
       if (mealError) {
-        console.error('Error creating meal:', mealError);
+        if (__DEV__) console.error('Error creating meal:', mealError);
         throw new Error(`Failed to create meal: ${mealError.message}`);
       }
 
@@ -785,7 +785,7 @@ export default function PlanScreen() {
         });
 
       if (planError) {
-        console.error('Error creating meal plan:', planError);
+        if (__DEV__) console.error('Error creating meal plan:', planError);
         throw new Error(`Failed to create meal plan: ${planError.message}`);
       }
 
@@ -802,7 +802,7 @@ export default function PlanScreen() {
           });
 
         if (ingredientError) {
-          console.error('Error adding meal ingredient:', ingredientError);
+          if (__DEV__) console.error('Error adding meal ingredient:', ingredientError);
           throw new Error(`Failed to add ingredient with ID: ${ingredient.id}`);
         }
 
@@ -815,7 +815,7 @@ export default function PlanScreen() {
             .single();
 
           if (foodItemError) {
-            console.error('Error fetching food item:', foodItemError);
+            if (__DEV__) console.error('Error fetching food item:', foodItemError);
             // Don't throw here - ingredient was added successfully
             continue;
           }
@@ -828,7 +828,7 @@ export default function PlanScreen() {
             .eq('id', ingredient.foodItemId);
 
           if (updateError) {
-            console.error('Error updating food item quantity:', updateError);
+            if (__DEV__) console.error('Error updating food item quantity:', updateError);
             // Don't throw here - meal was created successfully
           }
         }

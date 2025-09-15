@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Image, ActivityIndicator, RefreshControl, Modal, Pressable } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Image, ActivityIndicator, RefreshControl, Modal, Pressable, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -83,6 +83,12 @@ export default function CookScreen() {
   // Ingredient checking state
   const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set());
 
+  // Search state
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<ProcessedRecipe[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   // Initialize recipe service
   useEffect(() => {
     if (apiKey) {
@@ -140,7 +146,7 @@ export default function CookScreen() {
 
       setRecipes(fetchedRecipes);
     } catch (err: any) {
-      console.error('Recipe loading error:', err);
+      if (__DEV__) console.error('Recipe loading error:', err);
       setError(err.message || 'Failed to load recipes');
     } finally {
       setLoading(false);
@@ -184,7 +190,7 @@ export default function CookScreen() {
 
   const handleStartCooking = async (recipe: ProcessedRecipe) => {
     if (!apiKey) {
-      console.error('API key not found');
+      if (__DEV__) console.error('API key not found');
       return;
     }
 
@@ -218,7 +224,7 @@ export default function CookScreen() {
       });
       
     } catch (error) {
-      console.error('Failed to fetch recipe details:', error);
+      if (__DEV__) console.error('Failed to fetch recipe details:', error);
       setError('Failed to load recipe details. Please try again.');
       setSelectedRecipeForCooking(null);
     } finally {
@@ -231,6 +237,34 @@ export default function CookScreen() {
     setFullRecipeDetails(null);
     setFetchingRecipeDetails(false);
     setCheckedIngredients(new Set());
+  };
+
+  const handleSearchPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowSearchModal(true);
+  };
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim() || !recipeService) return;
+
+    setIsSearching(true);
+    try {
+      await recipeService.loadUserInventory(user?.id || '');
+      const results = await recipeService.searchRecipesByName(searchQuery.trim());
+      setSearchResults(results);
+    } catch (error) {
+      if (__DEV__) console.error('Search error:', error);
+      setError('Failed to search recipes. Please try again.');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const closeSearchModal = () => {
+    setShowSearchModal(false);
+    setSearchQuery('');
+    setSearchResults([]);
+    setIsSearching(false);
   };
 
   const getScoreColor = (score: number) => {
@@ -506,6 +540,104 @@ export default function CookScreen() {
     );
   };
 
+  const renderSearchModal = () => {
+    return (
+      <Modal
+        visible={showSearchModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={closeSearchModal}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          {/* Search Modal Header */}
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Search Recipes</Text>
+            <TouchableOpacity 
+              style={styles.closeButton}
+              onPress={closeSearchModal}
+            >
+              <IconSymbol size={24} name="close" color={proto.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Search Input */}
+          <View style={styles.searchInputContainer}>
+            <View style={styles.searchInputWrapper}>
+              <IconSymbol size={20} name="magnifyingglass" color={proto.textSecondary} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search for recipes..."
+                placeholderTextColor={proto.textSecondary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onSubmitEditing={handleSearch}
+                returnKeyType="search"
+                autoFocus
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <IconSymbol size={18} name="cancel" color={proto.textSecondary} />
+                </TouchableOpacity>
+              )}
+            </View>
+            <TouchableOpacity 
+              style={[styles.searchActionButton, !searchQuery.trim() && styles.searchActionButtonDisabled]}
+              onPress={handleSearch}
+              disabled={!searchQuery.trim() || isSearching}
+            >
+              {isSearching ? (
+                <ActivityIndicator size="small" color={proto.buttonText} />
+              ) : (
+                <Text style={styles.searchActionButtonText}>Search</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Search Results */}
+          <ScrollView style={styles.searchResultsContainer} showsVerticalScrollIndicator={false}>
+            {searchResults.length > 0 ? (
+              searchResults.map((recipe) => (
+                <TouchableOpacity
+                  key={recipe.id}
+                  style={styles.searchResultItem}
+                  onPress={() => {
+                    closeSearchModal();
+                    handleStartCooking(recipe);
+                  }}
+                >
+                  <Image source={{ uri: recipe.image }} style={styles.searchResultImage} />
+                  <View style={styles.searchResultInfo}>
+                    <Text style={styles.searchResultTitle} numberOfLines={2}>{recipe.name}</Text>
+                    <Text style={styles.searchResultDetails}>{recipe.time} • {recipe.difficulty}</Text>
+                    {recipe.matchPercentage > 0 && (
+                      <Text style={styles.searchResultMatch}>{recipe.matchPercentage}% match with your ingredients</Text>
+                    )}
+                  </View>
+                  <View style={styles.searchResultScore}>
+                    <IconSymbol size={16} name="leaf.fill" color={proto.accent} />
+                    <Text style={styles.searchResultScoreText}>{recipe.wasteReductionScore}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            ) : searchQuery && !isSearching ? (
+              <View style={styles.noSearchResults}>
+                <IconSymbol size={48} name="magnifyingglass" color={proto.textSecondary} />
+                <Text style={styles.noSearchResultsTitle}>No recipes found</Text>
+                <Text style={styles.noSearchResultsText}>Try searching with different keywords</Text>
+              </View>
+            ) : !searchQuery ? (
+              <View style={styles.searchEmptyState}>
+                <IconSymbol size={48} name="magnifyingglass" color={proto.textSecondary} />
+                <Text style={styles.searchEmptyStateTitle}>Search for Recipes</Text>
+                <Text style={styles.searchEmptyStateText}>Enter a recipe name, ingredient, or cuisine type to find delicious recipes</Text>
+              </View>
+            ) : null}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+    );
+  };
+
   const renderRecipeCard = (recipe: ProcessedRecipe) => {
     const isExpanded = expandedRecipeId === recipe.id;
     
@@ -650,7 +782,7 @@ export default function CookScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Smart Recipe Suggestions</Text>
-        <TouchableOpacity style={styles.searchButton}>
+        <TouchableOpacity style={styles.searchButton} onPress={handleSearchPress}>
           <IconSymbol size={24} name="magnifyingglass" color={proto.accentDark} />
         </TouchableOpacity>
       </View>
@@ -707,6 +839,9 @@ export default function CookScreen() {
 
       {/* Recipe Modal */}
       {renderRecipeModal()}
+
+      {/* Search Modal */}
+      {renderSearchModal()}
     </SafeAreaView>
   );
 }
@@ -725,9 +860,11 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '700',
     color: proto.accentDark,
+    opacity: 0.85,
+    letterSpacing: 0.5,
     flex: 1,
   },
   searchButton: {
@@ -1283,5 +1420,132 @@ const styles = StyleSheet.create({
     color: proto.buttonText,
     fontSize: 16,
     fontWeight: '600',
+  },
+  // Search Modal Styles
+  searchInputContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    gap: 12,
+  },
+  searchInputWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: proto.inputBackground,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: proto.text,
+  },
+  searchActionButton: {
+    backgroundColor: proto.accent,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    minWidth: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchActionButtonDisabled: {
+    backgroundColor: proto.textSecondary,
+    opacity: 0.5,
+  },
+  searchActionButtonText: {
+    color: proto.buttonText,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  searchResultsContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  searchResultItem: {
+    flexDirection: 'row',
+    backgroundColor: proto.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    alignItems: 'center',
+    gap: 12,
+  },
+  searchResultImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+  },
+  searchResultInfo: {
+    flex: 1,
+  },
+  searchResultTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: proto.text,
+    marginBottom: 4,
+  },
+  searchResultDetails: {
+    fontSize: 14,
+    color: proto.textSecondary,
+    marginBottom: 2,
+  },
+  searchResultMatch: {
+    fontSize: 12,
+    color: proto.accent,
+  },
+  searchResultScore: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: proto.accent + '20',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  searchResultScoreText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: proto.accent,
+  },
+  noSearchResults: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  noSearchResultsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: proto.text,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  noSearchResultsText: {
+    fontSize: 14,
+    color: proto.textSecondary,
+    textAlign: 'center',
+  },
+  searchEmptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  searchEmptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: proto.text,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  searchEmptyStateText: {
+    fontSize: 14,
+    color: proto.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
 });

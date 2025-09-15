@@ -2,6 +2,7 @@ module.exports = {
   expo: {
     name: "mazah",
     slug: "mazah",
+    scheme: "mazah",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",

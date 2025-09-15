@@ -69,7 +69,7 @@ export default function LoginScreen() {
       router.replace('/(tabs)');
 
     } catch (error) {
-      console.error('Login error:', error);
+      if (__DEV__) console.error('Login error:', error);
       
       // Show appropriate error message
       if (error instanceof Error) {
@@ -90,7 +90,7 @@ export default function LoginScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <IconSymbol name={"leaf.fill" as any} size={64} color={proto.accent} />
+          <IconSymbol name="leaf" size={64} color={proto.accent} />
           <Text style={styles.title}>Welcome to Mazah</Text>
           <Text style={styles.subtitle}>Fight Climate Change, One Meal at a Time</Text>
         </View>

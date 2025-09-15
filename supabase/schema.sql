@@ -99,10 +99,15 @@ CREATE TABLE IF NOT EXISTS public.food_items (
 CREATE TABLE IF NOT EXISTS public.ingredients (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
-  quantity TEXT,
+  category TEXT,
+  co2_per_kg DECIMAL(10,3) DEFAULT 0,
+  water_per_kg DECIMAL(10,2) DEFAULT 0,
+  standard_unit TEXT DEFAULT 'g',
+  conversion_to_kg DECIMAL(10,6) DEFAULT 0.001,
+  is_global BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE
 );
 
 -- Create meals table
@@ -278,18 +283,18 @@ CREATE POLICY "Users can update own food items" ON public.food_items
 CREATE POLICY "Users can delete own food items" ON public.food_items
     FOR DELETE USING (auth.uid() = user_id);
 
--- Ingredients policies
-CREATE POLICY "Users can view own ingredients" ON public.ingredients
-  FOR SELECT USING (auth.uid() = user_id);
+-- Ingredients policies (allow viewing all ingredients, but only modify own)
+CREATE POLICY "Users can view all ingredients" ON public.ingredients
+  FOR SELECT USING (auth.uid() = user_id OR is_global = true);
 
 CREATE POLICY "Users can insert own ingredients" ON public.ingredients
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (auth.uid() = user_id AND is_global = false);
 
 CREATE POLICY "Users can update own ingredients" ON public.ingredients
-  FOR UPDATE USING (auth.uid() = user_id);
+  FOR UPDATE USING (auth.uid() = user_id AND is_global = false);
 
 CREATE POLICY "Users can delete own ingredients" ON public.ingredients
-  FOR DELETE USING (auth.uid() = user_id);
+  FOR DELETE USING (auth.uid() = user_id AND is_global = false);
 
 -- Recipes policies
 CREATE POLICY "Users can view all recipes" ON public.recipes

@@ -61,13 +61,13 @@ export default function OnboardingScreen() {
 
   const handleSubmit = async () => {
   try {
-    console.log('🚀 ONBOARDING SUBMIT: Starting submission...');
+    if (__DEV__) console.log('🚀 ONBOARDING SUBMIT: Starting submission...');
     
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('No user found');
 
-    console.log('🚀 ONBOARDING SUBMIT: User found:', user.id, user.email);
-    console.log('🚀 ONBOARDING SUBMIT: Profile data to save:', profile);
+    if (__DEV__) console.log('🚀 ONBOARDING SUBMIT: User found:', user.id, user.email);
+    if (__DEV__) console.log('🚀 ONBOARDING SUBMIT: Profile data to save:', profile);
 
     const finalProfile = {
       ...profile,
@@ -76,7 +76,7 @@ export default function OnboardingScreen() {
       updated_at: new Date().toISOString(), // Add this field
     };
 
-    console.log('🚀 ONBOARDING SUBMIT: Final profile object:', finalProfile);
+    if (__DEV__) console.log('🚀 ONBOARDING SUBMIT: Final profile object:', finalProfile);
 
     // First, try to check if profile already exists
     const { data: existingProfile } = await supabase
@@ -85,12 +85,12 @@ export default function OnboardingScreen() {
       .eq('user_id', user.id)
       .maybeSingle();
 
-    console.log('🚀 ONBOARDING SUBMIT: Existing profile check:', existingProfile);
+    if (__DEV__) console.log('🚀 ONBOARDING SUBMIT: Existing profile check:', existingProfile);
 
     let result;
     if (existingProfile) {
       // Profile exists, update it
-      console.log('🚀 ONBOARDING SUBMIT: Profile exists, updating...');
+      if (__DEV__) console.log('🚀 ONBOARDING SUBMIT: Profile exists, updating...');
       result = await supabase
         .from('user_profiles')
         .update(finalProfile)
@@ -98,7 +98,7 @@ export default function OnboardingScreen() {
         .select();
     } else {
       // Profile doesn't exist, insert it
-      console.log('🚀 ONBOARDING SUBMIT: Profile does not exist, inserting...');
+      if (__DEV__) console.log('🚀 ONBOARDING SUBMIT: Profile does not exist, inserting...');
       result = await supabase
         .from('user_profiles')
         .insert(finalProfile)
@@ -106,24 +106,24 @@ export default function OnboardingScreen() {
     }
 
     if (result.error) {
-      console.error('🚀 ONBOARDING SUBMIT: Supabase error details:', result.error);
+      if (__DEV__) console.error('🚀 ONBOARDING SUBMIT: Supabase error details:', result.error);
       throw result.error;
     }
 
-    console.log('🚀 ONBOARDING SUBMIT: Profile saved successfully:', result.data);
+    if (__DEV__) console.log('🚀 ONBOARDING SUBMIT: Profile saved successfully:', result.data);
 
     // Add a small delay to ensure the database update is processed
-    console.log('🚀 ONBOARDING SUBMIT: Waiting for database update...');
+    if (__DEV__) console.log('🚀 ONBOARDING SUBMIT: Waiting for database update...');
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Force refresh the page/app state by triggering a hard navigation
-    console.log('🚀 ONBOARDING SUBMIT: Forcing app state refresh...');
+    if (__DEV__) console.log('🚀 ONBOARDING SUBMIT: Forcing app state refresh...');
     
     // Navigate to main app and let the auth context handle the rest
     router.replace('/(tabs)');
     
   } catch (error: any) {
-    console.error('🚀 ONBOARDING SUBMIT: Error saving profile:', error);
+    if (__DEV__) console.error('🚀 ONBOARDING SUBMIT: Error saving profile:', error);
     
     // Show user-friendly error message
     alert(`Failed to save your profile: ${error.message || 'Unknown error'}. Please try again.`);

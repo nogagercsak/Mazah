@@ -74,7 +74,7 @@ export default function AddItemScreen() {
       router.back();
 
     } catch (err) {
-      console.error('Error adding item:', err);
+      if (__DEV__) console.error('Error adding item:', err);
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
       Alert.alert('Error', `Could not add the item: ${errorMessage}`);
     } finally {
@@ -338,9 +338,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 32,
     fontWeight: '700',
     color: proto.accentDark,
+    opacity: 0.85,
+    letterSpacing: 0.5,
   },
   form: {
     paddingHorizontal: 20,

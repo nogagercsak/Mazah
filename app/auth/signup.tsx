@@ -52,18 +52,18 @@ export default function SignUpScreen() {
   setLoading(true);
 
   try {
-    console.log('🔐 SIGNUP: Attempting to sign up with email:', email);
+    if (__DEV__) console.log('🔐 SIGNUP: Attempting to sign up with email:', email);
     
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
 
-    console.log('🔐 SIGNUP: Response data:', data);
-    console.log('🔐 SIGNUP: Response error:', error);
+    if (__DEV__) console.log('🔐 SIGNUP: Response data:', data);
+    if (__DEV__) console.log('🔐 SIGNUP: Response error:', error);
 
     if (error) {
-      console.error('🔐 SIGNUP: Error details:', error);
+      if (__DEV__) console.error('🔐 SIGNUP: Error details:', error);
       
       let errorMessage = 'An error occurred during sign up.';
       
@@ -84,12 +84,12 @@ export default function SignUpScreen() {
       throw new Error(errorMessage);
     }
 
-    console.log('🔐 SIGNUP: Signup successful!');
-    console.log('🔐 SIGNUP: User data:', data.user);
-    console.log('🔐 SIGNUP: Email confirmed at:', data.user?.email_confirmed_at);
+    if (__DEV__) console.log('🔐 SIGNUP: Signup successful!');
+    if (__DEV__) console.log('🔐 SIGNUP: User data:', data.user);
+    if (__DEV__) console.log('🔐 SIGNUP: Email confirmed at:', data.user?.email_confirmed_at);
 
     if (data.user && !data.user.email_confirmed_at) {
-      console.log('🔐 SIGNUP: Email confirmation required');
+      if (__DEV__) console.log('🔐 SIGNUP: Email confirmation required');
       Alert.alert(
         'Check Your Email', 
         'We\'ve sent you a confirmation email. Please check your email and click the confirmation link to complete your account setup.',
@@ -97,7 +97,7 @@ export default function SignUpScreen() {
           {
             text: 'OK',
             onPress: () => {
-              console.log('🔐 SIGNUP: Email confirmation alert dismissed, going to login');
+              if (__DEV__) console.log('🔐 SIGNUP: Email confirmation alert dismissed, going to login');
               router.replace('/auth/login');
             },
           },
@@ -105,14 +105,14 @@ export default function SignUpScreen() {
       );
     } else {
       // Email confirmation not required OR already confirmed
-      console.log('🔐 SIGNUP: No email confirmation required, account created successfully');
+      if (__DEV__) console.log('🔐 SIGNUP: No email confirmation required, account created successfully');
       
       // Don't navigate immediately - let the useProtectedRoute handle it
-      console.log('🔐 SIGNUP: Account created, auth context will handle navigation to onboarding');
+      if (__DEV__) console.log('🔐 SIGNUP: Account created, auth context will handle navigation to onboarding');
     }
 
   } catch (error) {
-    console.error('🔐 SIGNUP: Sign up error:', error);
+    if (__DEV__) console.error('🔐 SIGNUP: Sign up error:', error);
     Alert.alert('Sign Up Failed', error instanceof Error ? error.message : 'An error occurred during sign up.');
   } finally {
     setLoading(false);

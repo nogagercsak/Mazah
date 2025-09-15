@@ -126,7 +126,7 @@ export class RecipeService {
         .sort((a, b) => b.wasteReductionScore - a.wasteReductionScore);
 
     } catch (error) {
-      console.error('Recipe search error:', error);
+      if (__DEV__) console.error('Recipe search error:', error);
       return [];
     }
   }
@@ -355,7 +355,38 @@ export class RecipeService {
         .sort((a, b) => b.expiringIngredients.length - a.expiringIngredients.length);
 
     } catch (error) {
-      console.error('Expiration-based recipe search error:', error);
+      if (__DEV__) console.error('Expiration-based recipe search error:', error);
+      return [];
+    }
+  }
+
+  // Search recipes by name/query
+  async searchRecipesByName(query: string): Promise<ProcessedRecipe[]> {
+    if (!query.trim()) {
+      return [];
+    }
+
+    try {
+      const response = await fetch(
+        `https://api.spoonacular.com/recipes/complexSearch?` +
+        `query=${encodeURIComponent(query)}&` +
+        `number=20&` +
+        `addRecipeInformation=true&` +
+        `apiKey=${this.apiKey}`
+      );
+
+      if (!response.ok) throw new Error(`API Error: ${response.status}`);
+      
+      const data = await response.json();
+      const recipes: SpoonacularRecipe[] = data.results || [];
+
+      // Process recipes and calculate waste reduction scores
+      return recipes
+        .map(recipe => this.processRecipe(recipe))
+        .sort((a, b) => b.wasteReductionScore - a.wasteReductionScore);
+
+    } catch (error) {
+      if (__DEV__) console.error('Recipe name search error:', error);
       return [];
     }
   }

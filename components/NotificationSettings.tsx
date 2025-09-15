@@ -161,18 +161,6 @@ export default function NotificationSettings({ onClose }: NotificationSettingsPr
             </View>
           </View>
         </View>
-
-        {/* Configuration Notice Card */}
-        <View style={styles.configCard}>
-          <Text style={styles.configTitle}>⚠️ Configuration Required</Text>
-          <Text style={styles.configText}>
-            To enable push notifications, you need to:{'\n'}
-            1. Set up your Expo project ID in environment variables{'\n'}
-            2. Build a development build (Expo Go doesn&apos;t support push notifications){'\n'}
-            3. Configure your app for production deployment{'\n\n'}
-            Local notifications will still work for testing purposes.
-          </Text>
-        </View>
       </ScrollView>
     </View>
   );

@@ -70,6 +70,7 @@ function useProtectedRoute(user: any) {
   const router = useRouter();
   const [hasCheckedOnboarding, setHasCheckedOnboarding] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(true);
+  const [lastNavigationTime, setLastNavigationTime] = useState(0);
 
   // Check if user needs onboarding
   useEffect(() => {
@@ -150,7 +151,7 @@ function useProtectedRoute(user: any) {
           setNeedsOnboarding(false);
           clearInterval(interval);
         }
-      }, 2000); // Check every 2 seconds
+      }, 3000); // Check every 3 seconds (increased from 2)
       
       return () => {
         if (__DEV__) console.log('Cleaning up periodic onboarding check...');
@@ -163,6 +164,13 @@ function useProtectedRoute(user: any) {
   useEffect(() => {
     if (!hasCheckedOnboarding) {
       if (__DEV__) console.log('Still checking onboarding status, skipping navigation...');
+      return;
+    }
+
+    // Debounce navigation to prevent rapid changes
+    const now = Date.now();
+    if (now - lastNavigationTime < 1000) {
+      if (__DEV__) console.log('Navigation debounced, too recent...');
       return;
     }
 
@@ -187,6 +195,7 @@ function useProtectedRoute(user: any) {
       // If not signed in and not in auth group, go to login
       if (!inAuthGroup) {
         if (__DEV__) console.log('No user, redirecting to login...');
+        setLastNavigationTime(now);
         router.replace('/auth/login');
       }
     } else if (user && hasCheckedOnboarding) {
@@ -194,6 +203,7 @@ function useProtectedRoute(user: any) {
         // If needs onboarding and not already there, go to onboarding
         if (!isOnboarding) {
           if (__DEV__) console.log('User needs onboarding, redirecting...');
+          setLastNavigationTime(now);
           router.replace('/auth/onboarding');
         }
       } else {
@@ -201,11 +211,12 @@ function useProtectedRoute(user: any) {
         if (inAuthGroup && !isSignup && !isLogin) {
           // If in auth group (but not signup/login), go to main app
           if (__DEV__) console.log('Onboarding complete, redirecting to main app...');
+          setLastNavigationTime(now);
           router.replace('/');
         }
       }
     }
-  }, [user, segments, hasCheckedOnboarding, needsOnboarding, router]);
+  }, [user, segments, hasCheckedOnboarding, needsOnboarding, router, lastNavigationTime]);
 }
 
 function RootLayoutNav() {

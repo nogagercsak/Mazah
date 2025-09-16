@@ -13,6 +13,7 @@ interface Step2HouseholdProps {
   onBack: () => void;
   updateProfile: (data: Partial<OnboardingProfile>) => void;
   profile: Partial<OnboardingProfile>;
+  isSubmitting?: boolean;
 }
 
 export default function Step2Household({
@@ -20,6 +21,7 @@ export default function Step2Household({
   onBack,
   updateProfile,
   profile,
+  isSubmitting = false,
 }: Step2HouseholdProps) {
   const insets = useSafeAreaInsets();
   const [householdSize, setHouseholdSize] = useState<string>(

@@ -162,17 +162,6 @@ export default function NotificationSettings({ onClose }: NotificationSettingsPr
           </View>
         </View>
 
-        {/* Configuration Notice Card */}
-        <View style={styles.configCard}>
-          <Text style={styles.configTitle}>⚠️ Configuration Required</Text>
-          <Text style={styles.configText}>
-            To enable push notifications, you need to:{'\n'}
-            1. Set up your Expo project ID in environment variables{'\n'}
-            2. Build a development build (Expo Go doesn&apos;t support push notifications){'\n'}
-            3. Configure your app for production deployment{'\n\n'}
-            Local notifications will still work for testing purposes.
-          </Text>
-        </View>
       </ScrollView>
     </View>
   );
@@ -305,29 +294,5 @@ const styles = StyleSheet.create({
     color: proto.textSecondary,
     lineHeight: 20,
     flex: 1,
-  },
-  configCard: {
-    backgroundColor: '#FFF3CD',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#FFEAA7',
-    shadowColor: proto.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  configTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#856404',
-    marginBottom: 12,
-  },
-  configText: {
-    fontSize: 14,
-    color: '#856404',
-    lineHeight: 20,
   },
 });

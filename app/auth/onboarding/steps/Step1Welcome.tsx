@@ -14,7 +14,6 @@ interface Step1WelcomeProps {
   onBack: () => void;
   updateProfile: (data: Partial<OnboardingProfile>) => void;
   profile: Partial<OnboardingProfile>;
-  isSubmitting?: boolean;
 }
 
 export default function Step1Welcome({
@@ -22,7 +21,6 @@ export default function Step1Welcome({
   onBack,
   updateProfile,
   profile,
-  isSubmitting = false,
 }: Step1WelcomeProps) {
   const insets = useSafeAreaInsets();
   const [selectedMotivations, setSelectedMotivations] = useState<string[]>(

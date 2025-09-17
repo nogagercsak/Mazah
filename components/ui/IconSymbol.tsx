@@ -54,7 +54,6 @@ const MAPPING = {
   'smoke' : 'cloud',
   'clouds': 'cloud',
   'leaf.arrow.trianglehead.clockwise' : 'eco',
-  'mazah': 'eco',
 } as const;
 
 export type IconSymbolName = keyof typeof MAPPING;

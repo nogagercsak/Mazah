@@ -211,14 +211,14 @@ export const searchFoodBanks = async (
     if (osmResults.status === 'fulfilled') {
       allFoodBanks.push(...osmResults.value);
     } else if (__DEV__) {
-      console.warn('OSM search failed:', osmResults.reason);
+      if (__DEV__) console.warn('OSM search failed:', osmResults.reason);
     }
     
     // Add 211 results
     if (twoOneOneResults.status === 'fulfilled') {
       allFoodBanks.push(...twoOneOneResults.value);
     } else if (__DEV__) {
-      console.warn('211 search failed:', twoOneOneResults.reason);
+      if (__DEV__) console.warn('211 search failed:', twoOneOneResults.reason);
     }
 
     // Remove duplicates based on proximity and name similarity

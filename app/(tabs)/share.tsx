@@ -293,9 +293,15 @@ const FoodBankDetailsModal: React.FC<FoodBankDetailsModalProps> = ({
       animationType="slide"
       transparent={true}
       onRequestClose={onClose}
+      accessibilityViewIsModal={true}
     >
-      <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <Pressable style={styles.modalContent} onPress={e => e.stopPropagation()}>
+      <Pressable style={styles.modalOverlay} onPress={onClose} accessibilityLabel="Close modal">
+        <Pressable 
+          style={styles.modalContent} 
+          onPress={e => e.stopPropagation()}
+          accessibilityRole="button"
+          accessibilityLabel={`Details for ${foodBank.name}`}
+        >
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle} numberOfLines={2}>
               {foodBank.name}
@@ -578,7 +584,10 @@ export default function FoodBankLocatorScreen() {
       key={foodBank.id}
       style={styles.foodBankCard}
       onPress={() => handleFoodBankPress(foodBank)}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={`View details for ${foodBank.name}`}
+      accessibilityHint="Tap to view full details, get directions, and contact information"
     >
       <View style={styles.cardHeader}>
         <View style={styles.cardTitleContainer}>
@@ -651,12 +660,50 @@ export default function FoodBankLocatorScreen() {
       </View>
 
       <View style={styles.cardActions}>
-        <View style={styles.actionIcons}>
+        <View style={styles.quickActions}>
+          <TouchableOpacity 
+            style={styles.quickActionButton}
+            onPress={(e) => {
+              e.stopPropagation();
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              const url = `https://maps.google.com/?q=${encodeURIComponent(foodBank.address)}`;
+              Linking.openURL(url);
+            }}
+            accessibilityLabel="Get directions"
+            accessibilityHint="Opens maps with directions to this food bank"
+          >
+            <Ionicons name="location" size={18} color={proto.accent} />
+          </TouchableOpacity>
+          
           {foodBank.phone && (
-            <Ionicons name="call" size={18} color={proto.accent} />
+            <TouchableOpacity 
+              style={styles.quickActionButton}
+              onPress={(e) => {
+                e.stopPropagation();
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                const phoneUrl = `tel:${foodBank.phone!.replace(/[^\d]/g, '')}`;
+                Linking.openURL(phoneUrl);
+              }}
+              accessibilityLabel="Call food bank"
+              accessibilityHint="Calls this food bank directly"
+            >
+              <Ionicons name="call" size={18} color={proto.accent} />
+            </TouchableOpacity>
           )}
+          
           {foodBank.website && (
-            <Ionicons name="globe" size={18} color={proto.accent} />
+            <TouchableOpacity 
+              style={styles.quickActionButton}
+              onPress={(e) => {
+                e.stopPropagation();
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                Linking.openURL(foodBank.website!);
+              }}
+              accessibilityLabel="Visit website"
+              accessibilityHint="Opens this food bank's website"
+            >
+              <Ionicons name="globe" size={18} color={proto.accent} />
+            </TouchableOpacity>
           )}
         </View>
         <Ionicons name="chevron-forward" size={16} color={proto.textSecondary} />
@@ -1109,11 +1156,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 16,
     shadowColor: proto.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: proto.border,
   },
   cardHeader: {
     backgroundColor: proto.accentDark,
@@ -1234,6 +1283,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingBottom: 16,
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  quickActionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: proto.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: proto.border,
+  },
+  viewDetailsIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  viewDetailsText: {
+    fontSize: 12,
+    color: proto.textSecondary,
+    fontWeight: '500',
   },
   actionIcons: {
     flexDirection: 'row',

@@ -542,67 +542,8 @@ export class NotificationService {
   }
 
   /**
-   * Send a test push notification
-   */
-  async sendTestPushNotification(): Promise<boolean> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        if (__DEV__) console.log('No user found');
-        return false;
-      }
-
-      // This sends an actual push notification through Expo's servers
-      return await this.sendPushNotification(
-        user.id,
-        'Test Push Notification 🚀',
-        'This is a real push notification from your server!',
-        { type: 'test', timestamp: new Date().toISOString() }
-      );
-    } catch (error) {
-      if (__DEV__) console.error('Error sending test push:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Schedule a test expiration notification for testing purposes
-   */
-  async scheduleTestExpirationNotification(): Promise<boolean> {
-    try {
-      // Create a test food item that expires in 3 days
-      const testDate = new Date();
-      testDate.setDate(testDate.getDate() + 3); // 3 days from now
-      
-      // Schedule an immediate notification for testing
-      const notificationId = await Notifications.scheduleNotificationAsync({
-        content: {
-          title: 'Food Expiration Alert ⚠️',
-          body: 'Milk expires in 3 days',
-          data: { 
-            foodItemId: 'test-item', 
-            foodName: 'Milk', 
-            expirationDate: testDate.toISOString(),
-            type: 'expiration_alert',
-            daysUntilExpiry: 3
-          },
-          sound: 'default',
-        },
-        trigger: {
-          type: 'timeInterval' as any,
-          seconds: 2, // Show after 2 seconds for testing
-        },
-      });
-      
-      if (__DEV__) console.log('Test expiration notification scheduled:', notificationId);
-      return true;
-    } catch (error) {
-      if (__DEV__) console.error('Error scheduling test expiration notification:', error);
-      return false;
-    }
-  }
-
-  /**
+   * Clear expired notifications and clean up old scheduled notifications
+   /**
    * Clear expired notifications and clean up old scheduled notifications
    */
   async cleanupNotifications(): Promise<void> {

@@ -1,6 +1,6 @@
 module.exports = {
   expo: {
-    name: "mazah",
+    name: "Mazah",
     slug: "mazah",
     scheme: "mazah",
     version: "1.0.0",
@@ -25,7 +25,7 @@ module.exports = {
         },
         UIBackgroundModes: [],
         UIViewControllerBasedStatusBarAppearance: false,
-        CFBundleDisplayName: "mazah"
+        CFBundleDisplayName: "Mazah"
       }
     },
     android: {

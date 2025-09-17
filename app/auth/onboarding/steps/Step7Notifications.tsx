@@ -26,6 +26,7 @@ interface Step7NotificationsProps {
   onBack: () => void;
   updateProfile: (data: Partial<OnboardingProfile>) => void;
   profile: Partial<OnboardingProfile>;
+  isCompleting?: boolean;
 }
 
 export default function Step7Notifications({
@@ -33,6 +34,7 @@ export default function Step7Notifications({
   onBack,
   updateProfile,
   profile,
+  isCompleting = false,
 }: Step7NotificationsProps) {
   const insets = useSafeAreaInsets();
   const [permissionStatus, setPermissionStatus] = useState<Notifications.PermissionStatus | null>(null);
@@ -290,24 +292,36 @@ export default function Step7Notifications({
         { paddingBottom: Math.max(insets.bottom + 16, 24) }
       ]}>
         <TouchableOpacity
-          style={styles.navButton}
-          onPress={onBack}
-          activeOpacity={0.7}
+          style={[styles.navButton, isCompleting && styles.navButtonDisabled]}
+          onPress={isCompleting ? undefined : onBack}
+          activeOpacity={isCompleting ? 1 : 0.7}
+          disabled={isCompleting}
         >
-          <IconSymbol size={20} name="chevron.left" color={proto.text} />
-          <Text style={styles.navButtonText}>Back</Text>
+          <IconSymbol size={20} name="chevron.left" color={isCompleting ? proto.textSecondary : proto.text} />
+          <Text style={[styles.navButtonText, isCompleting && styles.navButtonTextDisabled]}>Back</Text>
         </TouchableOpacity>
         
         {permissionStatus === 'granted' && (
           <TouchableOpacity
-            style={[styles.navButton, styles.navButtonPrimary]}
-            onPress={onNext}
-            activeOpacity={0.8}
+            style={[
+              styles.navButton, 
+              styles.navButtonPrimary,
+              isCompleting && styles.navButtonDisabled
+            ]}
+            onPress={isCompleting ? undefined : onNext}
+            activeOpacity={isCompleting ? 1 : 0.8}
+            disabled={isCompleting}
           >
-            <Text style={[styles.navButtonText, styles.navButtonTextPrimary]}>
-              Complete Setup
+            <Text style={[
+              styles.navButtonText, 
+              styles.navButtonTextPrimary,
+              isCompleting && styles.navButtonTextDisabled
+            ]}>
+              {isCompleting ? 'Setting up...' : 'Complete Setup'}
             </Text>
-            <IconSymbol size={20} name="chevron.right" color={proto.buttonText} />
+            {!isCompleting && (
+              <IconSymbol size={20} name="chevron.right" color={proto.buttonText} />
+            )}
           </TouchableOpacity>
         )}
       </View>
@@ -534,6 +548,10 @@ const styles = StyleSheet.create({
     backgroundColor: proto.accent,
     paddingHorizontal: 20,
   },
+  navButtonDisabled: {
+    backgroundColor: proto.textSecondary,
+    opacity: 0.6,
+  },
   navButtonText: {
     fontSize: 16,
     fontWeight: '500',
@@ -541,5 +559,9 @@ const styles = StyleSheet.create({
   },
   navButtonTextPrimary: {
     color: proto.buttonText,
+  },
+  navButtonTextDisabled: {
+    color: proto.buttonText,
+    opacity: 0.8,
   },
 });

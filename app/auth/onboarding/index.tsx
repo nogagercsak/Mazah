@@ -2,7 +2,7 @@ import { Colors } from '@/constants/Colors';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Step1Welcome from './steps/Step1Welcome';
 import Step2Household from './steps/Step2Household';
@@ -38,6 +38,7 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 7;
+  const [isCompleting, setIsCompleting] = useState(false);
   
   const [profile, setProfile] = useState<Partial<OnboardingProfile>>({});
 
@@ -61,6 +62,7 @@ export default function OnboardingScreen() {
 
   const handleSubmit = async () => {
   try {
+    setIsCompleting(true); // Set loading state
     if (__DEV__) console.log('🚀 ONBOARDING SUBMIT: Starting submission...');
     
     const { data: { user } } = await supabase.auth.getUser();
@@ -114,7 +116,7 @@ export default function OnboardingScreen() {
 
     // Add a small delay to ensure the database update is processed
     if (__DEV__) console.log('🚀 ONBOARDING SUBMIT: Waiting for database update...');
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     // Force refresh the page/app state by triggering a hard navigation
     if (__DEV__) console.log('🚀 ONBOARDING SUBMIT: Forcing app state refresh...');
@@ -127,6 +129,7 @@ export default function OnboardingScreen() {
     
     // Show user-friendly error message
     alert(`Failed to save your profile: ${error.message || 'Unknown error'}. Please try again.`);
+    setIsCompleting(false); // Reset loading state on error
   }
 };
 
@@ -137,6 +140,7 @@ export default function OnboardingScreen() {
       onBack: handleBack,
       updateProfile,
       profile,
+      isCompleting,
     };
 
     switch (currentStep) {
@@ -161,10 +165,20 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ProgressBar current={currentStep} total={totalSteps} />
-      <View style={styles.content}>
-        {renderStep()}
-      </View>
+      {isCompleting ? (
+        <View style={styles.completingContainer}>
+          <ActivityIndicator size="large" color={proto.accent} />
+          <Text style={styles.completingTitle}>Setting up your profile...</Text>
+          <Text style={styles.completingSubtitle}>This will just take a moment</Text>
+        </View>
+      ) : (
+        <>
+          <ProgressBar current={currentStep} total={totalSteps} />
+          <View style={styles.content}>
+            {renderStep()}
+          </View>
+        </>
+      )}
     </SafeAreaView>
   );
 }
@@ -177,5 +191,24 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
+  },
+  completingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  completingTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: proto.text,
+    marginTop: 24,
+    textAlign: 'center',
+  },
+  completingSubtitle: {
+    fontSize: 16,
+    color: proto.textSecondary,
+    marginTop: 8,
+    textAlign: 'center',
   },
 }); 

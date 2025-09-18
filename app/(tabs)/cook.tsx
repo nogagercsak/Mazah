@@ -463,7 +463,7 @@ export default function CookScreen() {
               onPress={closeRecipeModal}
               style={styles.closeButton}
             >
-              <IconSymbol size={24} name="plus" color={proto.text} />
+              <IconSymbol size={24} name="xmark" color={proto.text} />
             </TouchableOpacity>
           </View>
 
@@ -941,6 +941,7 @@ const styles = StyleSheet.create({
     left: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 16,
@@ -950,6 +951,8 @@ const styles = StyleSheet.create({
     color: proto.buttonText,
     fontSize: 14,
     fontWeight: '700',
+    textAlign: 'center',
+    lineHeight: 16,
   },
   expiringBadge: {
     position: 'absolute',

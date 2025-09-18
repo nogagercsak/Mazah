@@ -463,7 +463,7 @@ export default function CookScreen() {
               onPress={closeRecipeModal}
               style={styles.closeButton}
             >
-              <IconSymbol size={24} name="plus" color={proto.text} />
+              <IconSymbol size={24} name="xmark" color={proto.text} />
             </TouchableOpacity>
           </View>
 

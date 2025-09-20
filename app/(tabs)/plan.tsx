@@ -20,7 +20,7 @@ import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import type { DayPlan, Meal, MealType } from '@/lib/supabase';
-import AddMealModal from '@/components/plan/AddMealModal';
+import AddMealModal from '@/components/plan/AddMealModalEnhanced';
 
 const proto = Colors.proto;
 
@@ -655,7 +655,12 @@ export default function PlanScreen() {
         </ScrollView>
       )}
 
-      <AddMealModal visible={isModalVisible} onClose={() => setIsModalVisible(false)} onSave={addMeal} selectedDate={selectedDate} />
+      <AddMealModal 
+        visible={isModalVisible} 
+        onClose={() => setIsModalVisible(false)} 
+        onSave={addMeal} 
+        selectedDate={selectedDate} 
+      />
 
       <Tooltip visible={tooltipVisible} onClose={() => setTooltipVisible(false)} message={tooltipMessage} position={tooltipPosition} />
     </SafeAreaView>

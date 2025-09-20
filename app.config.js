@@ -21,9 +21,16 @@ module.exports = {
         ITSAppUsesNonExemptEncryption: false,
         NSAppTransportSecurity: {
           NSAllowsArbitraryLoads: false,
-          NSAllowsLocalNetworking: true
+          NSAllowsLocalNetworking: true,
+          NSExceptionDomains: {
+            "supabase.co": {
+              NSExceptionAllowsInsecureHTTPLoads: false,
+              NSExceptionMinimumTLSVersion: "TLSv1.2",
+              NSExceptionRequiresForwardSecrecy: false
+            }
+          }
         },
-        UIBackgroundModes: [],
+        UIBackgroundModes: ["background-fetch", "background-processing"],
         UIViewControllerBasedStatusBarAppearance: false,
         CFBundleDisplayName: "Mazah"
       }

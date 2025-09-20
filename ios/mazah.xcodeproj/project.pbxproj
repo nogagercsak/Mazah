@@ -363,7 +363,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = mazah/mazah.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = R737Q8827K;
+				DEVELOPMENT_TEAM = 43R5GX99UB;
 				INFOPLIST_FILE = mazah/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -377,7 +377,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.mazahapp.mazah;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mazahapp.mazahh;
 				PRODUCT_NAME = mazah;
 				SWIFT_OBJC_BRIDGING_HEADER = "mazah/mazah-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;

@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
+import { AppState } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import notificationService from '@/services/notificationService';
+import { debugAuthStorage } from '@/utils/debugAuth';
 
 interface AuthContextType {
   user: User | null;
@@ -65,11 +67,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     const getInitialSession = async () => {
       try {
+        if (__DEV__) {
+          console.log('AuthContext: Getting initial session...');
+          await debugAuthStorage();
+        }
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           if (__DEV__) console.error('AuthContext: Error getting session:', error);
         } else {
           if (__DEV__) console.log('AuthContext: Initial session:', session ? `exists for user ${session.user.email}` : 'none');
+          if (__DEV__ && session) {
+            console.log('AuthContext: Session expires at:', new Date(session.expires_at! * 1000).toISOString());
+          }
         }
         
         setSession(session);
@@ -116,6 +125,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Handle app state changes to refresh session when app becomes active
+  useEffect(() => {
+    const handleAppStateChange = async (nextAppState: string) => {
+      if (nextAppState === 'active' && !loading) {
+        if (__DEV__) console.log('AuthContext: App became active, checking session...');
+        try {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          if (error) {
+            if (__DEV__) console.error('AuthContext: Error refreshing session on app active:', error);
+          } else if (session) {
+            if (__DEV__) console.log('AuthContext: Session refreshed on app active');
+            setSession(session);
+            setUser(session.user);
+          }
+        } catch (error) {
+          if (__DEV__) console.error('AuthContext: Error checking session on app active:', error);
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription?.remove();
+  }, [loading]);
 
   return (
     <AuthContext.Provider value={{ user, session, loading, signOut }}>

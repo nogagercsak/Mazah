@@ -301,6 +301,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: proto.background,
   },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
   content: {
     flex: 1,
     paddingHorizontal: 24,

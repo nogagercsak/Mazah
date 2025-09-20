@@ -30,7 +30,7 @@ module.exports = {
             }
           }
         },
-        UIBackgroundModes: ["background-fetch", "background-processing"],
+        UIBackgroundModes: ["fetch", "processing"],
         UIViewControllerBasedStatusBarAppearance: false,
         CFBundleDisplayName: "Mazah"
       }
@@ -47,6 +47,7 @@ module.exports = {
     },
     plugins: [
       "expo-router",
+      "expo-notifications",
       [
         "expo-build-properties",
         {

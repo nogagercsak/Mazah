@@ -167,7 +167,7 @@ export default function IngredientSelector({
         {showDropdown && filteredIngredients.length === 0 && searchQuery.length > 0 && (
           <View style={styles.dropdown}>
             <View style={styles.noResultsContainer}>
-              <Text style={styles.noResultsText}>No ingredients found for "{searchQuery}"</Text>
+              <Text style={styles.noResultsText}>No ingredients found for &quot;{searchQuery}&quot;</Text>
             </View>
           </View>
         )}

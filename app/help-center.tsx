@@ -171,7 +171,7 @@ export default function HelpCenterScreen() {
                 <Text style={styles.tipTitle}>Be Specific</Text>
               </View>
               <Text style={styles.tipText}>
-                Use clear names when adding items (e.g., "Whole Milk 2%" instead of just "Milk").
+                Use clear names when adding items (e.g., &quot;Whole Milk 2%&quot; instead of just &quot;Milk&quot;).
               </Text>
             </View>
           </View>
@@ -180,7 +180,7 @@ export default function HelpCenterScreen() {
         <View style={styles.supportSection}>
           <Text style={styles.supportTitle}>Need more help?</Text>
           <Text style={styles.supportSubtitle}>
-            Can't find what you're looking for? Our support team is here to help.
+            Can&apos;t find what you&apos;re looking for? Our support team is here to help.
           </Text>
           
           <TouchableOpacity

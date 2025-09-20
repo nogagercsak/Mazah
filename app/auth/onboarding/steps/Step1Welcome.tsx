@@ -70,7 +70,7 @@ export default function Step1Welcome({
           <View style={styles.welcomeSection}>
             <ThemedText style={styles.welcomeTitle}>Welcome to Mazah!</ThemedText>
             <ThemedText style={styles.welcomeText}>
-              Let's get to know you better so we can help you reduce food waste and save money.
+              Let&apos;s get to know you better so we can help you reduce food waste and save money.
             </ThemedText>
           </View>
 

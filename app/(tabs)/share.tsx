@@ -740,7 +740,7 @@ export default function FoodBankLocatorScreen() {
           <Ionicons name="search" size={48} color={proto.textSecondary} />
           <Text style={styles.noResultsTitle}>No Food Banks Found</Text>
           <Text style={styles.noResultsText}>
-            We couldn't find any food banks near {getCurrentInput()}. Try searching a nearby area or check back later.
+            We couldn&apos;t find any food banks near {getCurrentInput()}. Try searching a nearby area or check back later.
           </Text>
           <TouchableOpacity 
             style={styles.searchAgainButton} 

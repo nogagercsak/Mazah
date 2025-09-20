@@ -724,7 +724,7 @@ export default function CookScreen() {
 
               {recipe.missedIngredients.length > 0 && (
                 <View style={styles.ingredientsSection}>
-                  <Text style={styles.sectionTitle}>You'll need:</Text>
+                  <Text style={styles.sectionTitle}>You&apos;ll need:</Text>
                   <View style={styles.ingredientsList}>
                     {recipe.missedIngredients.map((ing, index) => (
                       <View key={index} style={styles.missingIngredientTag}>

@@ -98,7 +98,15 @@ export default function IngredientSelector({
         <IconSymbol size={32} name="exclamationmark.triangle" color={proto.textSecondary} />
         <Text style={styles.emptyStateTitle}>No Ingredients Available</Text>
         <Text style={styles.emptyStateText}>
-          Add ingredients to your inventory first before creating meals.
+          It looks like there are no ingredients available in the database. This might be due to:
+          {'\n\n'}
+          • Database setup not complete
+          {'\n'}
+          • Global ingredients not seeded
+          {'\n'}
+          • Permission issues
+          {'\n\n'}
+          Please check your database setup or contact support.
         </Text>
       </View>
     );

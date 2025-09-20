@@ -65,8 +65,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     const getInitialSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (__DEV__) console.log('AuthContext: Initial session:', session ? 'exists' : 'none');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          if (__DEV__) console.error('AuthContext: Error getting session:', error);
+        } else {
+          if (__DEV__) console.log('AuthContext: Initial session:', session ? `exists for user ${session.user.email}` : 'none');
+        }
+        
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -86,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (__DEV__) console.log('AuthContext: Auth state change:', event, session ? 'user exists' : 'no user');
+      if (__DEV__) console.log('AuthContext: Auth state change:', event, session ? `user ${session.user.email}` : 'no user');
       
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         setSession(session);
@@ -101,7 +106,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
       }
       
-      setLoading(false);
+      // Only set loading to false if we're not in the middle of getting initial session
+      if (event !== 'INITIAL_SESSION') {
+        setLoading(false);
+      }
     });
 
     return () => {

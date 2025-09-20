@@ -136,6 +136,11 @@ export default function AddMealModal({
       }));
       
       setAvailableIngredients(processedData);
+      
+      // If no ingredients are available, show a helpful message
+      if (processedData.length === 0) {
+        console.log('No ingredients available. This might be due to database setup or permissions.');
+      }
     } catch (err) {
       console.error('Error fetching ingredients:', err);
       Alert.alert(

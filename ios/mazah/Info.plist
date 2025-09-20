@@ -10,6 +10,16 @@
 	<string>Mazah</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIcons</key>
+	<dict>
+		<key>CFBundlePrimaryIcon</key>
+		<dict>
+			<key>CFBundleIconFiles</key>
+			<array>
+				<string>AppIcon</string>
+			</array>
+		</dict>
+	</dict>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -31,25 +41,23 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
-	
-	<!-- APP ICONS CONFIGURATION -->
-	<key>CFBundleIcons</key>
-	<dict>
-		<key>CFBundlePrimaryIcon</key>
-		<dict>
-			<key>CFBundleIconFiles</key>
-			<array>
-				<string>AppIcon</string>
-			</array>
-		</dict>
-	</dict>
-	
 	<key>LSMinimumSystemVersion</key>
 	<string>12.0</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	
-	<!-- FONT CONFIGURATION FOR @expo/vector-icons -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Mazah uses your location to send location-based reminders about nearby donation centers and expiring food items.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Mazah uses your location to show nearby locations to donate food.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>Mazah sends notifications to provide reminders of when your food will expire.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>AntDesign.ttf</string>
@@ -71,33 +79,11 @@
 		<string>Octicons.ttf</string>
 		<string>Zocial.ttf</string>
 	</array>
-	
-	<!-- LOCATION PERMISSIONS -->
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Mazah uses your location to show nearby locations to donate food.</string>
-	
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Mazah uses your location to send location-based reminders about nearby donation centers and expiring food items.</string>
-	
-	<!-- PUSH NOTIFICATIONS DESCRIPTION -->
-	<key>NSUserNotificationsUsageDescription</key>
-	<string>Mazah sends notifications to provide reminders of when your food will expire.</string>
-	
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<false/>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
-	</dict>
-	
-	<!-- DEVICE FAMILY SUPPORT -->
 	<key>UIDeviceFamily</key>
 	<array>
-		<integer>1</integer><!-- iPhone -->
-		<integer>2</integer><!-- iPad -->
+		<integer>1</integer>
+		<integer>2</integer>
 	</array>
-	
 	<key>UILaunchStoryboardName</key>
 	<string>SplashScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>

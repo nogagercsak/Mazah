@@ -5,208 +5,228 @@ import Markdown from 'react-native-markdown-display';
 const privacyMarkdown = `
 # PRIVACY POLICY
 
-**Last Updated:** August 3rd, 2025
+**Last Updated:** September 20th, 2025
 
 ## Introduction
 
-Welcome to **Mazah** ("us", "we", or "our"). We operate the Mazah: Food Waste Fighting mobile application (the "**Service**").
+Welcome to **Mazah** ("us", "we", or "our"). We operate the Mazah mobile application (the "**Service**"), a food waste reduction app that helps users track their food inventory, plan meals, and find local food banks.
 
-This Privacy Policy governs your use of our Service and explains how we:
+This Privacy Policy explains how we collect, use, and protect your information when you use our Service.
 
-- Collect
-- Safeguard 
-- Disclose 
+## What Information We Collect
 
-information resulting from your use of our Service.
+### Account Information
+When you create an account, we collect:
+- **Email address** (for authentication and account recovery)
+- **Password** (securely stored via Supabase Auth)
 
-We use your data to provide and improve the Service. By using the Service, you agree to our collection and use of information in accordance with this policy.
+### Profile Information
+During onboarding, you may provide:
+- **Household size** (to personalize meal recommendations)
+- **Dietary preferences** (for better meal suggestions)
+- **Cooking habits** (to improve app functionality)
+- **Food waste awareness level** (for personalized tips)
+- **Notification preferences** (for food expiration alerts)
 
-## Definitions
+### Food Inventory Data
+To help you track and reduce food waste, we store:
+- **Food items** you add to your inventory
+- **Expiration dates** and storage locations
+- **Meal plans** you create
+- **Usage patterns** to improve recommendations
 
-- **Service:** The Mazah: Food Waste Fighting mobile application operated by Mazah
-- **Personal Data:** Information about a living individual who can be identified from that data
-- **Usage Data:** Data collected automatically from Service use or infrastructure
-- **Cookies:** Small files stored on your device (computer or mobile device)
-- **Data Controller:** Entity that determines how and why personal data is processed
-- **Data Processors:** Third parties who process data on our behalf
-- **Data Subject:** Individual who is the subject of Personal Data
-- **User:** Individual using our Service (corresponds to Data Subject)
+### Location Data (Optional)
+With your explicit permission, we may collect your location to:
+- **Find nearby food banks** when you search for donation locations
+- **Provide distance calculations** for food bank listings
 
-## Information Collection and Use
+**Important:** Location data is only collected when you actively use the food bank finder feature and is not stored permanently.
 
-We collect several types of information to provide and improve our Service:
+### Device and Usage Information
+We automatically collect:
+- **Device type and operating system** (for app compatibility)
+- **App usage analytics** (via Supabase Analytics - crash reports, performance data)
+- **Push notification tokens** (to send expiration alerts)
 
-### Types of Data Collected
+### What We Don't Collect
+We do **NOT** collect:
+- Browsing history outside our app
+- Cookies for advertising
+- Social media data
+- Payment information (our app is currently free)
+- Camera or photo data
+- Contacts or calendar information
 
-#### Personal Data
-While using our Service, we may ask you to provide:
+## How We Use Your Information
 
-1. Email address
-2. Address (including city, state, ZIP/postal code)
-3. Cookies and Usage Data
+We use your information to:
 
-We may use your Personal Data to:
-- Contact you with newsletters and promotions
-- Provide service updates
-- Offer customer support
+1. **Provide core app functionality** (food tracking, meal planning)
+2. **Send food expiration notifications** (only if you enable them)
+3. **Improve app performance** and fix bugs
+4. **Provide customer support** when you contact us
+5. **Ensure account security** and prevent fraud
+6. **Comply with legal obligations**
 
-You may opt out of communications at any time.
+We do **NOT** use your information for:
+- Marketing emails or promotional content
+- Selling to third parties
+- Advertising purposes
+- Social media integration
 
-#### Usage Data
-We collect information about how you access the Service, including:
+## Data Storage and Security
 
-- IP address
-- Browser type and version
-- Pages visited
-- Time and date of visits
-- Device identifiers
-- Diagnostic data
+### Where Your Data is Stored
+Your data is securely stored using **Supabase**, a trusted backend service provider:
+- **Servers located:** United States (AWS infrastructure)
+- **Encryption:** All data is encrypted in transit and at rest
+- **Access controls:** Only authenticated users can access their own data
 
-#### Location Data
-With your permission, we may collect and store location information to:
+### Security Measures
+We implement industry-standard security practices:
+- **Authentication:** Secure email/password authentication
+- **Session management:** Automatic session timeouts and refresh
+- **Data validation:** Input sanitization and validation
+- **Monitoring:** Real-time security monitoring
 
-- Provide location-based features
-- Improve service customization
+## Third-Party Services
 
-You can enable/disable location services through device settings.
+We use the following third-party services:
 
-#### Tracking Cookies Data
-We use cookies and similar technologies to:
+### Supabase (Backend Services)
+- **Purpose:** Authentication, database, and real-time features
+- **Data shared:** Account information, food inventory, meal plans
+- **Privacy Policy:** [https://supabase.com/privacy](https://supabase.com/privacy)
 
-- Track Service activity
-- Hold certain information
+### Spoonacular (Recipe API)
+- **Purpose:** Recipe recommendations and meal suggestions based on your food inventory
+- **Data shared:** Your food ingredients (to find matching recipes)
+- **Privacy Policy:** [https://spoonacular.com/food-api/privacy-policy](https://spoonacular.com/food-api/privacy-policy)
 
-Cookie types we use:
+### OpenStreetMap (Food Bank Locations)
+- **Purpose:** Finding nearby food banks for donations
+- **Data shared:** Your location (temporarily, when you search)
+- **Privacy Policy:** [https://wiki.osmfoundation.org/wiki/Privacy_Policy](https://wiki.osmfoundation.org/wiki/Privacy_Policy)
 
-1. **Session Cookies:** For operating our Service
-2. **Preference Cookies:** To remember your settings
-3. **Security Cookies:** For security purposes
-4. **Advertising Cookies:** To serve relevant ads
-
-## Use of Data
-
-Mazah uses collected data to:
-
-1. Provide and maintain our Service
-2. Notify you about Service changes
-3. Enable interactive features
-4. Provide customer support
-5. Gather analysis for improvement
-6. Monitor Service usage
-7. Detect and address technical issues
-8. Fulfill other purposes you provide it for
-9. Carry out contractual obligations
-10. Provide account notifications
-11. Offer news and special offers (unless you opt out)
-12. Other purposes with your consent
+### Expo Platform (App Infrastructure)
+- **Purpose:** App delivery, push notifications, crash reporting
+- **Data shared:** Device information, crash logs, push tokens
+- **Privacy Policy:** [https://expo.dev/privacy](https://expo.dev/privacy)
 
 ## Data Retention
 
-We retain your Personal Data only as long as necessary for:
+We retain your data only as long as necessary:
 
-- Legal obligations
-- Dispute resolution
-- Policy enforcement
+- **Account data:** Until you delete your account
+- **Food inventory:** Automatically cleaned up after items expire
+- **Usage analytics:** Up to 2 years for app improvement
+- **Crash logs:** Up to 90 days for debugging
 
-Usage Data is generally retained for shorter periods, except when needed for:
+You can delete your account and all associated data at any time by contacting us.
 
-- Security enhancement
-- Service improvement
-- Legal requirements
+## Data Sharing and Disclosure
 
-## Data Transfer
+**We do NOT sell, rent, or trade your personal information to third parties.**
 
-Your information may be transferred to and maintained on computers located outside your jurisdiction. By using our Service, you consent to this transfer.
+We may share your information only in these limited circumstances:
+- **With your consent** for specific features you enable
+- **With service providers** (Supabase, Expo) to operate the app
+- **For legal compliance** when required by law
+- **To protect safety** in emergency situations
+- **Business transfers** (with notice if ownership changes)
 
-We ensure all transfers comply with adequate data protection measures.
+All third-party services we use have their own privacy policies and security measures.
 
-## Data Disclosure
+## Your Rights and Controls
 
-We may disclose personal information when:
-
-1. Required by law enforcement
-2. Involved in business transactions (mergers, acquisitions)
-3. Necessary to protect our rights or others' safety
-
-## Data Security
-
-While we use commercially acceptable security measures, no method is 100% secure. We cannot guarantee absolute security.
-
-## Your Rights
-
-### GDPR Rights (EU/EEA Residents)
+### Managing Your Data
 You have the right to:
 
-1. Access, update, or delete your data
-2. Request rectification of inaccurate data
-3. Object to our processing of your data
-4. Request processing restrictions
-5. Request data portability
-6. Withdraw consent
+1. **Access** your personal data
+2. **Update** or correct your information
+3. **Delete** your account and all data
+4. **Export** your data (food inventory, meal plans)
+5. **Control notifications** through app settings
 
-Contact us at: mazah.foodsavingapp@gmail.com
+**To delete your account:** Contact us at mazah.foodsavingapp@gmail.com with "Delete Account" in the subject line. We will permanently delete all your data within 30 days.
 
-### California Privacy Rights
-Under CalOPPA and CCPA, California residents can:
+### GDPR Rights (EU/EEA Users)
+If you're in the European Union or European Economic Area, you also have the right to:
+- **Data portability** - receive your data in a machine-readable format
+- **Restrict processing** - limit how we use your data
+- **Object to processing** - opt out of certain data uses
+- **Lodge complaints** - contact your local data protection authority
 
-1. Request information about collected personal data
-2. Delete personal information
-3. Opt-out of data "sales"
+### California Privacy Rights (CCPA)
+California residents have additional rights:
+- **Right to know** what personal information we collect and how it's used
+- **Right to delete** personal information (with some exceptions)
+- **Right to opt-out** of data "sales" (we don't sell data)
+- **Right to non-discrimination** for exercising privacy rights
 
-## Service Providers
+### Location Privacy
+- Location access is **always optional**
+- Only used for food bank finder feature
+- Can be denied or revoked at any time
+- Location is **never stored** permanently
 
-We may employ third-party companies to:
+### Notification Controls
+You can control push notifications:
+- Turn off all notifications
+- Customize expiration alert timing
+- Disable specific notification types
 
-- Facilitate our Service
-- Provide Service on our behalf
-- Perform Service-related services
-- Assist in Service analysis
-
-These parties only access your data to perform these tasks.
-
-## Analytics
-
-We use third-party analytics providers including:
-
-### Google Analytics
-- Tracks and reports website traffic
-- Privacy Policy: [https://policies.google.com/privacy](https://policies.google.com/privacy)
-
-### Supabase
-- Privacy Policy: [https://supabase.com/privacy](https://supabase.com/privacy)
-
-## Advertising
-
-We may use third-party advertising providers:
-
-### Google AdSense
-- Uses cookies to serve ads
-- Opt-out: [http://www.google.com/ads/preferences/](http://www.google.com/ads/preferences/)
-
-## Payments
-
-For paid services, we use PCI-DSS compliant processors:
-
-### PayPal/Braintree
-- Privacy Policy: [https://www.paypal.com/webapps/mpp/ua/privacy-full](https://www.paypal.com/webapps/mpp/ua/privacy-full)
+### Data Portability
+You can request a copy of your data by contacting us at mazah.foodsavingapp@gmail.com
 
 ## Children's Privacy
 
-Our Service is not intended for children under 18. We do not knowingly collect data from children.
+Our app is designed to be safe and appropriate for users of all ages, including children. We are committed to protecting children's privacy and comply with applicable children's privacy laws.
 
-## Policy Changes
+**For users under 13:** We encourage parental supervision and recommend that parents help younger children use the app responsibly.
 
-We may update this Privacy Policy. We will notify you of changes by:
+**Data collection for minors:** We collect the same minimal data for all users regardless of age (email, food inventory, meal plans). We do not collect additional personal information from children.
 
-- Posting the new policy on this page
-- Sending email notifications
-- Displaying prominent Service notices
+**Parental rights:** Parents can contact us at mazah.foodsavingapp@gmail.com to:
+- Review their child's data
+- Request deletion of their child's account
+- Ask questions about our privacy practices
+
+If you believe a child has provided us with personal information without parental consent, please contact us immediately.
+
+## Changes to This Policy
+
+We may update this Privacy Policy to reflect:
+- Changes in our data practices
+- New features or services
+- Legal requirements
+
+We will notify you of significant changes by:
+- Updating the "Last Updated" date
+- Sending an in-app notification
+- Posting a notice in the app
+
+Continued use of the app after changes indicates acceptance of the updated policy.
+
+## International Users
+
+If you are accessing our app from outside the United States:
+- Your data may be transferred to and stored in the US
+- We comply with applicable data protection laws
+- EU/EEA residents have additional rights under GDPR
 
 ## Contact Us
 
-For questions about this Privacy Policy:
+For questions about this Privacy Policy or your data:
 
-Email: mazah.foodsavingapp@gmail.com
+**Email:** mazah.foodsavingapp@gmail.com
+**Subject Line:** Privacy Policy Inquiry
+
+We aim to respond to all privacy inquiries within 48 hours.
+
+---
+
+**Note:** This app is designed to help reduce food waste and support local communities. We are committed to protecting your privacy while delivering a meaningful service.
 `;
 
 export default function PrivacyPolicyScreen() {

@@ -134,6 +134,13 @@ export default function LoginScreen() {
             )}
           </TouchableOpacity>
 
+          <TouchableOpacity 
+            style={styles.forgotPasswordButton} 
+            onPress={() => router.push('/auth/forgot-password' as any)}
+          >
+            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+          </TouchableOpacity>
+
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>or</Text>
@@ -236,5 +243,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: proto.accent,
+  },
+  forgotPasswordButton: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginTop: 16,
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    color: proto.accent,
+    textDecorationLine: 'underline',
   },
 }); 

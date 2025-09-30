@@ -71,7 +71,7 @@ export const COMPREHENSIVE_SUBSTITUTIONS: SubstitutionCategory[] = [
       'ketchup': ['tomato paste + vinegar + sugar', 'barbecue sauce', 'sriracha'],
       'mayonnaise': ['greek yogurt', 'sour cream', 'avocado', 'hummus', 'tahini'],
       'mustard': ['horseradish', 'wasabi', 'mayonnaise + turmeric', 'hot sauce'],
-      'vinegar': ['lemon juice', 'lime juice', 'wine', 'citric acid'],
+      'vinegar': ['lemon juice', 'lime juice', 'rice vinegar', 'citric acid'],
       'hot sauce': ['cayenne pepper', 'red pepper flakes', 'sriracha', 'harissa', 'gochujang'],
     }
   },

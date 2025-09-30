@@ -3,10 +3,11 @@ module.exports = {
     name: "Mazah",
     slug: "mazah",
     scheme: "mazah",
-    version: "1.0.0",
+    version: "1.0.1",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     userInterfaceStyle: "light",
+    privacy: "public",
     splash: {
       image: "./assets/images/splash-icon.png",
       resizeMode: "contain",
@@ -16,7 +17,10 @@ module.exports = {
       supportsTablet: true,
       bundleIdentifier: "com.mazahapp.mazah",
       jsEngine: "hermes",
-      buildNumber: "16",
+      buildNumber: "17",
+      config: {
+        usesNonExemptEncryption: false
+      },
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
         NSAppTransportSecurity: {
@@ -27,12 +31,23 @@ module.exports = {
               NSExceptionAllowsInsecureHTTPLoads: false,
               NSExceptionMinimumTLSVersion: "TLSv1.2",
               NSExceptionRequiresForwardSecrecy: false
+            },
+            "maps.google.com": {
+              NSExceptionAllowsInsecureHTTPLoads: false,
+              NSExceptionMinimumTLSVersion: "TLSv1.2",
+              NSExceptionRequiresForwardSecrecy: false
             }
           }
         },
         UIBackgroundModes: ["fetch", "processing"],
         UIViewControllerBasedStatusBarAppearance: false,
-        CFBundleDisplayName: "Mazah"
+        CFBundleDisplayName: "Mazah",
+        // Restrict content to appropriate age rating
+        NSContentRatingPolicy: {
+          "WebContent": 0, // No unrestricted web content
+          "SocialNetworking": 0, // No social networking
+          "UserGeneratedContent": 0 // No user generated content
+        }
       }
     },
     android: {

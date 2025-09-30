@@ -29,6 +29,7 @@ import {
   type FoodBank, 
   type FoodBankType 
 } from '@/services/foodBankService';
+import { openFoodBankWebsite } from '@/utils/webSafety';
 
 const proto = Colors.proto;
 
@@ -283,7 +284,7 @@ const FoodBankDetailsModal: React.FC<FoodBankDetailsModalProps> = ({
 
   const handleWebsite = () => {
     if (foodBank.website) {
-      Linking.openURL(foodBank.website);
+      openFoodBankWebsite(foodBank.website);
     }
   };
 
@@ -697,7 +698,7 @@ export default function FoodBankLocatorScreen() {
               onPress={(e) => {
                 e.stopPropagation();
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                Linking.openURL(foodBank.website!);
+                openFoodBankWebsite(foodBank.website!);
               }}
               accessibilityLabel="Visit website"
               accessibilityHint="Opens this food bank's website"

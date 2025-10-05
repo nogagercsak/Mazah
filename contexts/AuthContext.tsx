@@ -113,6 +113,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else if (event === 'SIGNED_OUT') {
         setSession(null);
         setUser(null);
+      } else if (event === 'USER_UPDATED') {
+        // Handle user updates without clearing session
+        if (session) {
+          setSession(session);
+          setUser(session.user);
+        }
       }
       
       // Only set loading to false if we're not in the middle of getting initial session
@@ -135,13 +141,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const { data: { session }, error } = await supabase.auth.getSession();
           if (error) {
             if (__DEV__) console.error('AuthContext: Error refreshing session on app active:', error);
-          } else if (session) {
+            // Don't sign out on error - could be network issue
+            return;
+          }
+          
+          if (session) {
             if (__DEV__) console.log('AuthContext: Session refreshed on app active');
             setSession(session);
             setUser(session.user);
+          } else {
+            // Only clear if there's truly no session
+            if (__DEV__) console.log('AuthContext: No session found on app active');
+            setSession(null);
+            setUser(null);
           }
         } catch (error) {
           if (__DEV__) console.error('AuthContext: Error checking session on app active:', error);
+          // Don't clear session on catch - could be temporary error
         }
       }
     };

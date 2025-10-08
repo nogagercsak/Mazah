@@ -1,4 +1,5 @@
 import { FoodItem, supabase } from '@/lib/supabase';
+import { RecognizedIngredient } from './foodRecognitionService';
 
 // Extend FoodItem to include daysLeft
 interface FoodItemWithDaysLeft extends FoodItem {
@@ -376,7 +377,7 @@ export class RecipeService {
       );
 
       if (!response.ok) throw new Error(`API Error: ${response.status}`);
-      
+
       const data = await response.json();
       const recipes: SpoonacularRecipe[] = data.results || [];
 
@@ -389,5 +390,257 @@ export class RecipeService {
       if (__DEV__) console.error('Recipe name search error:', error);
       return [];
     }
+  }
+
+  // NEW: Search recipes using photo-detected ingredients
+  async searchRecipesByPhotoIngredients(recognizedIngredients: RecognizedIngredient[]): Promise<ProcessedRecipe[]> {
+    if (!recognizedIngredients || recognizedIngredients.length === 0) {
+      return [];
+    }
+
+    // Filter ingredients by confidence threshold and clean names
+    const highConfidenceIngredients = recognizedIngredients
+      .filter(ingredient => ingredient.confidence >= 60) // Only use high-confidence ingredients
+      .map(ingredient => ingredient.name.toLowerCase())
+      .slice(0, 8); // Limit to 8 ingredients for better API performance
+
+    if (highConfidenceIngredients.length === 0) {
+      return [];
+    }
+
+    try {
+      // Search for recipes using detected ingredients
+      const response = await fetch(
+        `https://api.spoonacular.com/recipes/findByIngredients?` +
+        `ingredients=${highConfidenceIngredients.join(',')}&` +
+        `number=20&` +
+        `ranking=2&` + // Maximize used ingredients
+        `ignorePantry=false&` +
+        `apiKey=${this.apiKey}`
+      );
+
+      if (!response.ok) throw new Error(`API Error: ${response.status}`);
+
+      const recipes: SpoonacularRecipe[] = await response.json();
+
+      // Get detailed information for each recipe
+      const detailedRecipes = await Promise.all(
+        recipes.map(recipe => this.getRecipeDetails(recipe.id))
+      );
+
+      // Process recipes with special scoring for photo-detected ingredients
+      return detailedRecipes
+        .map(recipe => this.processPhotoBasedRecipe(recipe, recognizedIngredients))
+        .sort((a, b) => b.wasteReductionScore - a.wasteReductionScore);
+
+    } catch (error) {
+      if (__DEV__) console.error('Photo ingredient recipe search error:', error);
+      return [];
+    }
+  }
+
+  // NEW: Process recipe with photo-specific scoring
+  private processPhotoBasedRecipe(recipe: SpoonacularRecipe, recognizedIngredients: RecognizedIngredient[]): ProcessedRecipe {
+    const baseProcessed = this.processRecipe(recipe);
+
+    // Enhanced scoring for photo-detected ingredients
+    const photoScore = this.calculatePhotoBasedScore(recipe, recognizedIngredients);
+
+    return {
+      ...baseProcessed,
+      wasteReductionScore: Math.min(baseProcessed.wasteReductionScore + photoScore, 100),
+      wasteReductionTags: [
+        ...baseProcessed.wasteReductionTags,
+        ...this.generatePhotoBasedTags(recipe, recognizedIngredients)
+      ]
+    };
+  }
+
+  // NEW: Calculate additional score for photo-detected ingredients
+  private calculatePhotoBasedScore(recipe: SpoonacularRecipe, recognizedIngredients: RecognizedIngredient[]): number {
+    let score = 0;
+    const recipeIngredients = recipe.extendedIngredients?.map(ing => ing.name.toLowerCase()) || [];
+
+    recognizedIngredients.forEach(recognized => {
+      const isInRecipe = recipeIngredients.some(recipeIng =>
+        recipeIng.includes(recognized.name.toLowerCase()) ||
+        recognized.name.toLowerCase().includes(recipeIng)
+      );
+
+      if (isInRecipe) {
+        // Bonus points based on confidence level
+        if (recognized.confidence >= 90) score += 15;
+        else if (recognized.confidence >= 80) score += 12;
+        else if (recognized.confidence >= 70) score += 8;
+        else if (recognized.confidence >= 60) score += 5;
+      }
+    });
+
+    // Bonus for using multiple detected ingredients
+    const matchedCount = recognizedIngredients.filter(recognized =>
+      recipeIngredients.some(recipeIng =>
+        recipeIng.includes(recognized.name.toLowerCase()) ||
+        recognized.name.toLowerCase().includes(recipeIng)
+      )
+    ).length;
+
+    if (matchedCount >= 3) score += 10;
+    else if (matchedCount >= 2) score += 5;
+
+    return score;
+  }
+
+  // NEW: Generate tags specific to photo-based detection
+  private generatePhotoBasedTags(recipe: SpoonacularRecipe, recognizedIngredients: RecognizedIngredient[]): string[] {
+    const tags: string[] = [];
+    const recipeIngredients = recipe.extendedIngredients?.map(ing => ing.name.toLowerCase()) || [];
+
+    const matchedIngredients = recognizedIngredients.filter(recognized =>
+      recipeIngredients.some(recipeIng =>
+        recipeIng.includes(recognized.name.toLowerCase()) ||
+        recognized.name.toLowerCase().includes(recipeIng)
+      )
+    );
+
+    if (matchedIngredients.length >= 3) {
+      tags.push('Perfect Match');
+    } else if (matchedIngredients.length >= 2) {
+      tags.push('Good Match');
+    }
+
+    // Check for high-confidence ingredients
+    const highConfidenceMatches = matchedIngredients.filter(ing => ing.confidence >= 85);
+    if (highConfidenceMatches.length > 0) {
+      tags.push('High Confidence Match');
+    }
+
+    // Check for fresh ingredients (common in photos)
+    const freshIngredients = ['fruits', 'vegetables', 'herbs'];
+    const hasFreshIngredients = matchedIngredients.some(ing =>
+      freshIngredients.includes(ing.category || '')
+    );
+    if (hasFreshIngredients) {
+      tags.push('Fresh Ingredients');
+    }
+
+    return tags;
+  }
+
+  // NEW: Get smart recipe suggestions based on what's detected in photo
+  async getSmartPhotoRecipes(recognizedIngredients: RecognizedIngredient[]): Promise<{
+    primaryRecipes: ProcessedRecipe[];
+    alternativeRecipes: ProcessedRecipe[];
+    suggestions: {
+      missingCommonIngredients: string[];
+      cookingTips: string[];
+      alternativeIngredients: string[];
+    };
+  }> {
+    // Get recipes using detected ingredients
+    const primaryRecipes = await this.searchRecipesByPhotoIngredients(recognizedIngredients);
+
+    // Get alternative recipes with broader search
+    const alternativeIngredients = recognizedIngredients
+      .map(ing => ing.name)
+      .concat(this.getRelatedIngredients(recognizedIngredients));
+
+    const alternativeRecipes = await this.searchRecipesByIngredients(false);
+
+    // Generate smart suggestions
+    const suggestions = this.generateSmartSuggestions(recognizedIngredients, primaryRecipes);
+
+    return {
+      primaryRecipes: primaryRecipes.slice(0, 10),
+      alternativeRecipes: alternativeRecipes.slice(0, 5),
+      suggestions
+    };
+  }
+
+  // NEW: Get ingredients related to detected ones
+  private getRelatedIngredients(recognizedIngredients: RecognizedIngredient[]): string[] {
+    const related: string[] = [];
+
+    recognizedIngredients.forEach(ingredient => {
+      const category = ingredient.category;
+      if (category === 'vegetables') {
+        related.push('onion', 'garlic', 'olive oil');
+      } else if (category === 'fruits') {
+        related.push('sugar', 'lemon', 'honey');
+      } else if (category === 'proteins') {
+        related.push('salt', 'pepper', 'herbs');
+      }
+    });
+
+    return [...new Set(related)]; // Remove duplicates
+  }
+
+  // NEW: Generate smart cooking suggestions
+  private generateSmartSuggestions(
+    recognizedIngredients: RecognizedIngredient[],
+    recipes: ProcessedRecipe[]
+  ): {
+    missingCommonIngredients: string[];
+    cookingTips: string[];
+    alternativeIngredients: string[];
+  } {
+    const commonMissing = this.findCommonMissingIngredients(recipes);
+    const cookingTips = this.generateCookingTips(recognizedIngredients);
+    const alternatives = this.suggestAlternatives(recognizedIngredients);
+
+    return {
+      missingCommonIngredients: commonMissing.slice(0, 5),
+      cookingTips: cookingTips.slice(0, 3),
+      alternativeIngredients: alternatives.slice(0, 5)
+    };
+  }
+
+  // NEW: Find commonly missing ingredients across recipes
+  private findCommonMissingIngredients(recipes: ProcessedRecipe[]): string[] {
+    const missingCounts: { [key: string]: number } = {};
+
+    recipes.forEach(recipe => {
+      recipe.missedIngredients.forEach(missing => {
+        missingCounts[missing] = (missingCounts[missing] || 0) + 1;
+      });
+    });
+
+    return Object.entries(missingCounts)
+      .sort(([,a], [,b]) => b - a)
+      .map(([ingredient]) => ingredient);
+  }
+
+  // NEW: Generate cooking tips based on detected ingredients
+  private generateCookingTips(recognizedIngredients: RecognizedIngredient[]): string[] {
+    const tips: string[] = [];
+
+    recognizedIngredients.forEach(ingredient => {
+      const name = ingredient.name.toLowerCase();
+
+      if (name.includes('tomato')) {
+        tips.push('Score an X on tomatoes before blanching for easy peeling');
+      } else if (name.includes('onion')) {
+        tips.push('Chill onions before cutting to reduce tears');
+      } else if (name.includes('garlic')) {
+        tips.push('Crush garlic with the flat side of a knife for easy peeling');
+      } else if (name.includes('herb')) {
+        tips.push('Add fresh herbs at the end of cooking to preserve flavor');
+      }
+    });
+
+    return [...new Set(tips)]; // Remove duplicates
+  }
+
+  // NEW: Suggest alternative ingredients
+  private suggestAlternatives(recognizedIngredients: RecognizedIngredient[]): string[] {
+    const alternatives: string[] = [];
+
+    recognizedIngredients.forEach(ingredient => {
+      const substitutes = SUBSTITUTION_MAP[ingredient.name.toLowerCase()];
+      if (substitutes) {
+        alternatives.push(...substitutes.slice(0, 2)); // Add top 2 alternatives
+      }
+    });
+
+    return [...new Set(alternatives)]; // Remove duplicates
   }
 }

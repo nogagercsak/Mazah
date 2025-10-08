@@ -42,6 +42,8 @@ module.exports = {
         UIBackgroundModes: ["fetch", "processing"],
         UIViewControllerBasedStatusBarAppearance: false,
         CFBundleDisplayName: "Mazah",
+        NSCameraUsageDescription: "Mazah needs camera access to identify ingredients from photos for recipe recommendations.",
+        NSPhotoLibraryUsageDescription: "Mazah needs photo library access to select ingredient photos for recognition.",
         // Restrict content to appropriate age rating
         NSContentRatingPolicy: {
           "WebContent": 0, // No unrestricted web content
@@ -55,7 +57,12 @@ module.exports = {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#ffffff"
       },
-      package: "com.mazahapp.mazah"
+      package: "com.mazahapp.mazah",
+      permissions: [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     },
     web: {
       favicon: "./assets/images/favicon.png"

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Image, ActivityIndicator, RefreshControl, Modal, Pressable, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
 import { IconSymbol, IconSymbolName } from '@/components/ui/IconSymbol';
@@ -66,6 +66,7 @@ type FullRecipeDetails = {
 };
 
 export default function CookScreen() {
+  const router = useRouter();
   const { user } = useAuth();
   const [selectedFilter, setSelectedFilter] = useState('expiring');
   const [recipes, setRecipes] = useState<ProcessedRecipe[]>([]);
@@ -782,9 +783,14 @@ export default function CookScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Smart Recipe Suggestions</Text>
-        <TouchableOpacity style={styles.searchButton} onPress={handleSearchPress}>
-          <IconSymbol size={24} name="magnifyingglass" color={proto.accentDark} />
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity style={styles.cameraButton} onPress={() => router.push('/photo-recipe-finder')}>
+            <IconSymbol size={24} name="camera" color={proto.buttonText} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.searchButton} onPress={handleSearchPress}>
+            <IconSymbol size={24} name="magnifyingglass" color={proto.accentDark} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView 
@@ -866,6 +872,23 @@ const styles = StyleSheet.create({
     opacity: 0.85,
     letterSpacing: 0.5,
     flex: 1,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cameraButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: proto.accent,
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   searchButton: {
     width: 44,

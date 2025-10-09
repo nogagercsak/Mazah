@@ -222,10 +222,9 @@ export default function ResetPasswordScreen() {
         </View>
 
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBackToLogin}>
-            <IconSymbol name="arrow.left" size={20} color={proto.accent} />
+            <TouchableOpacity style={styles.backButton} onPress={handleBackToLogin}>
             <Text style={styles.backButtonText}>Back to Login</Text>
-          </TouchableOpacity>
+            </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>

@@ -74,7 +74,7 @@ export default function ForgotPasswordScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <IconSymbol name="lock.reset" size={64} color={proto.accent} />
+          <IconSymbol name="lock" size={64} color={proto.accent} />
           <Text style={styles.title}>Forgot Password?</Text>
           <Text style={styles.subtitle}>
             {emailSent 

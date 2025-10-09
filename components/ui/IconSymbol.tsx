@@ -71,7 +71,7 @@ const MAPPING = {
   'lightbulb.fill': 'lightbulb',
   'plus.circle.fill': 'add-circle',
   'xmark.circle.fill': 'cancel',
-  'list.bullet': 'format-list-bulleted',
+  'list.bullet': 'format-list-bulleted'
 } as const;
 
 export type IconSymbolName = keyof typeof MAPPING;

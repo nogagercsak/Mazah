@@ -1,9 +1,13 @@
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
+import { supabase, FavoriteFood } from '@/lib/supabase';
+import favoriteFoodService from '@/services/favoriteFoodService';
+import { FavoritesFoodsSection } from '@/components/FavoritesFoodsSection';
+import { checkTableExists } from '@/utils/testFavoritesSetup';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import * as Haptics from 'expo-haptics';
 import { 
   ActivityIndicator, 
   Alert, 
@@ -16,7 +20,9 @@ import {
   Modal,
   Pressable,
   Animated,
-  Dimensions
+  Dimensions,
+  ScrollView,
+  KeyboardAvoidingView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -37,6 +43,104 @@ export default function AddItemScreen() {
   const [selectedStorage, setSelectedStorage] = useState<StorageLocation>(storageLocation || 'pantry');
   const [loading, setLoading] = useState(false);
   const [tempDate, setTempDate] = useState(new Date());
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [checkingFavorite, setCheckingFavorite] = useState(false);
+
+  // Check if database is set up on mount
+  useEffect(() => {
+    const verifySetup = async () => {
+      const tableExists = await checkTableExists();
+      if (!tableExists && __DEV__) {
+        console.warn('⚠️  user_favorite_foods table not found. Please run the database migration.');
+        console.warn('See QUICK_SETUP_FAVORITES.md for instructions.');
+      }
+    };
+    verifySetup();
+  }, []);
+
+  // Check if the current food name is favorited whenever name changes
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (!user || !name.trim()) {
+        setIsFavorited(false);
+        return;
+      }
+      
+      setCheckingFavorite(true);
+      const favorited = await favoriteFoodService.isFoodFavorited(user.id, name.trim());
+      setIsFavorited(favorited);
+      setCheckingFavorite(false);
+    };
+
+    const timer = setTimeout(checkFavoriteStatus, 300); // Debounce
+    return () => clearTimeout(timer);
+  }, [name, user]);
+
+  const handleToggleFavorite = async () => {
+    if (!user || !name.trim()) {
+      Alert.alert('Missing Information', 'Please enter a food name first.');
+      return;
+    }
+
+    try {
+      // Haptic feedback
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      
+      if (__DEV__) {
+        console.log('========================================');
+        console.log('Toggling favorite for:', name.trim());
+        console.log('User ID:', user.id);
+        console.log('Storage:', selectedStorage);
+        console.log('Quantity:', quantity.trim());
+        console.log('========================================');
+      }
+      
+      const success = await favoriteFoodService.toggleFavoriteFood({
+        userId: user.id,
+        foodName: name.trim(),
+        storageLocation: selectedStorage,
+        defaultQuantity: quantity.trim() || undefined,
+      });
+
+      if (success) {
+        const newState = !isFavorited;
+        setIsFavorited(newState);
+        
+        // Show success message
+        Alert.alert(
+          newState ? '⭐ Added to Favorites' : 'Removed from Favorites',
+          newState 
+            ? `"${name.trim()}" has been added to your favorites for quick access.`
+            : `"${name.trim()}" has been removed from your favorites.`,
+          [{ text: 'OK' }]
+        );
+        
+        if (__DEV__) console.log('✅ Favorite toggled successfully. New state:', newState);
+      } else {
+        if (__DEV__) console.log('❌ Failed to toggle favorite');
+        Alert.alert(
+          'Error', 
+          'Failed to update favorite status. Make sure you have run the database migration. See QUICK_SETUP_FAVORITES.md'
+        );
+      }
+    } catch (error) {
+      if (__DEV__) {
+        console.error('❌ Error in handleToggleFavorite:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
+      }
+      Alert.alert('Error', 'An unexpected error occurred. Check the console for details.');
+    }
+  };
+
+  const handleSelectFavorite = (favorite: FavoriteFood) => {
+    setName(favorite.food_name);
+    if (favorite.storage_location) {
+      setSelectedStorage(favorite.storage_location as StorageLocation);
+    }
+    if (favorite.default_quantity) {
+      setQuantity(favorite.default_quantity);
+    }
+  };
 
   const handleAddItem = async () => {
     if (!name.trim() || !quantity.trim()) {
@@ -259,9 +363,64 @@ export default function AddItemScreen() {
         <View style={{ width: 40 }} /> 
       </View>
       
-      <View style={styles.form}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {user ? (
+            <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
+              <FavoritesFoodsSection 
+                userId={user.id} 
+                onSelectFavorite={handleSelectFavorite}
+              />
+            </View>
+          ) : null}
+
+          <View style={styles.form}>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Item Name</Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>Item Name</Text>
+            <TouchableOpacity 
+              onPress={handleToggleFavorite}
+              style={[
+                styles.starButton,
+                isFavorited && styles.starButtonActive,
+                !name.trim() && styles.starButtonDisabled
+              ]}
+              disabled={checkingFavorite || !name.trim()}
+              activeOpacity={0.7}
+            >
+              {checkingFavorite ? (
+                <ActivityIndicator size="small" color={proto.accent} />
+              ) : (
+                <>
+                  <IconSymbol 
+                    name={isFavorited ? "star.fill" : "star"} 
+                    size={18} 
+                    color={
+                      !name.trim() 
+                        ? proto.textSecondary 
+                        : isFavorited 
+                          ? "#FFFFFF" 
+                          : proto.accent
+                    }
+                  />
+                  <Text style={[
+                    styles.starButtonText,
+                    isFavorited && styles.starButtonTextActive,
+                    !name.trim() && styles.starButtonTextDisabled
+                  ]}>
+                    {isFavorited ? 'Favorited' : 'Add to Favorites'}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
@@ -314,6 +473,8 @@ export default function AddItemScreen() {
           )}
         </TouchableOpacity>
       </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -322,6 +483,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: proto.background,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   header: {
     flexDirection: 'row',
@@ -352,11 +519,46 @@ const styles = StyleSheet.create({
   inputGroup: {
     marginBottom: 24,
   },
+  labelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   label: {
     fontSize: 16,
     fontWeight: '600',
     color: proto.text,
-    marginBottom: 12,
+  },
+  starButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: proto.accent,
+    backgroundColor: proto.background,
+    gap: 6,
+  },
+  starButtonActive: {
+    backgroundColor: proto.accent,
+    borderColor: proto.accent,
+  },
+  starButtonDisabled: {
+    borderColor: proto.border,
+    opacity: 0.5,
+  },
+  starButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: proto.accent,
+  },
+  starButtonTextActive: {
+    color: '#FFFFFF',
+  },
+  starButtonTextDisabled: {
+    color: proto.textSecondary,
   },
   inputContainer: {
     flexDirection: 'row',

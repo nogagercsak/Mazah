@@ -651,8 +651,12 @@ export default function CookScreen() {
         <View style={styles.recipeImageContainer}>
           <Image source={{ uri: recipe.image }} style={styles.recipeImage} resizeMode="cover" />
           
-          {/* Waste Reduction Score */}
-          <View style={[styles.scoreContainer, { backgroundColor: getScoreColor(recipe.wasteReductionScore) }]}>
+          {/* Waste Reduction Score - positioned based on whether expiring badge is present */}
+          <View style={[
+            styles.scoreContainer, 
+            { backgroundColor: getScoreColor(recipe.wasteReductionScore) },
+            recipe.expiringIngredients.length > 0 ? styles.scoreContainerLeft : styles.scoreContainerRight
+          ]}>
             <IconSymbol size={16} name="leaf.fill" color={proto.buttonText} />
             <Text style={styles.scoreText}>{recipe.wasteReductionScore}%</Text>
           </View>
@@ -891,15 +895,28 @@ const styles = StyleSheet.create({
   filterChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 24,
     backgroundColor: proto.card,
     marginRight: 12,
     gap: 6,
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.04)',
   },
   filterChipActive: {
     backgroundColor: proto.accent,
+    borderColor: proto.accent,
+    shadowColor: proto.accent,
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+    transform: [{ scale: 1.02 }],
   },
   filterText: {
     fontSize: 14,
@@ -919,13 +936,15 @@ const styles = StyleSheet.create({
   },
   recipeCard: {
     backgroundColor: proto.card,
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: 'hidden',
     shadowColor: proto.shadow,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowRadius: 12,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.03)',
   },
   recipeImageContainer: {
     height: 180,
@@ -938,14 +957,24 @@ const styles = StyleSheet.create({
   scoreContainer: {
     position: 'absolute',
     top: 12,
-    left: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
     gap: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  scoreContainerLeft: {
+    left: 12,
+  },
+  scoreContainerRight: {
+    right: 12,
   },
   scoreText: {
     color: proto.buttonText,
@@ -959,9 +988,14 @@ const styles = StyleSheet.create({
     top: 12,
     right: 12,
     backgroundColor: '#E57373',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: '#E57373',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 3,
   },
   expiringBadgeText: {
     color: proto.buttonText,
@@ -985,15 +1019,16 @@ const styles = StyleSheet.create({
   },
   tag: {
     backgroundColor: proto.accentDark,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    opacity: 0.9,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    opacity: 0.95,
   },
   tagText: {
     color: proto.buttonText,
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   recipeMeta: {
     flexDirection: 'row',

@@ -622,17 +622,27 @@ export default function InventoryScreen() {
 
   const renderLoadingState = () => (
     <View style={styles.centerContainer}>
-      <ActivityIndicator size="large" color={proto.accent} />
+      <IconSymbol size={48} name="cart" color={proto.accent} />
       <Text style={styles.loadingText}>Loading your inventory...</Text>
+      <ActivityIndicator size="large" color={proto.accent} style={{ marginTop: 12 }} />
     </View>
   );
 
   const renderErrorState = () => (
     <View style={styles.centerContainer}>
-      <IconSymbol size={48} name="lightbulb" color="#E57373" />
+      <View style={styles.errorIconContainer}>
+        <IconSymbol size={48} name="exclamationmark.triangle" color="#E57373" />
+      </View>
       <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
       <Text style={styles.errorText}>{error}</Text>
-      <TouchableOpacity style={styles.retryButton} onPress={fetchInventory}>
+      <TouchableOpacity 
+        style={styles.retryButton} 
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          fetchInventory();
+        }}
+      >
+        <IconSymbol size={18} name="arrow.clockwise" color={proto.buttonText} />
         <Text style={styles.retryButtonText}>Try Again</Text>
       </TouchableOpacity>
     </View>
@@ -766,6 +776,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   retryButtonText: {
     color: proto.buttonText,
@@ -788,16 +806,22 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     paddingHorizontal: 20,
   },
+  errorIconContainer: {
+    padding: 16,
+    backgroundColor: 'rgba(229, 115, 115, 0.1)',
+    borderRadius: 50,
+    marginBottom: 8,
+  },
   section: {
     marginBottom: 28,
     marginHorizontal: 25,
     borderRadius: 20,
     backgroundColor: proto.card,
     shadowColor: proto.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
     paddingBottom: 8,
   },
   sectionHeader: {
@@ -806,8 +830,8 @@ const styles = StyleSheet.create({
     backgroundColor: proto.accentDark,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
     marginBottom: 6,
   },
   sectionTitle: {
@@ -825,7 +849,7 @@ const styles = StyleSheet.create({
   },
   itemCard: {
     backgroundColor: proto.background,
-    borderRadius: 18,
+    borderRadius: 16,
     marginHorizontal: 10,
     marginVertical: 6,
     padding: 18,
@@ -834,9 +858,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: proto.shadow,
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
   },
   itemInfo: {
     flex: 1,
@@ -919,17 +945,18 @@ const styles = StyleSheet.create({
     backgroundColor: proto.accent,
     paddingHorizontal: 32,
     paddingVertical: 16,
-    borderRadius: 12,
-    shadowColor: proto.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    borderRadius: 16,
+    shadowColor: proto.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   addFirstItemButtonText: {
     color: proto.buttonText,
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: 18,
+    letterSpacing: 0.5,
   },
   modalOverlay: {
     flex: 1,

@@ -71,6 +71,7 @@ const MAPPING = {
   'lightbulb.fill': 'lightbulb',
   'plus.circle.fill': 'add-circle',
   'xmark.circle.fill': 'cancel',
+  'checkmark.circle.fill': 'check-circle',
   'list.bullet': 'format-list-bulleted'
 } as const;
 

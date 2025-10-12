@@ -49,6 +49,16 @@ export type FoodItem = {
   daysLeft?: number; // Added for UI display
 };
 
+export type FavoriteFood = {
+  id: string;
+  user_id: string;
+  food_name: string;
+  storage_location: 'fridge' | 'pantry' | 'freezer' | null;
+  default_quantity: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export interface InventoryData {
   fridge: FoodItem[];
   pantry: FoodItem[];

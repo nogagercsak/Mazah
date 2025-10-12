@@ -3,7 +3,7 @@ import { Colors } from '@/constants/Colors';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const proto = Colors.proto;
@@ -13,6 +13,7 @@ export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
 
   const handleSendResetEmail = async () => {
     if (!email) {
@@ -72,24 +73,28 @@ export default function ForgotPasswordScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <IconSymbol name="lock" size={64} color={proto.accent} />
-          <Text style={styles.title}>Forgot Password?</Text>
-          <Text style={styles.subtitle}>
-            {emailSent 
-              ? 'We\'ve sent you a reset link!' 
-              : 'Enter your email and we\'ll send you a link to reset your password'
-            }
-          </Text>
-        </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <IconSymbol name="lock" size={64} color={proto.accent} />
+            <Text style={styles.title}>Forgot Password?</Text>
+            <Text style={styles.subtitle}>
+              {emailSent 
+                ? 'We\'ve sent you a reset link!' 
+                : 'Enter your email and we\'ll send you a link to reset your password'
+              }
+            </Text>
+          </View>
 
         {!emailSent ? (
           <View style={styles.form}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email Address</Text>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  isEmailFocused && styles.inputFocused
+                ]}
                 placeholder="Enter your email address"
                 value={email}
                 onChangeText={setEmail}
@@ -98,6 +103,8 @@ export default function ForgotPasswordScreen() {
                 autoCorrect={false}
                 placeholderTextColor={proto.textSecondary}
                 editable={!loading}
+                onFocus={() => setIsEmailFocused(true)}
+                onBlur={() => setIsEmailFocused(false)}
               />
             </View>
 
@@ -124,16 +131,27 @@ export default function ForgotPasswordScreen() {
             <Text style={styles.helpText}>
               Didn't receive the email? Check your spam folder or try again with a different email address.
             </Text>
+            
+            <TouchableOpacity 
+              style={styles.resendButton} 
+              onPress={() => {
+                setEmailSent(false);
+                setEmail('');
+              }}
+            >
+              <Text style={styles.resendButtonText}>Send Another Email</Text>
+            </TouchableOpacity>
           </View>
         )}
 
         <View style={styles.footer}>
           <TouchableOpacity style={styles.backButton} onPress={handleBackToLogin}>
-            <IconSymbol name="arrow.left" size={20} color={proto.accent} />
+            <IconSymbol name="chevron.left" size={20} color={proto.accent} />
             <Text style={styles.backButtonText}>Back to Login</Text>
           </TouchableOpacity>
         </View>
       </View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
@@ -188,6 +206,15 @@ const styles = StyleSheet.create({
     color: proto.text,
     borderWidth: 1,
     borderColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  inputFocused: {
+    borderColor: proto.accent,
+    borderWidth: 2,
   },
   resetButton: {
     backgroundColor: proto.accent,
@@ -195,6 +222,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 8,
+    shadowColor: proto.accent,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   disabledButton: {
     opacity: 0.6,
@@ -224,6 +256,19 @@ const styles = StyleSheet.create({
     color: proto.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  resendButton: {
+    marginTop: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: proto.accent,
+  },
+  resendButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: proto.accent,
   },
   footer: {
     alignItems: 'center',

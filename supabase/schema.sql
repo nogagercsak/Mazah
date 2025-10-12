@@ -7,6 +7,7 @@
 -- -----------------------------
 
 -- Drop existing tables in correct order (respecting foreign key constraints)
+DROP TABLE IF EXISTS public.user_favorite_foods CASCADE;
 DROP TABLE IF EXISTS public.push_tokens CASCADE;
 DROP TABLE IF EXISTS public.meal_ingredients CASCADE;
 DROP TABLE IF EXISTS public.meal_plans CASCADE;
@@ -79,6 +80,18 @@ CREATE TABLE IF NOT EXISTS public.push_tokens (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
   UNIQUE(token)
+);
+
+-- Create user_favorite_foods table for storing frequently bought items
+CREATE TABLE IF NOT EXISTS public.user_favorite_foods (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  food_name TEXT NOT NULL,
+  storage_location TEXT CHECK (storage_location IN ('fridge', 'pantry', 'freezer')),
+  default_quantity TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+  UNIQUE(user_id, food_name)
 );
 
 -- Create food_items table
@@ -189,6 +202,8 @@ CREATE INDEX IF NOT EXISTS idx_meal_ingredients_ingredient_id ON public.meal_ing
 CREATE INDEX IF NOT EXISTS idx_food_items_user_id ON public.food_items(user_id);
 CREATE INDEX IF NOT EXISTS idx_food_items_storage_location ON public.food_items(storage_location);
 CREATE INDEX IF NOT EXISTS idx_food_items_expiration_date ON public.food_items(expiration_date);
+CREATE INDEX IF NOT EXISTS idx_user_favorite_foods_user_id ON public.user_favorite_foods(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_favorite_foods_food_name ON public.user_favorite_foods(food_name);
 
 -- Indexes for recipes and recipe_ingredients
 CREATE INDEX IF NOT EXISTS idx_recipes_user_id ON public.recipes(user_id);
@@ -209,6 +224,7 @@ ALTER TABLE public.meal_ingredients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.recipes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.recipe_ingredients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_tokens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_favorite_foods ENABLE ROW LEVEL SECURITY;
 
 -- -----------------------------
 -- 6. Create RLS Policies
@@ -333,6 +349,19 @@ CREATE POLICY "Users can update own push tokens" ON public.push_tokens
 CREATE POLICY "Users can delete own push tokens" ON public.push_tokens
     FOR DELETE USING (auth.uid() = user_id);
 
+-- User favorite foods policies
+CREATE POLICY "Users can view own favorite foods" ON public.user_favorite_foods
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own favorite foods" ON public.user_favorite_foods
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own favorite foods" ON public.user_favorite_foods
+    FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own favorite foods" ON public.user_favorite_foods
+    FOR DELETE USING (auth.uid() = user_id);
+
 -- -----------------------------
 -- 7. Create Triggers
 -- -----------------------------
@@ -369,6 +398,11 @@ CREATE TRIGGER handle_meal_plans_updated_at
 
 CREATE TRIGGER handle_meal_ingredients_updated_at
   BEFORE UPDATE ON public.meal_ingredients
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();
+
+CREATE TRIGGER handle_user_favorite_foods_updated_at
+  BEFORE UPDATE ON public.user_favorite_foods
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_updated_at();
 

@@ -19,13 +19,14 @@ import {
   View,
   Modal,
   Pressable,
-  Animated,
   Dimensions,
   ScrollView,
   KeyboardAvoidingView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { ExpirationSuggestions } from '@/components/ExpirationSuggestions';
+import { useExpirationSuggestions } from '@/hooks/useExpirationSuggestions';
 
 const proto = Colors.proto;
 const { width: screenWidth } = Dimensions.get('window');
@@ -45,6 +46,18 @@ export default function AddItemScreen() {
   const [tempDate, setTempDate] = useState(new Date());
   const [isFavorited, setIsFavorited] = useState(false);
   const [checkingFavorite, setCheckingFavorite] = useState(false);
+  
+  const { calculateExpirationDate } = useExpirationSuggestions();
+
+  const handleSuggestionSelect = (foodName: string, expirationDays: number, storage: string) => {
+    setName(foodName);
+    setSelectedStorage(storage as StorageLocation);
+    
+    const newExpirationDate = calculateExpirationDate(expirationDays);
+    setExpirationDate(newExpirationDate);
+    
+    console.log(`Added ${foodName} to ${storage}, expires in ${expirationDays} days`);
+  };
 
   // Check if database is set up on mount
   useEffect(() => {
@@ -172,8 +185,6 @@ export default function AddItemScreen() {
         throw insertError;
       }
 
-
-
       Alert.alert('Success!', 'Your item has been added.');
       router.back();
 
@@ -270,6 +281,8 @@ export default function AddItemScreen() {
       </View>
     );
   };
+
+
 
   const renderDatePicker = () => {
     const expirationInfo = getExpirationText(expirationDate);
@@ -382,56 +395,59 @@ export default function AddItemScreen() {
           ) : null}
 
           <View style={styles.form}>
-        <View style={styles.inputGroup}>
-          <View style={styles.labelRow}>
-            <Text style={styles.label}>Item Name</Text>
-            <TouchableOpacity 
-              onPress={handleToggleFavorite}
-              style={[
-                styles.starButton,
-                isFavorited && styles.starButtonActive,
-                !name.trim() && styles.starButtonDisabled
-              ]}
-              disabled={checkingFavorite || !name.trim()}
-              activeOpacity={0.7}
-            >
-              {checkingFavorite ? (
-                <ActivityIndicator size="small" color={proto.accent} />
-              ) : (
-                <>
-                  <IconSymbol 
-                    name={isFavorited ? "star.fill" : "star"} 
-                    size={18} 
-                    color={
-                      !name.trim() 
-                        ? proto.textSecondary 
-                        : isFavorited 
-                          ? "#FFFFFF" 
-                          : proto.accent
-                    }
-                  />
-                  <Text style={[
-                    styles.starButtonText,
-                    isFavorited && styles.starButtonTextActive,
-                    !name.trim() && styles.starButtonTextDisabled
-                  ]}>
-                    {isFavorited ? 'Favorited' : 'Add to Favorites'}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g., Organic Milk"
-              value={name}
-              onChangeText={setName}
-              placeholderTextColor={proto.textSecondary}
-              returnKeyType="next"
-            />
-          </View>
-        </View>
+            <View style={styles.inputGroup}>
+              <View style={styles.labelRow}>
+                <Text style={styles.label}>Item Name</Text>
+                <TouchableOpacity 
+                  onPress={handleToggleFavorite}
+                  style={[
+                    styles.starButton,
+                    isFavorited && styles.starButtonActive,
+                    !name.trim() && styles.starButtonDisabled
+                  ]}
+                  disabled={checkingFavorite || !name.trim()}
+                  activeOpacity={0.7}
+                >
+                  {checkingFavorite ? (
+                    <ActivityIndicator size="small" color={proto.accent} />
+                  ) : (
+                    <>
+                      <IconSymbol 
+                        name={isFavorited ? "star.fill" : "star"} 
+                        size={18} 
+                        color={
+                          !name.trim() 
+                            ? proto.textSecondary 
+                            : isFavorited 
+                              ? "#FFFFFF" 
+                              : proto.accent
+                        }
+                      />
+                      <Text style={[
+                        styles.starButtonText,
+                        isFavorited && styles.starButtonTextActive,
+                        !name.trim() && styles.starButtonTextDisabled
+                      ]}>
+                        {isFavorited ? 'Favorited' : 'Add to Favorites'}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+             </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g., Organic Milk"
+                value={name}
+                onChangeText={setName}
+                placeholderTextColor={proto.textSecondary}
+                returnKeyType="next"
+              />
+            </View>
+            {/* Auto-suggestions appear as user types */}
+            <ExpirationSuggestions onSuggestionSelect={handleSuggestionSelect} />
+            
+         </View>
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Quantity</Text>
@@ -457,22 +473,33 @@ export default function AddItemScreen() {
           {renderStorageSelector()}
         </View>
 
+        {expirationDate && (
+          <View style={styles.expirationInfo}>
+            <Text style={styles.expirationInfoText}>
+              Suggested expiration: {expirationDate.toLocaleDateString()}
+            </Text>
+            <Text style={styles.storageText}>
+              Storage: {selectedStorage}
+            </Text>
+          </View>   
+        )}
+        
         <TouchableOpacity 
-          style={[styles.saveButton, loading && styles.saveButtonDisabled]} 
-          onPress={handleAddItem} 
-          disabled={loading}
-          activeOpacity={0.8}
-        >
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator color={proto.buttonText} size="small" />
-              <Text style={[styles.saveButtonText, { marginLeft: 8 }]}>Adding...</Text>
-            </View>
-          ) : (
-            <Text style={styles.saveButtonText}>Add Item to Inventory</Text>
-          )}
-        </TouchableOpacity>
-      </View>
+              style={[styles.saveButton, loading && styles.saveButtonDisabled]} 
+              onPress={handleAddItem} 
+              disabled={loading}
+              activeOpacity={0.8}
+            >
+              {loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator color={proto.buttonText} size="small" />
+                  <Text style={[styles.saveButtonText, { marginLeft: 8 }]}>Adding...</Text>
+                </View>
+              ) : (
+                <Text style={styles.saveButtonText}>Add Item to Inventory</Text>
+              )}
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -733,5 +760,33 @@ const styles = StyleSheet.create({
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  expirationInfo: {
+    backgroundColor: '#e7f3ff',
+    padding: 15,
+    borderRadius: 8,
+    marginVertical: 10,
+  },
+  expirationInfoText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#0066cc',
+  },
+  storageText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  addButton: {
+    backgroundColor: '#007AFF',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

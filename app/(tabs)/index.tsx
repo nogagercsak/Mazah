@@ -659,11 +659,17 @@ export default function InventoryScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Food Inventory</Text>
         <View style={styles.headerButtons}>
-          <TouchableOpacity 
-            style={styles.addButton} 
+          <TouchableOpacity
+            style={styles.scanButton}
+            onPress={() => router.push('/scan-recipe')}
+          >
+            <IconSymbol size={20} name={"camera" as any} color={proto.accentDark} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.addButton}
             onPress={() => router.push('/add-item')}
           >
-            <IconSymbol size={28} name={"plus" as any} color={proto.buttonText} />
+            <IconSymbol size={24} name={"plus" as any} color={proto.buttonText} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
             <IconSymbol size={24} name={"person" as any} color={proto.accentDark} />
@@ -721,11 +727,13 @@ const styles = StyleSheet.create({
     color: proto.accentDark,
     opacity: 0.85,
     letterSpacing: 0.5,
+    flex: 1,
   },
   headerButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
+    marginLeft: 16,
   },
   addButton: {
     backgroundColor: proto.accent,
@@ -883,6 +891,21 @@ const styles = StyleSheet.create({
   expirationText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  scanButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: proto.card,
+    borderWidth: 2,
+    borderColor: proto.accent,
+    shadowColor: proto.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
   profileButton: {
     padding: 8,

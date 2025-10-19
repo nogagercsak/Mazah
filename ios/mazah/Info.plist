@@ -58,6 +58,12 @@
 	<string>Mazah uses your location to show nearby locations to donate food.</string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>Mazah sends notifications to provide reminders of when your food will expire.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Mazah needs access to your camera to scan recipes and identify ingredients for your food inventory.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Mazah needs access to your photo library to select recipe images and add ingredients to your inventory.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Mazah needs permission to save photos to your library.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>AntDesign.ttf</string>

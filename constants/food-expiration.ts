@@ -157,3 +157,21 @@ export const FOOD_EXPIRATION_DATA: FoodItem[] = [
   { name: "jam", category: "miscellaneous", fridgeDays: 365, freezerDays: 0, pantryDays: 180 },
   { name: "maple syrup", category: "miscellaneous", fridgeDays: 365, freezerDays: 0, pantryDays: 365 },
 ];
+
+export const getExpirationSuggestion = (
+  foodName: string,
+  storageType: 'fridge' | 'freezer' | 'pantry' = 'fridge'
+): number | null => {
+  const foodItem = FOOD_EXPIRATION_DATA.find(item =>
+    item.name.toLowerCase() === foodName.toLowerCase()
+  );
+
+  if (!foodItem) return null;
+
+  switch (storageType) {
+    case 'fridge': return foodItem.fridgeDays;
+    case 'freezer': return foodItem.freezerDays;
+    case 'pantry': return foodItem.pantryDays;
+    default: return foodItem.fridgeDays;
+  }
+};

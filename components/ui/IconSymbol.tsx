@@ -72,7 +72,14 @@ const MAPPING = {
   'plus.circle.fill': 'add-circle',
   'xmark.circle.fill': 'cancel',
   'checkmark.circle.fill': 'check-circle',
-  'list.bullet': 'format-list-bulleted'
+  'list.bullet': 'format-list-bulleted',
+  'camera': 'camera-alt',
+  'photo': 'photo',
+  'info.circle': 'info',
+  'arrow.clockwise': 'refresh',
+  'bag': 'shopping-bag',
+  'flame': 'local-fire-department',
+  'leaf': 'eco'
 } as const;
 
 export type IconSymbolName = keyof typeof MAPPING;

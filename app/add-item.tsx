@@ -370,123 +370,98 @@ export default function AddItemScreen() {
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <IconSymbol name={"chevron.left" as any} size={24} color={proto.accentDark} />
+          <IconSymbol name={"chevron.left" as any} size={28} color={proto.accentDark} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add Food Item</Text>
-        <View style={{ width: 40 }} /> 
+        <Text style={styles.headerTitle}>Add Food</Text>
+        <View style={{ width: 40 }} />
       </View>
-      
-      <KeyboardAvoidingView 
+
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          {user ? (
-            <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
-              <FavoritesFoodsSection 
-                userId={user.id} 
+          {/* Quick Add from Favorites */}
+          {user && (
+            <View style={styles.favoritesWrapper}>
+              <FavoritesFoodsSection
+                userId={user.id}
                 onSelectFavorite={handleSelectFavorite}
               />
             </View>
-          ) : null}
+          )}
 
           <View style={styles.form}>
+            {/* Name Input with Inline Suggestions */}
             <View style={styles.inputGroup}>
-              <View style={styles.labelRow}>
-                <Text style={styles.label}>Item Name</Text>
-                <TouchableOpacity 
-                  onPress={handleToggleFavorite}
-                  style={[
-                    styles.starButton,
-                    isFavorited && styles.starButtonActive,
-                    !name.trim() && styles.starButtonDisabled
-                  ]}
-                  disabled={checkingFavorite || !name.trim()}
-                  activeOpacity={0.7}
-                >
-                  {checkingFavorite ? (
-                    <ActivityIndicator size="small" color={proto.accent} />
-                  ) : (
-                    <>
-                      <IconSymbol 
-                        name={isFavorited ? "star.fill" : "star"} 
-                        size={18} 
-                        color={
-                          !name.trim() 
-                            ? proto.textSecondary 
-                            : isFavorited 
-                              ? "#FFFFFF" 
-                              : proto.accent
-                        }
+              <Text style={styles.label}>What are you adding?</Text>
+              <View style={styles.inputContainer}>
+                <IconSymbol name="fork.knife" size={20} color={proto.textSecondary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g., Milk, Chicken, Apples"
+                  value={name}
+                  onChangeText={setName}
+                  placeholderTextColor={proto.textSecondary}
+                  returnKeyType="next"
+                  autoFocus={false}
+                />
+                {name.trim().length > 0 && (
+                  <TouchableOpacity onPress={handleToggleFavorite} disabled={checkingFavorite}>
+                    {checkingFavorite ? (
+                      <ActivityIndicator size="small" color={proto.accent} />
+                    ) : (
+                      <IconSymbol
+                        name={isFavorited ? "star.fill" : "star"}
+                        size={22}
+                        color={isFavorited ? "#FFD700" : proto.textSecondary}
                       />
-                      <Text style={[
-                        styles.starButtonText,
-                        isFavorited && styles.starButtonTextActive,
-                        !name.trim() && styles.starButtonTextDisabled
-                      ]}>
-                        {isFavorited ? 'Favorited' : 'Add to Favorites'}
-                      </Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-             </View>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g., Organic Milk"
-                value={name}
-                onChangeText={setName}
-                placeholderTextColor={proto.textSecondary}
-                returnKeyType="next"
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
+              <ExpirationSuggestions
+                searchTerm={name}
+                onSuggestionSelect={handleSuggestionSelect}
               />
             </View>
-            {/* Auto-suggestions appear as user types */}
-            <ExpirationSuggestions onSuggestionSelect={handleSuggestionSelect} />
-            
-         </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Quantity</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g., 1 gallon, 2 lbs, 500g"
-              value={quantity}
-              onChangeText={setQuantity}
-              placeholderTextColor={proto.textSecondary}
-              returnKeyType="done"
-            />
-          </View>
-        </View>
+            {/* Quantity Input - Simplified */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>How much?</Text>
+              <View style={styles.inputContainer}>
+                <IconSymbol name="bag" size={20} color={proto.textSecondary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g., 1 carton, 2 lbs, 500g"
+                  value={quantity}
+                  onChangeText={setQuantity}
+                  placeholderTextColor={proto.textSecondary}
+                  returnKeyType="done"
+                />
+              </View>
+            </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Expiration Date</Text>
-          {renderDatePicker()}
-        </View>
+            {/* Storage Location - More Visual */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Where will you store it?</Text>
+              {renderStorageSelector()}
+            </View>
 
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Storage Location</Text>
-          {renderStorageSelector()}
-        </View>
+            {/* Expiration Date - Simplified */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>When does it expire?</Text>
+              {renderDatePicker()}
+            </View>
 
-        {expirationDate && (
-          <View style={styles.expirationInfo}>
-            <Text style={styles.expirationInfoText}>
-              Suggested expiration: {expirationDate.toLocaleDateString()}
-            </Text>
-            <Text style={styles.storageText}>
-              Storage: {selectedStorage}
-            </Text>
-          </View>   
-        )}
-        
-        <TouchableOpacity 
-              style={[styles.saveButton, loading && styles.saveButtonDisabled]} 
-              onPress={handleAddItem} 
+            <TouchableOpacity
+              style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+              onPress={handleAddItem}
               disabled={loading}
               activeOpacity={0.8}
             >
@@ -496,7 +471,10 @@ export default function AddItemScreen() {
                   <Text style={[styles.saveButtonText, { marginLeft: 8 }]}>Adding...</Text>
                 </View>
               ) : (
-                <Text style={styles.saveButtonText}>Add Item to Inventory</Text>
+                <>
+                  <IconSymbol name="plus" size={20} color={proto.buttonText} />
+                  <Text style={styles.saveButtonText}>Add to Inventory</Text>
+                </>
               )}
             </TouchableOpacity>
           </View>
@@ -516,110 +494,80 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: proto.border,
+    paddingTop: 8,
+    paddingBottom: 16,
+    backgroundColor: proto.background,
   },
   backButton: {
-    padding: 8,
-    borderRadius: 8,
+    padding: 4,
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '700',
     color: proto.accentDark,
-    opacity: 0.85,
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
+  },
+  favoritesWrapper: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
   form: {
     paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingTop: 16,
     flex: 1,
   },
   inputGroup: {
-    marginBottom: 24,
-  },
-  labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 28,
   },
   label: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: proto.text,
-  },
-  starButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: proto.accent,
-    backgroundColor: proto.background,
-    gap: 6,
-  },
-  starButtonActive: {
-    backgroundColor: proto.accent,
-    borderColor: proto.accent,
-  },
-  starButtonDisabled: {
-    borderColor: proto.border,
-    opacity: 0.5,
-  },
-  starButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: proto.accent,
-  },
-  starButtonTextActive: {
-    color: '#FFFFFF',
-  },
-  starButtonTextDisabled: {
-    color: proto.textSecondary,
+    marginBottom: 12,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: proto.inputBackground,
-    borderRadius: 12,
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 2,
     borderColor: proto.border,
     paddingHorizontal: 16,
+    paddingVertical: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   inputIcon: {
     marginRight: 12,
+    opacity: 0.6,
   },
   input: {
     flex: 1,
-    paddingVertical: 16,
-    fontSize: 16,
+    paddingVertical: 14,
+    fontSize: 17,
     color: proto.text,
   },
   datePickerButton: {
-    backgroundColor: proto.inputBackground,
-    borderRadius: 12,
-    borderWidth: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 2,
     borderColor: proto.border,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   datePickerContent: {
     flexDirection: 'row',
@@ -643,8 +591,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   expirationText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
     marginRight: 8,
   },
   modalOverlay: {
@@ -693,44 +641,50 @@ const styles = StyleSheet.create({
   },
   storageSelectorContainer: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   storageOption: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    borderWidth: 2,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    borderRadius: 18,
+    borderWidth: 2.5,
     borderColor: proto.border,
-    backgroundColor: proto.inputBackground,
+    backgroundColor: '#FFFFFF',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   storageOptionSelected: {
-    borderColor: 'transparent',
-    transform: [{ scale: 1.02 }],
-    backgroundColor: proto.accentDark,
+    borderColor: proto.accent,
+    backgroundColor: proto.accent,
+    borderWidth: 2.5,
+    shadowColor: proto.accent,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 4,
   },
   storageIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-    marginBottom: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    marginBottom: 10,
   },
   storageIconContainerSelected: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
   },
   storageOptionText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
     color: proto.accentDark,
+    textTransform: 'capitalize',
   },
   storageOptionTextSelected: {
     color: '#FFFFFF',
@@ -739,18 +693,21 @@ const styles = StyleSheet.create({
     backgroundColor: proto.accent,
     paddingVertical: 18,
     paddingHorizontal: 24,
-    borderRadius: 16,
+    borderRadius: 20,
     alignItems: 'center',
-    marginTop: 'auto',
-    marginBottom: 16,
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+    marginBottom: 8,
     shadowColor: proto.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
     elevation: 6,
   },
   saveButtonDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
   saveButtonText: {
     fontSize: 18,
@@ -760,33 +717,6 @@ const styles = StyleSheet.create({
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  expirationInfo: {
-    backgroundColor: '#e7f3ff',
-    padding: 15,
-    borderRadius: 8,
-    marginVertical: 10,
-  },
-  expirationInfoText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#0066cc',
-  },
-  storageText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  addButton: {
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  addButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
+    gap: 8,
   },
 });

@@ -81,30 +81,30 @@ export default function PlanScreen() {
       setError(null);
 
       const weekDates = Array.from({ length: 7 }, (_, i) => format(addDays(weekStart, i), 'yyyy-MM-dd'));
-      
+
+      // Fetch from Supabase
       // First, fetch meal plans for the week
-      const { data: mealPlans, error: mealPlansError } = await supabase
+      const { data: mealPlansData, error: mealPlansError } = await supabase
         .from('meal_plans')
         .select('*')
         .eq('user_id', user?.id)
         .in('date', weekDates);
 
       if (mealPlansError) throw mealPlansError;
+      const mealPlans = mealPlansData || [];
 
       // Then fetch all meals referenced in the meal plans
       const mealIds = mealPlans?.map(mp => mp.meal_id) || [];
-      const { data: meals, error: mealsError } = await supabase
+      const { data: mealsData, error: mealsError } = await supabase
         .from('meals')
         .select('*')
         .in('id', mealIds);
 
       if (mealsError) throw mealsError;
-
-      // Create a map of meal ids to meals for easier lookup
-      const mealMap = new Map(meals?.map(meal => [meal.id, meal]));
+      const meals = mealsData || [];
 
       // Fetch all meal ingredients with their ingredient data
-      const { data: mealIngredients, error: ingredientsError } = await supabase
+      const { data: mealIngredientsData, error: ingredientsError } = await supabase
         .from('meal_ingredients')
         .select(`
           *,
@@ -113,6 +113,10 @@ export default function PlanScreen() {
         .in('meal_id', mealIds);
 
       if (ingredientsError) throw ingredientsError;
+      const mealIngredients = mealIngredientsData || [];
+
+      // Create a map of meal ids to meals for easier lookup
+      const mealMap = new Map(meals?.map(meal => [meal.id, meal]));
 
       // Transform the data into our DayPlan structure
       const plans: DayPlan[] = weekDates.map(date => {

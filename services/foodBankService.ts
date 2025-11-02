@@ -270,10 +270,59 @@ export const getCurrentLocation = async (): Promise<{ lat: number; lng: number }
 
 // Search 211.org database (using their public API)
 const search211Database = async (userLocation: { lat: number; lng: number }): Promise<FoodBank[]> => {
-  try {
-    // Note: This is a simplified implementation. In production, you'd need to register for 211 API access
-    // For now, we'll return empty array until real API integration is implemented
+  const apiKey = process.env.EXPO_PUBLIC_211_API_KEY;
+  if (!apiKey) {
+    if (__DEV__) console.warn('211 API key is not configured. Skipping 211 search.');
     return [];
+  }
+
+  const url = `https://api.211.org/search/v1/api/Search/Keyword?Keyword=food&Latitude=${userLocation.lat}&Longitude=${userLocation.lng}&Distance=30`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Api-Key': apiKey,
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      if (__DEV__) console.error(`211 API request failed with status: ${response.status}`);
+      const errorText = await response.text();
+      if (__DEV__) console.error('211 API error response:', errorText);
+      return [];
+    }
+
+    const data = await response.json();
+    if (!data.results) {
+      if (__DEV__) console.log('211 API returned no results.');
+      return [];
+    }
+
+    return data.results.map((item: any): FoodBank => {
+      const service = item.document.service;
+      const organization = item.document.organization;
+      const location = organization.locations[0];
+
+      return {
+        id: `211-${service.id}`,
+        name: organization.name,
+        address: `${location.address1}, ${location.city}, ${location.state}, ${location.zipCode}`,
+        phone: formatPhoneNumber(organization.phones?.[0]?.number),
+        website: formatWebsite(organization.url),
+        hours: service.hours,
+        distance: 0, // Will be calculated later
+        type: 'food_pantry', // 211 API doesn't always provide a clear type
+        acceptedItems: [],
+        specialNotes: service.description,
+        source: '211',
+        coordinates: {
+          lat: location.latitude,
+          lng: location.longitude,
+        },
+      };
+    });
   } catch (error) {
     if (__DEV__) console.error('211 API error:', error);
     return [];

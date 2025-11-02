@@ -83,7 +83,7 @@ function useProtectedRoute(user: any) {
 
       try {
         if (__DEV__) console.log('Checking onboarding status for user:', user.id);
-        
+
         const { data, error } = await supabase
           .from('user_profiles')
           .select('completed_at, created_at')
@@ -101,15 +101,15 @@ function useProtectedRoute(user: any) {
 
         // If no profile exists or completed_at is null, user needs onboarding
         const needsOnboarding = !data || !data.completed_at;
-        if (__DEV__) console.log('Onboarding check result:', { 
-          hasProfile: !!data, 
+        if (__DEV__) console.log('Onboarding check result:', {
+          hasProfile: !!data,
           completedAt: data?.completed_at,
           createdAt: data?.created_at,
           needsOnboarding,
           userId: user.id,
           checkTime: new Date().toISOString()
         });
-        
+
         setNeedsOnboarding(needsOnboarding);
         setHasCheckedOnboarding(true);
       } catch (error) {
@@ -128,31 +128,31 @@ function useProtectedRoute(user: any) {
       setHasCheckedOnboarding(true);
       setNeedsOnboarding(false);
     }
-  }, [user?.id]); // FIXED: Remove lastCheckTime from dependency
+  }, [user?.id]);
 
   // Add a periodic re-check when on onboarding screen
   useEffect(() => {
     const isOnboarding = segments[1] === 'onboarding';
-    
+
     if (user && isOnboarding && hasCheckedOnboarding && needsOnboarding) {
       if (__DEV__) console.log('Setting up periodic onboarding status check...');
-      
+
       const interval = setInterval(async () => {
         if (__DEV__) console.log('Periodic check: Re-checking onboarding status...');
-        
+
         const { data } = await supabase
           .from('user_profiles')
           .select('completed_at')
           .eq('user_id', user.id)
           .maybeSingle();
-        
+
         if (data && data.completed_at) {
           if (__DEV__) console.log('Periodic check: Onboarding completed! Updating state...');
           setNeedsOnboarding(false);
           clearInterval(interval);
         }
       }, 3000); // Check every 3 seconds (increased from 2)
-      
+
       return () => {
         if (__DEV__) console.log('Cleaning up periodic onboarding check...');
         clearInterval(interval);

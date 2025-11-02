@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '@/contexts/AuthContext';
 
 const proto = Colors.proto;
 
@@ -254,4 +255,4 @@ const styles = StyleSheet.create({
     color: proto.accent,
     textDecorationLine: 'underline',
   },
-}); 
+});

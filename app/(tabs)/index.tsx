@@ -404,8 +404,8 @@ export default function InventoryScreen() {
       setLoading(true);
       setError(null);
 
-      // Fetch all food items for the current user
-      const { data, error: fetchError } = await supabase
+      // Fetch all food items for the current user from Supabase
+      const { data: fetchedData, error: fetchError } = await supabase
         .from('food_items')
         .select('*')
         .eq('user_id', user?.id)
@@ -414,6 +414,8 @@ export default function InventoryScreen() {
       if (fetchError) {
         throw fetchError;
       }
+
+      const data = fetchedData || [];
 
       // Transform the data to match the expected format
       const transformedData: InventoryData = {
@@ -425,7 +427,7 @@ export default function InventoryScreen() {
       data?.forEach((item: FoodItem) => {
         const daysLeft = calculateDaysLeft(item.expiration_date);
         const itemWithDaysLeft = { ...item, daysLeft };
-        
+
         switch (item.storage_location) {
           case 'fridge':
             transformedData.fridge.push(itemWithDaysLeft);
@@ -464,13 +466,15 @@ export default function InventoryScreen() {
   const handleDeleteItem = async (itemId: string) => {
     try {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      // Delete from Supabase
       const { error } = await supabase
         .from('food_items')
         .delete()
         .eq('id', itemId);
 
       if (error) throw error;
-      
+
       // Refresh the inventory
       fetchInventory();
     } catch (err) {
@@ -482,16 +486,18 @@ export default function InventoryScreen() {
   const handleMarkAsUsed = async (itemId: string) => {
     try {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      // Delete from Supabase
       const { error } = await supabase
         .from('food_items')
         .delete()
         .eq('id', itemId);
 
       if (error) throw error;
-      
+
       // Show confirmation
       Alert.alert('Success', 'Item marked as used!');
-      
+
       // Refresh the inventory
       fetchInventory();
     } catch (err) {
@@ -502,6 +508,7 @@ export default function InventoryScreen() {
 
   const handleUpdateItem = async (updatedItem: FoodItem) => {
     try {
+      // Update in Supabase
       const { error } = await supabase
         .from('food_items')
         .update({
@@ -513,7 +520,7 @@ export default function InventoryScreen() {
         .eq('id', updatedItem.id);
 
       if (error) throw error;
-      
+
       fetchInventory();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (err) {
@@ -659,12 +666,6 @@ export default function InventoryScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Food Inventory</Text>
         <View style={styles.headerButtons}>
-          <TouchableOpacity
-            style={styles.scanButton}
-            onPress={() => router.push('/scan-recipe')}
-          >
-            <IconSymbol size={20} name={"camera" as any} color={proto.accentDark} />
-          </TouchableOpacity>
           <TouchableOpacity
             style={styles.addButton}
             onPress={() => router.push('/add-item')}
@@ -891,21 +892,6 @@ const styles = StyleSheet.create({
   expirationText: {
     fontSize: 14,
     fontWeight: '600',
-  },
-  scanButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: proto.card,
-    borderWidth: 2,
-    borderColor: proto.accent,
-    shadowColor: proto.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
   },
   profileButton: {
     padding: 8,

@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      
+
       // Clear local state
       setUser(null);
       setSession(null);
@@ -80,15 +80,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log('AuthContext: Session expires at:', new Date(session.expires_at! * 1000).toISOString());
           }
         }
-        
+
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         // Initialize notifications if user is authenticated
         if (session?.user) {
           initializeNotifications(session.user);
         }
-        
+
         setLoading(false);
       } catch (error) {
         if (__DEV__) console.error('AuthContext: Error getting initial session:', error);

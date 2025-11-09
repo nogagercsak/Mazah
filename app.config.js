@@ -17,7 +17,7 @@ module.exports = {
       supportsTablet: true,
       bundleIdentifier: "com.mazahapp.mazah",
       jsEngine: "hermes",
-      buildNumber: "17",
+      buildNumber: "18",
       config: {
         usesNonExemptEncryption: false
       },

@@ -54,8 +54,8 @@ We do **NOT** collect:
 - Cookies for advertising
 - Social media data
 - Payment information (our app is currently free)
-- Camera or photo data
 - Contacts or calendar information
+- Photos or media files
 
 ## How We Use Your Information
 

@@ -29,7 +29,7 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>1.0.1</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -40,7 +40,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>18</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>12.0</string>
 	<key>LSRequiresIPhoneOS</key>
@@ -52,18 +52,14 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Mazah uses your location to send location-based reminders about nearby donation centers and expiring food items.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Mazah uses your location to show nearby locations to donate food.</string>
+	<string>Mazah uses your location to show nearby food banks and donation centers when you search for places to donate surplus food.</string>
 	<key>NSUserNotificationsUsageDescription</key>
-	<string>Mazah sends notifications to provide reminders of when your food will expire.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Mazah needs access to your camera to scan receipts and identify ingredients for your food inventory.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Mazah needs access to your photo library to select recipe images and add ingredients to your inventory.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Mazah needs permission to save photos to your library.</string>
+	<string>Mazah sends notifications to remind you when your food is approaching its expiration date, helping you reduce waste.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>This helps us understand how you use Mazah to improve your experience and show relevant features.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>AntDesign.ttf</string>
